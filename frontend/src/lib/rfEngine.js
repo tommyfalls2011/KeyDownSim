@@ -10,15 +10,15 @@ export const RADIOS = {
 
 export const DRIVER_AMPS = {
   'none': { name: 'No Driver', gainDB: 0, transistors: 0, currentDraw: 0 },
-  '2-pill': { name: '2-Pill Driver', gainDB: 20, transistors: 2, currentDraw: 12 },
-  '4-pill': { name: '4-Pill Driver', gainDB: 31, transistors: 4, currentDraw: 25 },
+  '2-pill': { name: '2-Pill Driver', gainDB: 6, transistors: 2, currentDraw: 12 },
+  '4-pill': { name: '4-Pill Driver', gainDB: 10, transistors: 4, currentDraw: 25 },
 };
 
 export const FINAL_AMPS = {
   'none': { name: 'No Final', gainDB: 0, transistors: 0, currentDraw: 0 },
-  '4-pill': { name: '4-Pill Amp', gainDB: 4, transistors: 4, currentDraw: 40 },
-  '8-pill': { name: '8-Pill Amp', gainDB: 6, transistors: 8, currentDraw: 90 },
-  '16-pill': { name: '16-Pill Amp', gainDB: 8, transistors: 16, currentDraw: 160 },
+  '4-pill': { name: '4-Pill Amp', gainDB: 10, transistors: 4, currentDraw: 40 },
+  '8-pill': { name: '8-Pill Amp', gainDB: 16, transistors: 8, currentDraw: 90 },
+  '16-pill': { name: '16-Pill Amp', gainDB: 20, transistors: 16, currentDraw: 160 },
 };
 
 export const ANTENNAS = {
