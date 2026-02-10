@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   ArrowLeft, Users, Settings, CreditCard, Radio, Trash2, Plus,
-  ShieldCheck, ShieldAlert, User, Loader2, RefreshCw, Pencil,
+  ShieldCheck, ShieldAlert, User, Loader2, RefreshCw, Pencil, DollarSign,
 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
