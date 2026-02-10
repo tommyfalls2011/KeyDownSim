@@ -139,8 +139,8 @@ export function getRadiationPattern(vehicleKey, bonding, power, antennaKey) {
     }
     // Antenna gain
     gain *= antennaGain;
-    // Normalize and scale by power
-    const scaledGain = Math.max(0.1, gain) * Math.sqrt(Math.min(power, 10000)) / 100;
+    // Normalize and scale by power — log scale so pattern grows visibly across the full range
+    const scaledGain = Math.max(0.1, gain) * Math.log10(Math.max(1, power) + 1) / 4;
     points.push({ angle, gain: scaledGain });
   }
   return points;
