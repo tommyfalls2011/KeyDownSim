@@ -1,5 +1,6 @@
 import { useRF } from '@/context/RFContext';
 import { RADIOS, DRIVER_AMPS, FINAL_AMPS, ANTENNAS } from '@/lib/rfEngine';
+import { calculateSignalChain } from '@/lib/rfEngine';
 import RackUnit from '@/components/RackUnit';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
