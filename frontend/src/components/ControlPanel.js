@@ -32,7 +32,8 @@ export default function ControlPanel() {
         antenna: config.antenna,
         vehicle: config.vehicle,
         bonding: config.bonding,
-        extra_alternators: config.extraAlternators,
+        alternator_count: config.alternatorCount,
+        alternator_amps: config.alternatorAmps,
       }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Config saved');
       setSaveName('');
