@@ -8,10 +8,7 @@ import { ArrowLeft, Check, Loader2, Zap } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const PLANS = [
-  { id: 'monthly', name: 'Monthly', price: '$99.99', period: '/month', desc: 'Billed monthly' },
-  { id: 'yearly', name: 'Yearly', price: '$999.99', period: '/year', desc: 'Save $200 — best value', badge: 'BEST VALUE' },
-];
+const formatPrice = (amount) => `$${Number(amount).toFixed(2)}`;
 
 export default function SubscriptionPage() {
   const { token, user, refreshUser } = useAuth();
