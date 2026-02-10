@@ -34,6 +34,8 @@ export default function ControlPanel() {
         bonding: config.bonding,
         alternator_count: config.alternatorCount,
         alternator_amps: config.alternatorAmps,
+        battery_type: config.batteryType,
+        battery_count: config.batteryCount,
       }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Config saved');
       setSaveName('');
