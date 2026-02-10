@@ -17,6 +17,11 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState(false);
   const [polling, setPolling] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('yearly');
+  const [pricing, setPricing] = useState({ monthly: { amount: 99.99 }, yearly: { amount: 999.99 } });
+
+  useEffect(() => {
+    axios.get(`${API}/pricing`).then(res => setPricing(res.data)).catch(() => {});
+  }, []);
 
   const pollPaymentStatus = useCallback(async (sessionId, attempts = 0) => {
     if (attempts >= 8) {
