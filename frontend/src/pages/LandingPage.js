@@ -95,8 +95,15 @@ export default function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [visible, setVisible] = useState(false);
+  const [pricing, setPricing] = useState({ monthly: { amount: 99.99 }, yearly: { amount: 999.99 } });
 
-  useEffect(() => { setVisible(true); }, []);
+  useEffect(() => {
+    setVisible(true);
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/pricing`)
+      .then(r => r.json())
+      .then(d => setPricing(d))
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-void relative overflow-hidden" data-testid="landing-page">
@@ -159,14 +166,14 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-xl mx-auto">
             <div className="bg-panel border border-white/10 p-6 text-center hover:border-cyan-400/40 transition-colors">
               <div className="font-chakra text-xs text-slate-500 uppercase tracking-widest mb-2">Monthly</div>
-              <div className="font-mono text-3xl text-cyan-400">$99.99</div>
+              <div className="font-mono text-3xl text-cyan-400">${pricing.monthly?.amount}</div>
               <div className="font-exo text-xs text-slate-600 mt-1">/month</div>
             </div>
             <div className="bg-panel border border-cyan-400/30 p-6 text-center relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-400 text-black font-chakra text-[10px] px-3 py-0.5 uppercase tracking-widest">Best Value</div>
               <div className="font-chakra text-xs text-slate-500 uppercase tracking-widest mb-2">Yearly</div>
-              <div className="font-mono text-3xl text-cyan-400">$999.99</div>
-              <div className="font-exo text-xs text-slate-600 mt-1">/year &mdash; save $200</div>
+              <div className="font-mono text-3xl text-cyan-400">${pricing.yearly?.amount}</div>
+              <div className="font-exo text-xs text-slate-600 mt-1">/year &mdash; save ${(pricing.monthly?.amount * 12 - pricing.yearly?.amount).toFixed(0)}</div>
             </div>
           </div>
           <Button
