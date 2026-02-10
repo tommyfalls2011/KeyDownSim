@@ -46,15 +46,20 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding) {
   let deadKey = radio.deadKey;
   let peakKey = radio.peakKey;
 
+  // Driver stage: high gain but capped at pills × wattsPerPill
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
-    deadKey *= driverGain;
-    peakKey *= driverGain;
+    const driverMax = driver.transistors * (driver.wattsPerPill || 550);
+    deadKey = Math.min(deadKey * driverGain, driverMax);
+    peakKey = Math.min(peakKey * driverGain, driverMax);
   }
+
+  // Final stage: lower gain but capped at pills × wattsPerPill
   if (final_.gainDB > 0) {
     const finalGain = Math.pow(10, final_.gainDB / 10);
-    deadKey *= finalGain;
-    peakKey *= finalGain;
+    const finalMax = final_.transistors * (final_.wattsPerPill || 550);
+    deadKey = Math.min(deadKey * finalGain, finalMax);
+    peakKey = Math.min(peakKey * finalGain, finalMax);
   }
 
   const bondingFactor = bonding ? 1.0 : 0.6;
