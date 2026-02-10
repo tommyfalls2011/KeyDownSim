@@ -10,7 +10,8 @@ const DEFAULT_STATE = {
   antenna: 'whip-102',
   vehicle: 'suburban',
   bonding: true,
-  extraAlternators: false,
+  alternatorCount: 1,
+  alternatorAmps: 130,
   keyed: false,
 };
 
@@ -30,14 +31,15 @@ export function RFProvider({ children }) {
       antenna: cfg.antenna || 'whip-102',
       vehicle: cfg.vehicle || 'suburban',
       bonding: cfg.bonding !== false,
-      extraAlternators: cfg.extra_alternators || false,
+      alternatorCount: cfg.alternator_count || 1,
+      alternatorAmps: cfg.alternator_amps || 130,
       keyed: false,
     });
   }, []);
 
   // Calculate derived values
   const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding);
-  const voltage = calculateVoltageDrop(config.driverAmp, config.finalAmp, config.extraAlternators);
+  const voltage = calculateVoltageDrop(config.driverAmp, config.finalAmp, config.alternatorCount, config.alternatorAmps);
   const swr = calculateSWR(config.antenna, config.bonding);
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
 
