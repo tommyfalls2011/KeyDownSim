@@ -288,9 +288,10 @@ async def delete_config(config_id: str, user: dict = Depends(get_current_user)):
 
 @api_router.post("/subscribe")
 async def subscribe(data: SubscribeRequest, request: Request, user: dict = Depends(get_current_user)):
-    if data.plan not in SUBSCRIPTION_PLANS:
+    plans = await get_subscription_plans()
+    if data.plan not in plans:
         raise HTTPException(status_code=400, detail="Invalid plan")
-    plan = SUBSCRIPTION_PLANS[data.plan]
+    plan = plans[data.plan]
     origin = data.origin_url.rstrip("/")
     success_url = origin + "/subscription?session_id={CHECKOUT_SESSION_ID}"
     cancel_url = origin + "/subscription"
