@@ -65,6 +65,10 @@ export function RFProvider({ children }) {
     overloaded: voltage.overloaded,
     currentDraw: voltage.currentDraw,
     alternatorCapacity: voltage.alternatorCapacity,
+    bankProvides: voltage.bankProvides,
+    altProvides: voltage.altProvides,
+    holdTimeSec: voltage.holdTimeSec,
+    bankAh: voltage.bankAh,
     swr: swr,
     takeoffAngle: takeoff,
   };
