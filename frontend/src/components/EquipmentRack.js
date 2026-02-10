@@ -97,24 +97,24 @@ export default function EquipmentRack() {
             <span>Radio</span>
             <span className="text-cyan-400">{RADIOS[config.radio]?.deadKey}W</span>
           </div>
-          {config.driverAmp !== 'none' && (
-            <div className="flex justify-between">
-              <span>+ Driver (+{DRIVER_AMPS[config.driverAmp]?.gainDB}dB)</span>
-              <span className="text-cyan-400">{Math.round(RADIOS[config.radio]?.deadKey * Math.pow(10, DRIVER_AMPS[config.driverAmp]?.gainDB / 10))}W</span>
-            </div>
-          )}
-          {config.finalAmp !== 'none' && (
-            <div className="flex justify-between">
-              <span>+ Final (+{FINAL_AMPS[config.finalAmp]?.gainDB}dB)</span>
-              <span className="text-cyan-400">
-                {Math.round(
-                  RADIOS[config.radio]?.deadKey *
-                  (config.driverAmp !== 'none' ? Math.pow(10, DRIVER_AMPS[config.driverAmp]?.gainDB / 10) : 1) *
-                  Math.pow(10, FINAL_AMPS[config.finalAmp]?.gainDB / 10)
-                )}W
-              </span>
-            </div>
-          )}
+          {config.driverAmp !== 'none' && (() => {
+            const afterDriver = calculateSignalChain(config.radio, config.driverAmp, 'none', config.bonding);
+            return (
+              <div className="flex justify-between">
+                <span>+ Driver (+{DRIVER_AMPS[config.driverAmp]?.gainDB}dB)</span>
+                <span className="text-cyan-400">{Math.round(afterDriver.deadKey)}W</span>
+              </div>
+            );
+          })()}
+          {config.finalAmp !== 'none' && (() => {
+            const full = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding);
+            return (
+              <div className="flex justify-between">
+                <span>+ Final (+{FINAL_AMPS[config.finalAmp]?.gainDB}dB)</span>
+                <span className="text-cyan-400">{Math.round(full.deadKey).toLocaleString()}W</span>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
