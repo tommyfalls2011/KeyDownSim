@@ -1,0 +1,135 @@
+{
+  "project_name": "RF_Visualizer_Key_Down",
+  "persona": "E1_Anti_AI_Designer",
+  "theme_strategy": {
+    "mode": "dark_only",
+    "emotional_archetype": "Cyberpunk_Industrial",
+    "vibe": "High-Voltage, Gritty, Precision, Night-Ops",
+    "core_concept": "The Digital Shack - A powerful, glowing command center for RF dominance."
+  },
+  "typography": {
+    "primary_font": "Chakra Petch",
+    "secondary_font": "Exo 2",
+    "mono_font": "JetBrains Mono",
+    "imports": [
+      "@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Exo+2:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');"
+    ],
+    "usage": {
+      "headings": "font-chakra font-bold uppercase tracking-widest",
+      "body": "font-exo text-slate-400",
+      "data": "font-mono text-cyan-400 tracking-tight",
+      "labels": "font-chakra text-xs text-slate-600 uppercase tracking-[0.2em]"
+    }
+  },
+  "colors": {
+    "background": {
+      "void": "#050505",
+      "surface": "#0A0B10",
+      "panel": "#111216",
+      "overlay": "rgba(5, 5, 5, 0.8)"
+    },
+    "brand": {
+      "primary": "#00F0FF",
+      "secondary": "#FFFFFF",
+      "accent_hot": "#FF2A6D",
+      "accent_warn": "#FFD600",
+      "voltage_drop": "#3D1111"
+    },
+    "gradients": {
+      "lightning": "linear-gradient(135deg, #00F0FF 0%, #FFFFFF 50%, #00F0FF 100%)",
+      "dark_metal": "linear-gradient(180deg, #1A1B20 0%, #0A0B10 100%)"
+    },
+    "borders": {
+      "subtle": "rgba(255, 255, 255, 0.05)",
+      "glow": "rgba(0, 240, 255, 0.3)",
+      "active": "#00F0FF"
+    }
+  },
+  "layout_strategy": {
+    "dashboard_grid": {
+      "type": "bento_grid",
+      "structure": "grid grid-cols-12 gap-4 p-4 h-screen overflow-hidden",
+      "areas": {
+        "rack": "col-span-3 h-full overflow-y-auto border-r border-white/5 bg-panel",
+        "visualizer": "col-span-6 h-full relative bg-void",
+        "controls": "col-span-3 h-full border-l border-white/5 bg-panel flex flex-col"
+      }
+    },
+    "spacing": {
+      "container_padding": "p-6 md:p-8",
+      "component_gap": "gap-6"
+    }
+  },
+  "component_styles": {
+    "rack_unit": {
+      "base": "bg-gradient-to-b from-[#1A1B20] to-[#0A0B10] border-t border-b border-white/10 p-4 relative shadow-lg",
+      "details": "Use 'screw' icons in corners. Add 'cooling vents' (horizontal lines) using CSS.",
+      "active_state": "border-l-4 border-l-cyan-400"
+    },
+    "key_button": {
+      "base": "w-48 h-48 rounded-full bg-[#111] border-4 border-slate-800 shadow-[0_0_50px_rgba(0,0,0,0.5)_inset] flex items-center justify-center cursor-pointer active:scale-95 transition-all duration-75",
+      "active": "bg-[#FF2A6D] shadow-[0_0_100px_#FF2A6D] border-white text-white animate-pulse",
+      "text": "KEY DOWN",
+      "micro_interaction": "On press: trigger 'voltage_drop' effect (dim entire UI)"
+    },
+    "glass_panel": {
+      "base": "bg-black/40 backdrop-blur-md border border-white/5 shadow-xl"
+    },
+    "meters": {
+      "style": "segment_led",
+      "colors": ["#00FF00", "#00FF00", "#FFFF00", "#FF0000"]
+    }
+  },
+  "visualizer_guidelines": {
+    "engine": "HTML5 Canvas (2D Context)",
+    "elements": {
+      "vehicle": {
+        "type": "Shape/Silhouette",
+        "color": "#333",
+        "stroke": "#00F0FF"
+      },
+      "radiation_pattern": {
+        "style": "Lobe/Tear-drop shape",
+        "fill": "radial-gradient(circle, rgba(0,240,255,0.2) 0%, rgba(0,0,0,0) 70%)",
+        "stroke": "#00F0FF",
+        "animation": "Pulse size based on 'Power' output"
+      },
+      "grid": {
+        "style": "Polar Grid",
+        "color": "#1A1A1A"
+      }
+    },
+    "physics_simulation_notes": {
+      "ground_plane": "Draw a horizontal line under the vehicle. Reflection lobes should appear below if bonding is poor."
+    }
+  },
+  "assets": {
+    "icons": "Lucide React (default) + Custom SVG for electronics",
+    "textures": {
+      "carbon_fiber": "Use a CSS repeating-linear-gradient pattern for rack backgrounds.",
+      "mesh": "Use a radial-gradient dot pattern for speaker grilles."
+    },
+    "image_references": [
+        {
+            "category": "texture",
+            "url": "https://images.unsplash.com/photo-1644525630255-0b182407fe64",
+            "usage": "Optional overlay for hero section background (low opacity)"
+        }
+    ]
+  },
+  "universal_guidelines": [
+    "NEVER use default blue/purple gradients.",
+    "Data must be legible. Use 'JetBrains Mono' for all RF numbers.",
+    "Animations must be 'snappy' (ease-out-expo), not 'floaty'.",
+    "The UI should feel 'heavy' and 'industrial'.",
+    "Use <Sonner /> for toast notifications (e.g., 'Amp Overheated')."
+  ],
+  "instructions_to_main_agent": [
+    "1. Install 'lucide-react' if missing.",
+    "2. Set up the 'fonts' in index.css immediately.",
+    "3. Create the 'RackUnit' component first - it's the building block.",
+    "4. Implement the 'CanvasVisualizer' in a separate component with a clear `useRef` hook.",
+    "5. Use 'zustand' or 'React Context' for the global 'RF State' (Power, SWR, Heat).",
+    "6. Ensure the 'Key Down' button triggers a global state change that affects the Visualizer."
+  ]
+}
