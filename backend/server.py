@@ -87,6 +87,8 @@ class ConfigCreate(BaseModel):
     bonding: bool = True
     alternator_count: int = 1
     alternator_amps: int = 130
+    battery_type: str = "lead"
+    battery_count: int = 1
 
 class ConfigResponse(BaseModel):
     id: str
@@ -114,6 +116,8 @@ class RFCalcRequest(BaseModel):
     bonding: bool = True
     alternator_count: int = 1
     alternator_amps: int = 130
+    battery_type: str = "lead"
+    battery_count: int = 1
 
 # ──── RF Equipment Database ────
 
@@ -270,6 +274,8 @@ async def create_config(data: ConfigCreate, user: dict = Depends(get_current_use
         "bonding": data.bonding,
         "alternator_count": data.alternator_count,
         "alternator_amps": data.alternator_amps,
+        "battery_type": data.battery_type,
+        "battery_count": data.battery_count,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.configurations.insert_one(config_doc)
