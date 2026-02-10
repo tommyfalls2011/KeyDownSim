@@ -75,38 +75,56 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding) {
   };
 }
 
-export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alternatorAmps) {
+export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alternatorAmps, batteryType, batteryCount) {
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
 
   const demandCurrent = driver.currentDraw + final_.currentDraw;
   const batteryVoltage = 14.2;
-  // Alternator can push a little over rating briefly (~8%)
+  // Alternator can push ~8% over rating briefly
   const alternatorMax = alternatorCount * alternatorAmps * 1.08;
 
-  // 0 AWG OFC wire: ~0.0001 ohms/ft, typical run ~6ft each way = 12ft round trip
-  // Multiple alternators = multiple parallel 0 AWG runs, cuts resistance
-  const wireOhmsPerFt = 0.0001;  // 0 AWG OFC copper
-  const runLengthFt = 12;        // ~6ft each way typical
-  const wireRuns = alternatorCount; // one run per alternator
-  const wireResistance = (wireOhmsPerFt * runLengthFt) / wireRuns;
+  // 0 AWG OFC wire: ~0.0001 ohms/ft, 12ft round trip, one run per alt
+  const wireResistance = (0.0001 * 12) / alternatorCount;
 
-  // Actual current capped at what alternators can deliver
-  const actualCurrent = Math.min(demandCurrent, alternatorMax);
-  const overloaded = demandCurrent > alternatorMax;
+  // Battery bank specs — internal resistance and burst current per unit
+  const BATTERY_SPECS = {
+    'none':    { internalR: 999,    burstAmps: 0,   name: 'No Bank' },
+    'lead':    { internalR: 0.015,  burstAmps: 120, name: 'Lead Acid' },
+    'agm':     { internalR: 0.007,  burstAmps: 200, name: 'AGM' },
+    'lithium': { internalR: 0.0025, burstAmps: 400, name: 'Lithium' },
+    'caps':    { internalR: 0.001,  burstAmps: 600, name: 'Cap Bank' },
+  };
 
-  // Wire loss based on actual current flowing
-  const wireDrop = actualCurrent * wireResistance;
-  let voltage = batteryVoltage - wireDrop;
+  const batt = BATTERY_SPECS[batteryType] || BATTERY_SPECS['none'];
+  const bankBurstAmps = batt.burstAmps * (batteryCount || 0);
+  // Bank internal resistance drops with parallel batteries
+  const bankResistance = batteryCount > 0 ? batt.internalR / batteryCount : 999;
 
-  // Voltage sag when demand exceeds alternator supply
+  // Total system capacity = alternator steady-state + battery bank burst
+  const totalSystemCapacity = alternatorMax + bankBurstAmps;
+
+  // Current is shared between alternator and battery bank
+  // Alternator provides up to its max, bank covers the rest
+  const altProvides = Math.min(demandCurrent, alternatorMax);
+  const bankProvides = Math.min(Math.max(0, demandCurrent - alternatorMax), bankBurstAmps);
+  const actualCurrent = altProvides + bankProvides;
+  const overloaded = demandCurrent > totalSystemCapacity;
+
+  // Wire loss from alternator current
+  const wireDrop = altProvides * wireResistance;
+  // Bank voltage sag from bank current through internal resistance
+  const bankDrop = bankProvides * bankResistance;
+
+  let voltage = batteryVoltage - wireDrop - bankDrop;
+
+  // If still overloaded beyond both alt + bank, voltage sags
   if (overloaded) {
-    const demandRatio = demandCurrent / alternatorMax;
+    const demandRatio = demandCurrent / totalSystemCapacity;
     const sag = Math.min(4.5, (demandRatio - 1) * 2.5);
     voltage -= sag;
   }
 
-  // Floor at ~8V — alternator + batteries still producing
   voltage = Math.max(8.0, voltage);
 
   return {
@@ -116,6 +134,9 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
     currentDraw: Math.round(actualCurrent),
     demandCurrent,
     alternatorCapacity: Math.round(alternatorMax),
+    bankBurstAmps: Math.round(bankBurstAmps),
+    altProvides: Math.round(altProvides),
+    bankProvides: Math.round(bankProvides),
   };
 }
 
