@@ -12,6 +12,8 @@ const DEFAULT_STATE = {
   bonding: true,
   alternatorCount: 1,
   alternatorAmps: 130,
+  batteryType: 'lead',
+  batteryCount: 1,
   keyed: false,
 };
 
@@ -33,13 +35,15 @@ export function RFProvider({ children }) {
       bonding: cfg.bonding !== false,
       alternatorCount: cfg.alternator_count || 1,
       alternatorAmps: cfg.alternator_amps || 130,
+      batteryType: cfg.battery_type || 'lead',
+      batteryCount: cfg.battery_count || 1,
       keyed: false,
     });
   }, []);
 
   // Calculate derived values
   const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding);
-  const voltage = calculateVoltageDrop(config.driverAmp, config.finalAmp, config.alternatorCount, config.alternatorAmps);
+  const voltage = calculateVoltageDrop(config.driverAmp, config.finalAmp, config.alternatorCount, config.alternatorAmps, config.batteryType, config.batteryCount);
   const swr = calculateSWR(config.antenna, config.bonding);
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
 
