@@ -543,6 +543,9 @@ export default function AdminPage() {
             <TabsTrigger value="payments" className="font-chakra text-xs uppercase tracking-wider data-[state=active]:bg-cyan-400/10 data-[state=active]:text-cyan-400" data-testid="admin-tab-payments">
               <CreditCard className="w-3.5 h-3.5 mr-1.5" /> Payments
             </TabsTrigger>
+            <TabsTrigger value="pricing" className="font-chakra text-xs uppercase tracking-wider data-[state=active]:bg-cyan-400/10 data-[state=active]:text-cyan-400" data-testid="admin-tab-pricing">
+              <DollarSign className="w-3.5 h-3.5 mr-1.5" /> Pricing
+            </TabsTrigger>
           </TabsList>
 
           <div className="mt-4">
@@ -550,6 +553,7 @@ export default function AdminPage() {
             <TabsContent value="configs"><ConfigsTab token={token} /></TabsContent>
             <TabsContent value="equipment"><EquipmentTab token={token} /></TabsContent>
             <TabsContent value="payments"><PaymentsTab token={token} /></TabsContent>
+            <TabsContent value="pricing"><PricingTab token={token} /></TabsContent>
           </div>
         </Tabs>
       </div>
