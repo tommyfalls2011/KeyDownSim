@@ -407,6 +407,91 @@ function PaymentsTab({ token }) {
   );
 }
 
+// ─── Pricing Tab ───
+function PricingTab({ token }) {
+  const [monthly, setMonthly] = useState('');
+  const [yearly, setYearly] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await axios.get(`${API}/admin/pricing`, { headers: { Authorization: `Bearer ${token}` } });
+        setMonthly(String(res.data.monthly?.amount || ''));
+        setYearly(String(res.data.yearly?.amount || ''));
+      } catch { toast.error('Failed to load pricing'); }
+      finally { setLoading(false); }
+    })();
+  }, [token]);
+
+  const handleSave = async () => {
+    const m = parseFloat(monthly);
+    const y = parseFloat(yearly);
+    if (isNaN(m) || isNaN(y) || m <= 0 || y <= 0) {
+      toast.error('Enter valid prices');
+      return;
+    }
+    setSaving(true);
+    try {
+      await axios.put(`${API}/admin/pricing`, {
+        monthly_amount: m,
+        yearly_amount: y,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success('Pricing updated');
+    } catch { toast.error('Update failed'); }
+    finally { setSaving(false); }
+  };
+
+  if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-cyan-400 animate-spin" /></div>;
+
+  return (
+    <div className="max-w-md" data-testid="admin-pricing-tab">
+      <p className="font-exo text-sm text-slate-500 mb-6">Set subscription prices. Changes apply to new checkouts immediately.</p>
+      <div className="space-y-4">
+        <div className="bg-panel border border-white/5 p-4">
+          <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-2 block">Monthly Price (USD)</Label>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-lg text-slate-500">$</span>
+            <Input
+              data-testid="pricing-monthly-input"
+              type="number"
+              step="0.01"
+              min="0"
+              value={monthly}
+              onChange={e => setMonthly(e.target.value)}
+              className="bg-void border-white/10 text-white font-mono text-lg h-10"
+            />
+          </div>
+        </div>
+        <div className="bg-panel border border-white/5 p-4">
+          <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-2 block">Yearly Price (USD)</Label>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-lg text-slate-500">$</span>
+            <Input
+              data-testid="pricing-yearly-input"
+              type="number"
+              step="0.01"
+              min="0"
+              value={yearly}
+              onChange={e => setYearly(e.target.value)}
+              className="bg-void border-white/10 text-white font-mono text-lg h-10"
+            />
+          </div>
+        </div>
+        <Button
+          data-testid="pricing-save-btn"
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full bg-cyan-400 text-black font-chakra font-bold uppercase tracking-wider hover:bg-cyan-500 disabled:opacity-50"
+        >
+          {saving ? 'SAVING...' : 'UPDATE PRICING'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Admin Page ───
 export default function AdminPage() {
   const { token, user } = useAuth();
