@@ -266,7 +266,8 @@ async def create_config(data: ConfigCreate, user: dict = Depends(get_current_use
         "antenna": data.antenna,
         "vehicle": data.vehicle,
         "bonding": data.bonding,
-        "extra_alternators": data.extra_alternators,
+        "alternator_count": data.alternator_count,
+        "alternator_amps": data.alternator_amps,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.configurations.insert_one(config_doc)
