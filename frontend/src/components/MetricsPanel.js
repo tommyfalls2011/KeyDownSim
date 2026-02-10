@@ -97,6 +97,15 @@ export default function MetricsPanel() {
           />
         </div>
       </div>
+
+      {/* Hold Time */}
+      <div className="bg-surface flex flex-col items-center justify-center p-2">
+        <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Hold</div>
+        <div className={`font-mono text-lg led-segment ${metrics.holdTimeSec < 60 ? 'text-hot' : metrics.holdTimeSec < 300 ? 'text-warn' : 'text-green-400'}`} data-testid="hold-readout">
+          {metrics.holdTimeSec >= 9999 ? '---' : metrics.holdTimeSec >= 60 ? `${Math.floor(metrics.holdTimeSec / 60)}m` : `${metrics.holdTimeSec}s`}
+        </div>
+        <div className="font-mono text-[8px] text-slate-600">{metrics.bankAh > 0 ? `${metrics.bankAh}Ah` : 'NO BANK'}</div>
+      </div>
     </div>
   );
 }
