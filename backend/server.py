@@ -535,7 +535,8 @@ async def admin_update_user(user_id: str, data: AdminUserUpdate, admin: dict = D
     if data.active is not None:
         update["active"] = data.active
     if data.subscription_status == "active" and data.subscription_plan:
-        plan = SUBSCRIPTION_PLANS.get(data.subscription_plan, SUBSCRIPTION_PLANS["monthly"])
+        plans_data = await get_subscription_plans()
+        plan = plans_data.get(data.subscription_plan, plans_data.get("monthly", DEFAULT_PLANS["monthly"]))
         update["subscription_end"] = (datetime.now(timezone.utc) + timedelta(days=plan["days"])).isoformat()
     if not update:
         raise HTTPException(status_code=400, detail="No fields to update")
