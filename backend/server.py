@@ -454,14 +454,18 @@ async def calculate_rf(data: RFCalcRequest):
     total_current = driver["current_draw"] + final["current_draw"]
     battery_voltage = 14.2
     alternator_capacity = data.alternator_count * data.alternator_amps
-    wire_resistance = 0.005
+    # Wire resistance scales down with more alternators (bigger wire, more parallel runs)
+    base_wire_resistance = 0.003
+    wire_resistance = base_wire_resistance / (data.alternator_count ** 0.5)
     voltage_drop = total_current * wire_resistance
     effective_voltage = battery_voltage - voltage_drop
     overloaded = total_current > alternator_capacity
 
     if overloaded:
-        voltage_sag = (total_current - alternator_capacity) * 0.02
+        overload_ratio = (total_current - alternator_capacity) / alternator_capacity
+        voltage_sag = overload_ratio * 4
         effective_voltage -= voltage_sag
+        effective_voltage = max(0, effective_voltage)
         power_reduction = max(0.3, effective_voltage / battery_voltage)
         effective_dead *= power_reduction
         effective_peak *= power_reduction
