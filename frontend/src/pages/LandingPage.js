@@ -76,10 +76,8 @@ function HeroCanvas() {
           ctx.stroke();
         }
       }
-
-      animRef.current = requestAnimationFrame(draw);
     };
-    draw();
+    animRef.current = requestAnimationFrame(draw);
 
     return () => {
       window.removeEventListener('resize', resize);
