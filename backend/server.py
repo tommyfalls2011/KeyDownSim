@@ -420,17 +420,17 @@ async def calculate_rf(data: RFCalcRequest):
     dead_key_power = radio["dead_key"]
     peak_power = radio["peak_key"]
 
-    # Driver stage: high gain (~50-100x) but capped at pills × watts_per_pill
+    # Driver stage: high gain (~50-100x) but capped at pills × watts_per_pill × combining_bonus
     if driver["gain_db"] > 0:
         driver_gain = 10 ** (driver["gain_db"] / 10)
-        driver_max = driver["transistors"] * driver.get("watts_per_pill", 550)
+        driver_max = driver["transistors"] * driver.get("watts_per_pill", 275) * driver.get("combining_bonus", 1.0)
         dead_key_power = min(dead_key_power * driver_gain, driver_max)
         peak_power = min(peak_power * driver_gain, driver_max)
 
-    # Final stage: lower gain (~10x) but capped at pills × watts_per_pill
+    # Final stage: lower gain (~10x) but capped at pills × watts_per_pill × combining_bonus
     if final["gain_db"] > 0:
         final_gain = 10 ** (final["gain_db"] / 10)
-        final_max = final["transistors"] * final.get("watts_per_pill", 550)
+        final_max = final["transistors"] * final.get("watts_per_pill", 275) * final.get("combining_bonus", 1.0)
         dead_key_power = min(dead_key_power * final_gain, final_max)
         peak_power = min(peak_power * final_gain, final_max)
 
