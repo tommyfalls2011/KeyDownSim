@@ -148,10 +148,16 @@ export default function ControlPanel() {
           </div>
         </div>
         {config.batteryType !== 'none' && config.batteryCount > 0 && (
-          <div className="font-mono text-[9px] text-slate-600">
-            Bank burst: <span className="text-cyan-400">
-              {({'lead': 120, 'agm': 200, 'lithium': 400, 'caps': 600}[config.batteryType] || 0) * config.batteryCount}A
+          <div className="font-mono text-[9px] text-slate-600 space-y-0.5">
+            <div>Bank: <span className="text-cyan-400">
+              {({'lead': 100, 'agm': 100, 'lithium': 100, 'caps': 5}[config.batteryType] || 0) * config.batteryCount}Ah
             </span>
+            {' '}@ <span className="text-cyan-400">
+              {({'lead': '3C', 'agm': '5C', 'lithium': '15C', 'caps': '200C'}[config.batteryType] || '—')}
+            </span></div>
+            <div>Max discharge: <span className="text-cyan-400">
+              {({'lead': 300, 'agm': 500, 'lithium': 1500, 'caps': 1000}[config.batteryType] || 0) * config.batteryCount}A
+            </span></div>
           </div>
         )}
       </div>
