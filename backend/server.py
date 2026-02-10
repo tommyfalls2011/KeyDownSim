@@ -456,42 +456,43 @@ async def calculate_rf(data: RFCalcRequest):
     effective_dead = dead_key_power * antenna_factor
     effective_peak = peak_power * antenna_factor
 
-    # Voltage drop — current shared between alternators and battery bank
+    # Voltage drop — battery bank is primary power source, alternator recharges
     demand_current = driver["current_draw"] + final["current_draw"]
     battery_voltage = 14.2
     alternator_max = data.alternator_count * data.alternator_amps * 1.08
-    wire_resistance = (0.0001 * 12) / data.alternator_count
+    wire_resistance = (0.0001 * 12) / max(1, data.alternator_count)
 
-    # Battery bank specs
     BATTERY_SPECS = {
-        "none":    {"internal_r": 999,   "burst_amps": 0},
-        "lead":    {"internal_r": 0.015, "burst_amps": 120},
-        "agm":     {"internal_r": 0.007, "burst_amps": 200},
-        "lithium": {"internal_r": 0.0025,"burst_amps": 400},
-        "caps":    {"internal_r": 0.001, "burst_amps": 600},
+        "none":    {"ah": 0,   "c_rate": 0,   "internal_r": 999},
+        "lead":    {"ah": 100, "c_rate": 3,   "internal_r": 0.012},
+        "agm":     {"ah": 100, "c_rate": 5,   "internal_r": 0.006},
+        "lithium": {"ah": 100, "c_rate": 15,  "internal_r": 0.002},
+        "caps":    {"ah": 5,   "c_rate": 200, "internal_r": 0.0005},
     }
     batt = BATTERY_SPECS.get(data.battery_type, BATTERY_SPECS["none"])
-    bank_burst = batt["burst_amps"] * data.battery_count
+    bank_ah = batt["ah"] * data.battery_count
+    bank_max_discharge = bank_ah * batt["c_rate"]
     bank_resistance = batt["internal_r"] / data.battery_count if data.battery_count > 0 else 999
-    total_system_capacity = alternator_max + bank_burst
 
-    # Current shared: alternator provides up to its max, bank covers the rest
-    alt_provides = min(demand_current, alternator_max)
-    bank_provides = min(max(0, demand_current - alternator_max), bank_burst)
-    actual_current = alt_provides + bank_provides
-    overloaded = demand_current > total_system_capacity
+    bank_provides = min(demand_current, bank_max_discharge)
+    alt_direct = min(max(0, demand_current - bank_provides), alternator_max)
+    actual_current = bank_provides + alt_direct
+    overloaded = demand_current > (bank_max_discharge + alternator_max)
 
-    wire_drop = alt_provides * wire_resistance
     bank_drop = bank_provides * bank_resistance
-    effective_voltage = battery_voltage - wire_drop - bank_drop
+    wire_drop = alt_direct * wire_resistance
+    effective_voltage = battery_voltage - bank_drop - wire_drop
 
     if overloaded:
-        demand_ratio = demand_current / total_system_capacity
+        demand_ratio = demand_current / (bank_max_discharge + alternator_max)
         sag = min(4.5, (demand_ratio - 1) * 2.5)
         effective_voltage -= sag
 
     effective_voltage = max(8.0, effective_voltage)
     total_current = round(actual_current)
+
+    net_drain = max(0, bank_provides - alternator_max)
+    hold_time_sec = int((bank_ah / net_drain) * 3600) if net_drain > 0 else 9999
 
     if overloaded:
         power_reduction = max(0.3, effective_voltage / battery_voltage)
