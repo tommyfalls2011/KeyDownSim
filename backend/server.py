@@ -404,18 +404,23 @@ async def calculate_rf(data: RFCalcRequest):
     if not all([radio, driver, final, antenna, vehicle]):
         raise HTTPException(status_code=400, detail="Invalid equipment selection")
 
-    # Signal chain calculation
+    # Signal chain calculation — each 2SC2879 pill produces ~550W max
     dead_key_power = radio["dead_key"]
-    if driver["gain_db"] > 0:
-        dead_key_power *= 10 ** (driver["gain_db"] / 10)
-    if final["gain_db"] > 0:
-        dead_key_power *= 10 ** (final["gain_db"] / 10)
-
     peak_power = radio["peak_key"]
+
+    # Driver stage: high gain (~50-100x) but capped at pills × watts_per_pill
     if driver["gain_db"] > 0:
-        peak_power *= 10 ** (driver["gain_db"] / 10)
+        driver_gain = 10 ** (driver["gain_db"] / 10)
+        driver_max = driver["transistors"] * driver.get("watts_per_pill", 550)
+        dead_key_power = min(dead_key_power * driver_gain, driver_max)
+        peak_power = min(peak_power * driver_gain, driver_max)
+
+    # Final stage: lower gain (~10x) but capped at pills × watts_per_pill
     if final["gain_db"] > 0:
-        peak_power *= 10 ** (final["gain_db"] / 10)
+        final_gain = 10 ** (final["gain_db"] / 10)
+        final_max = final["transistors"] * final.get("watts_per_pill", 550)
+        dead_key_power = min(dead_key_power * final_gain, final_max)
+        peak_power = min(peak_power * final_gain, final_max)
 
     # Bonding effect
     bonding_factor = 1.0 if data.bonding else 0.6
