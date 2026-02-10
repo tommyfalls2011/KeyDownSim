@@ -501,7 +501,7 @@ async def calculate_rf(data: RFCalcRequest):
         "raw_dead_key": round(dead_key_power / bonding_factor if bonding_factor else 0, 1),
         "raw_peak": round(peak_power / bonding_factor if bonding_factor else 0, 1),
         "voltage": round(effective_voltage, 2),
-        "voltage_drop": round(voltage_drop, 3),
+        "voltage_drop": round(battery_voltage - effective_voltage, 3),
         "overloaded": overloaded,
         "current_draw": total_current,
         "swr": round(swr, 1),
