@@ -239,10 +239,8 @@ export default function CanvasVisualizer() {
         ctx.fillStyle = 'rgba(255,255,255,0.4)';
         ctx.fillText('DEAD KEY', 12, 36);
       }
-
-      animRef.current = requestAnimationFrame(draw);
     };
-    draw();
+    animRef.current = requestAnimationFrame(draw);
 
     return () => {
       window.removeEventListener('resize', resize);
