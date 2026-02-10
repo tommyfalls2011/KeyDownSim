@@ -79,31 +79,48 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
 
-  const totalCurrent = driver.currentDraw + final_.currentDraw;
+  const maxCurrentDraw = driver.currentDraw + final_.currentDraw;
   const batteryVoltage = 14.2;
-  const alternatorCapacity = alternatorCount * alternatorAmps;
-  // Wire resistance scales down with more alternators (bigger wire, more parallel runs)
-  const baseWireResistance = 0.003;
-  const wireResistance = baseWireResistance / Math.sqrt(alternatorCount);
-  const vDrop = totalCurrent * wireResistance;
-  let effectiveV = batteryVoltage - vDrop;
-  const overloaded = totalCurrent > alternatorCapacity;
+  // Alternator puts out ~10-15% more than rated under hard pull
+  const alternatorCapacity = alternatorCount * alternatorAmps * 1.12;
+  // Wire resistance scales down with more alternators (bigger wire, parallel runs)
+  const wireResistance = 0.003 / Math.sqrt(alternatorCount);
 
-  if (overloaded) {
-    // Voltage sags hard when alternators can't keep up
-    const overloadRatio = (totalCurrent - alternatorCapacity) / alternatorCapacity;
-    const sag = overloadRatio * 4;
-    effectiveV -= sag;
+  // Self-limiting equilibrium: as voltage drops, amps draw less current
+  // Iterate to find the equilibrium point
+  let voltage = batteryVoltage;
+  let actualCurrent = maxCurrentDraw;
+  for (let i = 0; i < 10; i++) {
+    // Current draw scales with voltage — amps need voltage to push current
+    const voltageFactor = Math.max(0.3, voltage / batteryVoltage);
+    actualCurrent = maxCurrentDraw * voltageFactor;
+
+    // Wire loss
+    const wireDrop = actualCurrent * wireResistance;
+    let v = batteryVoltage - wireDrop;
+
+    // Alternator sag when overloaded
+    if (actualCurrent > alternatorCapacity) {
+      const overloadRatio = (actualCurrent - alternatorCapacity) / alternatorCapacity;
+      // Voltage sags but alternator still produces — floors around 8-9V
+      const sag = overloadRatio * 3;
+      v -= sag;
+    }
+
+    // System never drops below ~8V — batteries + alternator still producing
+    v = Math.max(8.0, v);
+    voltage = v;
   }
 
-  effectiveV = Math.max(0, effectiveV);
+  const overloaded = maxCurrentDraw > alternatorCapacity;
+  const vDrop = batteryVoltage - voltage;
 
   return {
-    effectiveVoltage: Math.round(effectiveV * 100) / 100,
+    effectiveVoltage: Math.round(voltage * 100) / 100,
     voltageDrop: Math.round(vDrop * 1000) / 1000,
     overloaded,
-    currentDraw: totalCurrent,
-    alternatorCapacity,
+    currentDraw: Math.round(actualCurrent),
+    alternatorCapacity: Math.round(alternatorCapacity),
   };
 }
 
