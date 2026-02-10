@@ -25,7 +25,7 @@ Build a Real-Time RF Visualizer for "Key Down" / "Big Radio" culture. Simulates 
 - Stripe subscription (Monthly $9.99 / Yearly $99.99)
 
 ## What's Been Implemented (Feb 2026)
-- [x] Full backend with 12+ API endpoints (auth, configurations, subscription, RF calculation, equipment)
+- [x] Full backend with 20+ API endpoints (auth, configurations, subscription, RF calculation, equipment, admin)
 - [x] Landing page with animated canvas hero, features section, pricing
 - [x] Auth page (login/register with JWT)
 - [x] Dashboard with 3-panel layout (Equipment Rack | Canvas Visualizer | Controls)
@@ -41,6 +41,15 @@ Build a Real-Time RF Visualizer for "Key Down" / "Big Radio" culture. Simulates 
 - [x] Configurations page with list and delete
 - [x] Subscription page with Stripe checkout integration
 - [x] Dark "Digital Shack" theme (Black/Cyan/White)
+- [x] **Admin Panel** at /admin (hidden from regular users)
+  - Stats dashboard (total users, active subs, configs, payments)
+  - User management (view all, change roles: user/subadmin/admin, grant/revoke subs, activate/deactivate)
+  - All configurations viewer + delete
+  - Equipment CRUD (add/edit/delete radios, amps, antennas, vehicles in MongoDB)
+  - Payment transaction history
+  - Subadmin role support for testing
+- [x] Admin account seeded: fallstommy@gmail.com / admin123
+- [x] Equipment data stored in MongoDB (seeded from defaults, admin-manageable)
 
 ## Testing Results
 - Backend: 100% pass (all 12 endpoints)
