@@ -124,16 +124,16 @@ RADIOS = {
 }
 
 DRIVER_AMPS = {
-    "none": {"name": "No Driver", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 550},
-    "2-pill": {"name": "2-Pill Driver", "gain_db": 17, "transistors": 2, "current_draw": 50, "watts_per_pill": 550},
-    "4-pill": {"name": "4-Pill Driver", "gain_db": 20, "transistors": 4, "current_draw": 100, "watts_per_pill": 550},
+    "none": {"name": "No Driver", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 275},
+    "2-pill": {"name": "2-Pill Driver", "gain_db": 17, "transistors": 2, "current_draw": 50, "watts_per_pill": 275},
+    "4-pill": {"name": "4-Pill Driver", "gain_db": 20, "transistors": 4, "current_draw": 100, "watts_per_pill": 275},
 }
 
 FINAL_AMPS = {
-    "none": {"name": "No Final", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 550},
-    "4-pill": {"name": "4-Pill Amp", "gain_db": 10, "transistors": 4, "current_draw": 100, "watts_per_pill": 550},
-    "8-pill": {"name": "8-Pill Amp", "gain_db": 10, "transistors": 8, "current_draw": 200, "watts_per_pill": 550},
-    "16-pill": {"name": "16-Pill Amp", "gain_db": 10, "transistors": 16, "current_draw": 400, "watts_per_pill": 550},
+    "none": {"name": "No Final", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 275},
+    "4-pill": {"name": "4-Pill Amp", "gain_db": 10, "transistors": 4, "current_draw": 100, "watts_per_pill": 275},
+    "8-pill": {"name": "8-Pill Amp", "gain_db": 10, "transistors": 8, "current_draw": 200, "watts_per_pill": 275},
+    "16-pill": {"name": "16-Pill Amp", "gain_db": 10, "transistors": 16, "current_draw": 400, "watts_per_pill": 275},
 }
 
 ANTENNAS = {
