@@ -355,6 +355,9 @@ async def payment_status(session_id: str, request: Request, user: dict = Depends
         plan_key = tx.get("plan", "monthly")
         plans = await get_subscription_plans()
         plan = plans.get(plan_key, plans.get("monthly", DEFAULT_PLANS["monthly"]))
+        end_date = (datetime.now(timezone.utc) + timedelta(days=plan["days"])).isoformat()
+        await db.users.update_one(
+            {"id": user["id"]},
             {"$set": {
                 "subscription_status": "active",
                 "subscription_plan": plan_key,
