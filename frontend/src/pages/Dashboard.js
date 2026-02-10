@@ -6,7 +6,7 @@ import EquipmentRack from '@/components/EquipmentRack';
 import CanvasVisualizer from '@/components/CanvasVisualizer';
 import ControlPanel from '@/components/ControlPanel';
 import MetricsPanel from '@/components/MetricsPanel';
-import { LogOut, Save, Settings, CreditCard } from 'lucide-react';
+import { LogOut, Save, Settings, CreditCard, ShieldCheck } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { keyed, loadConfig } = useRF();
   const navigate = useNavigate();
 
@@ -46,6 +46,13 @@ export default function Dashboard() {
               <Save className="w-3.5 h-3.5 mr-1.5" /> Configs
             </Button>
           </Link>
+          {isAdmin && (
+            <Link to="/admin" data-testid="nav-admin-btn">
+              <Button variant="ghost" size="sm" className="text-hot hover:text-hot/80 font-chakra text-xs uppercase tracking-wider">
+                <ShieldCheck className="w-3.5 h-3.5 mr-1.5" /> Admin
+              </Button>
+            </Link>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="text-slate-500 hover:text-cyan-400 font-chakra text-xs uppercase tracking-wider" data-testid="user-menu-btn">
