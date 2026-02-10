@@ -31,7 +31,7 @@ export default function MetricsPanel() {
   const { metrics, keyed } = useRF();
 
   return (
-    <div className="h-full grid grid-cols-6 gap-px bg-white/5" data-testid="metrics-panel">
+    <div className="h-full grid grid-cols-3 sm:grid-cols-6 gap-px bg-white/5" data-testid="metrics-panel">
       {/* Power */}
       <div className="bg-surface flex flex-col items-center justify-center p-2">
         <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Power</div>
