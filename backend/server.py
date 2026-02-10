@@ -475,13 +475,111 @@ async def calculate_rf(data: RFCalcRequest):
 
 @api_router.get("/equipment")
 async def get_equipment():
+    equipment = {}
+    for cat in ["radios", "driver_amps", "final_amps", "antennas", "vehicles"]:
+        items = await db.equipment.find({"category": cat}, {"_id": 0}).to_list(100)
+        equipment[cat] = {item["key"]: item["data"] for item in items}
+    # Fallback to defaults if DB is empty
+    if not equipment.get("radios"):
+        return {"radios": RADIOS, "driver_amps": DRIVER_AMPS, "final_amps": FINAL_AMPS, "antennas": ANTENNAS, "vehicles": VEHICLES}
+    return equipment
+
+# ──── Admin Routes ────
+
+@api_router.get("/admin/stats")
+async def admin_stats(user: dict = Depends(get_admin_user)):
+    total_users = await db.users.count_documents({})
+    active_subs = await db.users.count_documents({"subscription_status": "active"})
+    total_configs = await db.configurations.count_documents({})
+    total_payments = await db.payment_transactions.count_documents({})
     return {
-        "radios": RADIOS,
-        "driver_amps": DRIVER_AMPS,
-        "final_amps": FINAL_AMPS,
-        "antennas": ANTENNAS,
-        "vehicles": VEHICLES,
+        "total_users": total_users,
+        "active_subscriptions": active_subs,
+        "total_configurations": total_configs,
+        "total_payments": total_payments,
     }
+
+@api_router.get("/admin/users")
+async def admin_list_users(user: dict = Depends(get_admin_user)):
+    users = await db.users.find({}, {"_id": 0, "password_hash": 0}).sort("created_at", -1).to_list(500)
+    return users
+
+@api_router.patch("/admin/users/{user_id}")
+async def admin_update_user(user_id: str, data: AdminUserUpdate, admin: dict = Depends(get_admin_user)):
+    update = {}
+    if data.role is not None:
+        if data.role not in ("user", "subadmin", "admin"):
+            raise HTTPException(status_code=400, detail="Invalid role")
+        # Only admin can set admin role; subadmin can only set user/subadmin
+        if data.role == "admin" and admin.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Only admin can assign admin role")
+        update["role"] = data.role
+    if data.subscription_status is not None:
+        update["subscription_status"] = data.subscription_status
+    if data.subscription_plan is not None:
+        update["subscription_plan"] = data.subscription_plan
+    if data.active is not None:
+        update["active"] = data.active
+    if data.subscription_status == "active" and data.subscription_plan:
+        plan = SUBSCRIPTION_PLANS.get(data.subscription_plan, SUBSCRIPTION_PLANS["monthly"])
+        update["subscription_end"] = (datetime.now(timezone.utc) + timedelta(days=plan["days"])).isoformat()
+    if not update:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    result = await db.users.update_one({"id": user_id}, {"$set": update})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    updated = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    return updated
+
+@api_router.get("/admin/configurations")
+async def admin_list_configs(admin: dict = Depends(get_admin_user)):
+    configs = await db.configurations.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    return configs
+
+@api_router.delete("/admin/configurations/{config_id}")
+async def admin_delete_config(config_id: str, admin: dict = Depends(get_admin_user)):
+    result = await db.configurations.delete_one({"id": config_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+    return {"status": "deleted"}
+
+@api_router.get("/admin/payments")
+async def admin_list_payments(admin: dict = Depends(get_admin_user)):
+    payments = await db.payment_transactions.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    return payments
+
+@api_router.get("/admin/equipment")
+async def admin_list_equipment(admin: dict = Depends(get_admin_user)):
+    items = await db.equipment.find({}, {"_id": 0}).to_list(500)
+    return items
+
+@api_router.post("/admin/equipment")
+async def admin_add_equipment(item: EquipmentItem, admin: dict = Depends(get_admin_user)):
+    if item.category not in ("radios", "driver_amps", "final_amps", "antennas", "vehicles"):
+        raise HTTPException(status_code=400, detail="Invalid category")
+    existing = await db.equipment.find_one({"key": item.key, "category": item.category}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Equipment key already exists in this category")
+    doc = {"key": item.key, "category": item.category, "data": item.data}
+    await db.equipment.insert_one(doc)
+    return {k: v for k, v in doc.items() if k != "_id"}
+
+@api_router.put("/admin/equipment/{category}/{key}")
+async def admin_update_equipment(category: str, key: str, data: Dict, admin: dict = Depends(get_admin_user)):
+    result = await db.equipment.update_one(
+        {"key": key, "category": category},
+        {"$set": {"data": data}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Equipment not found")
+    return {"status": "updated"}
+
+@api_router.delete("/admin/equipment/{category}/{key}")
+async def admin_delete_equipment(category: str, key: str, admin: dict = Depends(get_admin_user)):
+    result = await db.equipment.delete_one({"key": key, "category": category})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Equipment not found")
+    return {"status": "deleted"}
 
 # ──── Include Router & Middleware ────
 
@@ -497,6 +595,52 @@ app.add_middleware(
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# ──── Startup: Seed Admin + Equipment ────
+
+DEFAULT_EQUIPMENT = {
+    "radios": RADIOS,
+    "driver_amps": DRIVER_AMPS,
+    "final_amps": FINAL_AMPS,
+    "antennas": ANTENNAS,
+    "vehicles": VEHICLES,
+}
+
+@app.on_event("startup")
+async def seed_data():
+    # Seed admin account
+    admin_email = "fallstommy@gmail.com"
+    existing = await db.users.find_one({"email": admin_email}, {"_id": 0})
+    if not existing:
+        admin_doc = {
+            "id": str(uuid.uuid4()),
+            "email": admin_email,
+            "name": "Admin",
+            "password_hash": hash_password("admin123"),
+            "role": "admin",
+            "active": True,
+            "subscription_status": "active",
+            "subscription_plan": "yearly",
+            "subscription_end": (datetime.now(timezone.utc) + timedelta(days=365)).isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.users.insert_one(admin_doc)
+        logger.info("Admin account seeded: %s", admin_email)
+    else:
+        # Ensure existing admin has role set
+        if existing.get("role") != "admin":
+            await db.users.update_one({"email": admin_email}, {"$set": {"role": "admin", "active": True}})
+
+    # Seed equipment if empty
+    eq_count = await db.equipment.count_documents({})
+    if eq_count == 0:
+        docs = []
+        for category, items in DEFAULT_EQUIPMENT.items():
+            for key, data in items.items():
+                docs.append({"key": key, "category": category, "data": data})
+        if docs:
+            await db.equipment.insert_many(docs)
+            logger.info("Seeded %d equipment items", len(docs))
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
