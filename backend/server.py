@@ -444,10 +444,10 @@ async def calculate_rf(data: RFCalcRequest):
     effective_dead = dead_key_power * antenna_factor
     effective_peak = peak_power * antenna_factor
 
-    # Voltage drop
+    # Voltage drop — alternator capacity = count × amps per alternator
     total_current = driver["current_draw"] + final["current_draw"]
     battery_voltage = 14.2
-    alternator_capacity = 300 if data.extra_alternators else 130
+    alternator_capacity = data.alternator_count * data.alternator_amps
     wire_resistance = 0.005
     voltage_drop = total_current * wire_resistance
     effective_voltage = battery_voltage - voltage_drop
