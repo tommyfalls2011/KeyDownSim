@@ -8,11 +8,20 @@ import AuthPage from "@/pages/AuthPage";
 import Dashboard from "@/pages/Dashboard";
 import ConfigurationsPage from "@/pages/ConfigurationsPage";
 import SubscriptionPage from "@/pages/SubscriptionPage";
+import AdminPage from "@/pages/AdminPage";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen bg-void flex items-center justify-center"><div className="text-cyan-400 font-mono animate-pulse">INITIALIZING...</div></div>;
   if (!user) return <Navigate to="/auth" replace />;
+  return children;
+};
+
+const AdminRoute = ({ children }) => {
+  const { user, loading, isAdmin } = useAuth();
+  if (loading) return <div className="min-h-screen bg-void flex items-center justify-center"><div className="text-cyan-400 font-mono animate-pulse">INITIALIZING...</div></div>;
+  if (!user) return <Navigate to="/auth" replace />;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
   return children;
 };
 
@@ -24,6 +33,7 @@ function AppRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><RFProvider><Dashboard /></RFProvider></ProtectedRoute>} />
       <Route path="/configurations" element={<ProtectedRoute><ConfigurationsPage /></ProtectedRoute>} />
       <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+      <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
     </Routes>
   );
 }
