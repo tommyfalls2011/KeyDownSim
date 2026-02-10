@@ -82,15 +82,21 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
   const totalCurrent = driver.currentDraw + final_.currentDraw;
   const batteryVoltage = 14.2;
   const alternatorCapacity = alternatorCount * alternatorAmps;
-  const wireResistance = 0.005;
+  // Wire resistance scales down with more alternators (bigger wire, more parallel runs)
+  const baseWireResistance = 0.003;
+  const wireResistance = baseWireResistance / Math.sqrt(alternatorCount);
   const vDrop = totalCurrent * wireResistance;
   let effectiveV = batteryVoltage - vDrop;
   const overloaded = totalCurrent > alternatorCapacity;
 
   if (overloaded) {
-    const sag = (totalCurrent - alternatorCapacity) * 0.02;
+    // Voltage sags hard when alternators can't keep up
+    const overloadRatio = (totalCurrent - alternatorCapacity) / alternatorCapacity;
+    const sag = overloadRatio * 4;
     effectiveV -= sag;
   }
+
+  effectiveV = Math.max(0, effectiveV);
 
   return {
     effectiveVoltage: Math.round(effectiveV * 100) / 100,
