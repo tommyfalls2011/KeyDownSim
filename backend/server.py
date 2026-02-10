@@ -48,6 +48,17 @@ class UserRegister(BaseModel):
     password: str
     name: str
 
+class AdminUserUpdate(BaseModel):
+    role: Optional[str] = None
+    subscription_status: Optional[str] = None
+    subscription_plan: Optional[str] = None
+    active: Optional[bool] = None
+
+class EquipmentItem(BaseModel):
+    key: str
+    category: str
+    data: Dict
+
 class UserLogin(BaseModel):
     email: str
     password: str
@@ -142,10 +153,11 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
-def create_token(user_id: str, email: str) -> str:
+def create_token(user_id: str, email: str, role: str = "user") -> str:
     payload = {
         "user_id": user_id,
         "email": email,
+        "role": role,
         "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRY_HOURS)
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
@@ -164,6 +176,13 @@ async def get_current_user(request: Request) -> dict:
     user = await db.users.find_one({"id": payload["user_id"]}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+    if user.get("active") is False:
+        raise HTTPException(status_code=403, detail="Account deactivated")
+    return user
+
+async def get_admin_user(user: dict = Depends(get_current_user)) -> dict:
+    if user.get("role") not in ("admin", "subadmin"):
+        raise HTTPException(status_code=403, detail="Admin access required")
     return user
 
 # ──── Auth Routes ────
@@ -179,18 +198,21 @@ async def register(data: UserRegister):
         "email": data.email,
         "name": data.name,
         "password_hash": hash_password(data.password),
+        "role": "user",
+        "active": True,
         "subscription_status": "free",
         "subscription_plan": None,
         "subscription_end": None,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.users.insert_one(user_doc)
-    token = create_token(user_id, data.email)
+    token = create_token(user_id, data.email, "user")
     return {
         "token": token,
         "user": {
             "id": user_id, "email": data.email, "name": data.name,
-            "subscription_status": "free", "subscription_plan": None, "subscription_end": None
+            "role": "user", "subscription_status": "free",
+            "subscription_plan": None, "subscription_end": None
         }
     }
 
@@ -199,11 +221,12 @@ async def login(data: UserLogin):
     user = await db.users.find_one({"email": data.email}, {"_id": 0})
     if not user or not verify_password(data.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = create_token(user["id"], user["email"])
+    token = create_token(user["id"], user["email"], user.get("role", "user"))
     return {
         "token": token,
         "user": {
             "id": user["id"], "email": user["email"], "name": user["name"],
+            "role": user.get("role", "user"),
             "subscription_status": user.get("subscription_status", "free"),
             "subscription_plan": user.get("subscription_plan"),
             "subscription_end": user.get("subscription_end"),
@@ -214,6 +237,7 @@ async def login(data: UserLogin):
 async def get_me(user: dict = Depends(get_current_user)):
     return {
         "id": user["id"], "email": user["email"], "name": user["name"],
+        "role": user.get("role", "user"),
         "subscription_status": user.get("subscription_status", "free"),
         "subscription_plan": user.get("subscription_plan"),
         "subscription_end": user.get("subscription_end"),
