@@ -15,16 +15,22 @@ function HeroCanvas() {
     const ctx = canvas.getContext('2d');
 
     const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 768 ? 1 : 2);
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
     window.addEventListener('resize', resize);
 
-    const draw = () => {
+    let lastFrame = 0;
+    const draw = (timestamp) => {
+      animRef.current = requestAnimationFrame(draw);
+      if (timestamp - lastFrame < 40) return; // ~25fps
+      lastFrame = timestamp;
       const w = canvas.offsetWidth;
       const h = canvas.offsetHeight;
+      if (w === 0 || h === 0) return;
       ctx.clearRect(0, 0, w, h);
       timeRef.current += 0.02;
       const t = timeRef.current;
