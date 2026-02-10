@@ -596,6 +596,36 @@ async def admin_delete_equipment(category: str, key: str, admin: dict = Depends(
         raise HTTPException(status_code=404, detail="Equipment not found")
     return {"status": "deleted"}
 
+# ──── Admin Pricing Routes ────
+
+class PricingUpdate(BaseModel):
+    monthly_amount: float
+    yearly_amount: float
+
+@api_router.get("/pricing")
+async def get_pricing():
+    plans = await get_subscription_plans()
+    return {
+        "monthly": {"amount": plans["monthly"]["amount"], "currency": plans["monthly"]["currency"]},
+        "yearly": {"amount": plans["yearly"]["amount"], "currency": plans["yearly"]["currency"]},
+    }
+
+@api_router.get("/admin/pricing")
+async def admin_get_pricing(admin: dict = Depends(get_admin_user)):
+    return await get_subscription_plans()
+
+@api_router.put("/admin/pricing")
+async def admin_update_pricing(data: PricingUpdate, admin: dict = Depends(get_admin_user)):
+    plans = await get_subscription_plans()
+    plans["monthly"]["amount"] = data.monthly_amount
+    plans["yearly"]["amount"] = data.yearly_amount
+    await db.settings.update_one(
+        {"key": "subscription_plans"},
+        {"$set": {"key": "subscription_plans", "data": plans}},
+        upsert=True
+    )
+    return plans
+
 # ──── Include Router & Middleware ────
 
 app.include_router(api_router)
