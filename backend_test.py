@@ -239,6 +239,145 @@ class RFVisualizerAPITester:
         
         return True  # These should fail, which is expected
 
+    def test_admin_login(self):
+        """Test admin login with seeded admin account"""
+        admin_data = {
+            "email": "fallstommy@gmail.com",
+            "password": "admin123"
+        }
+        
+        result = self.test_api_endpoint("POST", "/auth/login", 200, admin_data, "(Admin Login)")
+        if result and 'token' in result and result.get('user', {}).get('role') == 'admin':
+            self.admin_token = result['token']
+            print("  ✓ Admin login successful, role=admin")
+            return True
+        return False
+
+    def test_admin_stats(self):
+        """Test admin stats endpoint"""
+        # Store current token and use admin token
+        original_token = self.token
+        self.token = getattr(self, 'admin_token', None)
+        
+        if not self.token:
+            self.log_result("GET /admin/stats", False, error="Admin token not available")
+            return False
+        
+        result = self.test_api_endpoint("GET", "/admin/stats", 200, description="(Admin Stats)")
+        
+        # Restore original token
+        self.token = original_token
+        
+        if result:
+            required_fields = ['total_users', 'active_subscriptions', 'total_configurations', 'total_payments']
+            has_required = all(field in result for field in required_fields)
+            if has_required:
+                print(f"  ✓ Stats: {result['total_users']} users, {result['active_subscriptions']} active subs")
+                return True
+        return result is not None
+
+    def test_admin_users_management(self):
+        """Test admin user management endpoints"""
+        original_token = self.token
+        self.token = getattr(self, 'admin_token', None)
+        
+        if not self.token:
+            self.log_result("Admin Users Management", False, error="Admin token not available")
+            return False
+
+        # Get users list
+        users_result = self.test_api_endpoint("GET", "/admin/users", 200, description="(Admin List Users)")
+        if not users_result:
+            self.token = original_token
+            return False
+
+        # Find a test user to modify (not the admin)
+        test_user = None
+        for user in users_result:
+            if user.get('email') != 'fallstommy@gmail.com' and user.get('role') == 'user':
+                test_user = user
+                break
+
+        if test_user:
+            # Test user role update
+            update_data = {"role": "subadmin"}
+            update_result = self.test_api_endpoint("PATCH", f"/admin/users/{test_user['id']}", 200, update_data, "(Update User Role)")
+            
+            if update_result and update_result.get('role') == 'subadmin':
+                print("  ✓ User role updated to subadmin")
+                
+                # Test subscription grant
+                sub_data = {"subscription_status": "active", "subscription_plan": "monthly"}
+                sub_result = self.test_api_endpoint("PATCH", f"/admin/users/{test_user['id']}", 200, sub_data, "(Grant Subscription)")
+                
+                if sub_result and sub_result.get('subscription_status') == 'active':
+                    print("  ✓ Subscription granted successfully")
+                    success = True
+                else:
+                    success = False
+            else:
+                success = False
+        else:
+            print("  ! No test user available for modification")
+            success = True  # Not a failure, just no data to test with
+        
+        self.token = original_token
+        return success
+
+    def test_admin_equipment_management(self):
+        """Test admin equipment management"""
+        original_token = self.token
+        self.token = getattr(self, 'admin_token', None)
+        
+        if not self.token:
+            self.log_result("Admin Equipment Management", False, error="Admin token not available")
+            return False
+
+        # List equipment
+        eq_result = self.test_api_endpoint("GET", "/admin/equipment", 200, description="(Admin List Equipment)")
+        if not eq_result:
+            self.token = original_token
+            return False
+
+        # Add new equipment
+        test_equipment = {
+            "key": f"test-radio-{datetime.now().strftime('%H%M%S')}",
+            "category": "radios",
+            "data": {
+                "name": "Test Radio",
+                "dead_key": 5.0,
+                "peak_key": 15.0,
+                "impedance": 50
+            }
+        }
+        
+        add_result = self.test_api_endpoint("POST", "/admin/equipment", 200, test_equipment, "(Add Equipment)")
+        if not add_result:
+            self.token = original_token
+            return False
+        
+        print(f"  ✓ Equipment added: {test_equipment['key']}")
+        
+        # Delete the test equipment
+        delete_result = self.test_api_endpoint("DELETE", f"/admin/equipment/{test_equipment['category']}/{test_equipment['key']}", 200, description="(Delete Equipment)")
+        
+        if delete_result and delete_result.get('status') == 'deleted':
+            print("  ✓ Equipment deleted successfully")
+            success = True
+        else:
+            success = False
+        
+        self.token = original_token
+        return success
+
+    def test_admin_access_control(self):
+        """Test that regular users cannot access admin endpoints"""
+        # Use regular user token (not admin)
+        regular_result1 = self.test_api_endpoint("GET", "/admin/stats", 403, description="(Regular User - Admin Stats)")
+        regular_result2 = self.test_api_endpoint("GET", "/admin/users", 403, description="(Regular User - Admin Users)")
+        
+        return regular_result1 is not None and regular_result2 is not None
+
     def run_all_tests(self):
         """Run comprehensive backend test suite"""
         print(f"\n🔍 Starting RF Visualizer Backend API Tests")
