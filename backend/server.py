@@ -456,30 +456,37 @@ async def calculate_rf(data: RFCalcRequest):
     effective_dead = dead_key_power * antenna_factor
     effective_peak = peak_power * antenna_factor
 
-    # Voltage drop — alternator is the hard ceiling on current
+    # Voltage drop — current shared between alternators and battery bank
     demand_current = driver["current_draw"] + final["current_draw"]
     battery_voltage = 14.2
-    # Alternator can push ~8% over rating briefly
     alternator_max = data.alternator_count * data.alternator_amps * 1.08
+    wire_resistance = (0.0001 * 12) / data.alternator_count
 
-    # 0 AWG OFC wire: ~0.0001 ohms/ft, typical run ~6ft each way = 12ft round trip
-    # Multiple alternators = multiple parallel 0 AWG runs
-    wire_ohms_per_ft = 0.0001
-    run_length_ft = 12
-    wire_runs = data.alternator_count
-    wire_resistance = (wire_ohms_per_ft * run_length_ft) / wire_runs
+    # Battery bank specs
+    BATTERY_SPECS = {
+        "none":    {"internal_r": 999,   "burst_amps": 0},
+        "lead":    {"internal_r": 0.015, "burst_amps": 120},
+        "agm":     {"internal_r": 0.007, "burst_amps": 200},
+        "lithium": {"internal_r": 0.0025,"burst_amps": 400},
+        "caps":    {"internal_r": 0.001, "burst_amps": 600},
+    }
+    batt = BATTERY_SPECS.get(data.battery_type, BATTERY_SPECS["none"])
+    bank_burst = batt["burst_amps"] * data.battery_count
+    bank_resistance = batt["internal_r"] / data.battery_count if data.battery_count > 0 else 999
+    total_system_capacity = alternator_max + bank_burst
 
-    # Actual current capped at what alternators can deliver
-    actual_current = min(demand_current, alternator_max)
-    overloaded = demand_current > alternator_max
+    # Current shared: alternator provides up to its max, bank covers the rest
+    alt_provides = min(demand_current, alternator_max)
+    bank_provides = min(max(0, demand_current - alternator_max), bank_burst)
+    actual_current = alt_provides + bank_provides
+    overloaded = demand_current > total_system_capacity
 
-    # Wire loss based on actual current
-    wire_drop = actual_current * wire_resistance
-    effective_voltage = battery_voltage - wire_drop
+    wire_drop = alt_provides * wire_resistance
+    bank_drop = bank_provides * bank_resistance
+    effective_voltage = battery_voltage - wire_drop - bank_drop
 
-    # Voltage sag when demand exceeds supply
     if overloaded:
-        demand_ratio = demand_current / alternator_max
+        demand_ratio = demand_current / total_system_capacity
         sag = min(4.5, (demand_ratio - 1) * 2.5)
         effective_voltage -= sag
 
