@@ -73,14 +73,41 @@ export default function ControlPanel() {
             className="data-[state=checked]:bg-cyan-400"
           />
         </div>
-        <div className="flex items-center justify-between">
-          <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600">Extra Alternators</Label>
-          <Switch
-            data-testid="alternator-toggle"
-            checked={config.extraAlternators}
-            onCheckedChange={v => updateConfig('extraAlternators', v)}
-            className="data-[state=checked]:bg-cyan-400"
-          />
+      </div>
+
+      {/* Alternators */}
+      <div className="space-y-3 mb-6">
+        <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 block">Alternators</Label>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Label className="font-mono text-[8px] text-slate-700 mb-1 block">COUNT</Label>
+            <Select value={String(config.alternatorCount)} onValueChange={v => updateConfig('alternatorCount', parseInt(v))}>
+              <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="alt-count-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-panel border-white/10">
+                {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
+                  <SelectItem key={n} value={String(n)} className="font-mono text-xs text-slate-300">{n}x</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1">
+            <Label className="font-mono text-[8px] text-slate-700 mb-1 block">AMPS EACH</Label>
+            <Select value={String(config.alternatorAmps)} onValueChange={v => updateConfig('alternatorAmps', parseInt(v))}>
+              <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="alt-amps-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-panel border-white/10">
+                {[130, 270, 300, 350, 400, 450, 500].map(a => (
+                  <SelectItem key={a} value={String(a)} className="font-mono text-xs text-slate-300">{a}A</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="font-mono text-[9px] text-slate-600">
+          Total capacity: <span className="text-cyan-400">{config.alternatorCount * config.alternatorAmps}A</span>
         </div>
       </div>
 
