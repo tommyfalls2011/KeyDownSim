@@ -33,10 +33,16 @@ JWT_ALGORITHM = 'HS256'
 JWT_EXPIRY_HOURS = 72
 
 # Subscription Plans (fixed on server - never from frontend)
-SUBSCRIPTION_PLANS = {
+DEFAULT_PLANS = {
     "monthly": {"name": "RF Pro Monthly", "amount": 99.99, "currency": "usd", "days": 30},
     "yearly": {"name": "RF Pro Yearly", "amount": 999.99, "currency": "usd", "days": 365},
 }
+
+async def get_subscription_plans():
+    plans = await db.settings.find_one({"key": "subscription_plans"}, {"_id": 0})
+    if plans and "data" in plans:
+        return plans["data"]
+    return DEFAULT_PLANS
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
