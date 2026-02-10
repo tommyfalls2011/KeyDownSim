@@ -69,13 +69,13 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding) {
   };
 }
 
-export function calculateVoltageDrop(driverKey, finalKey, extraAlternators) {
+export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alternatorAmps) {
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
 
   const totalCurrent = driver.currentDraw + final_.currentDraw;
   const batteryVoltage = 14.2;
-  const alternatorCapacity = extraAlternators ? 300 : 130;
+  const alternatorCapacity = alternatorCount * alternatorAmps;
   const wireResistance = 0.005;
   const vDrop = totalCurrent * wireResistance;
   let effectiveV = batteryVoltage - vDrop;
@@ -91,6 +91,7 @@ export function calculateVoltageDrop(driverKey, finalKey, extraAlternators) {
     voltageDrop: Math.round(vDrop * 1000) / 1000,
     overloaded,
     currentDraw: totalCurrent,
+    alternatorCapacity,
   };
 }
 
