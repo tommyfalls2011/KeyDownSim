@@ -353,10 +353,8 @@ async def payment_status(session_id: str, request: Request, user: dict = Depends
     # If paid, update user subscription (only once)
     if status.payment_status == "paid":
         plan_key = tx.get("plan", "monthly")
-        plan = SUBSCRIPTION_PLANS.get(plan_key, SUBSCRIPTION_PLANS["monthly"])
-        end_date = (datetime.now(timezone.utc) + timedelta(days=plan["days"])).isoformat()
-        await db.users.update_one(
-            {"id": user["id"]},
+        plans = await get_subscription_plans()
+        plan = plans.get(plan_key, plans.get("monthly", DEFAULT_PLANS["monthly"]))
             {"$set": {
                 "subscription_status": "active",
                 "subscription_plan": plan_key,
