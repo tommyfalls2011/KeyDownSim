@@ -453,9 +453,15 @@ async def calculate_rf(data: RFCalcRequest):
     # Voltage drop — alternator is the hard ceiling on current
     demand_current = driver["current_draw"] + final["current_draw"]
     battery_voltage = 14.2
-    # Alternator can push a little over rating briefly (~8%)
+    # Alternator can push ~8% over rating briefly
     alternator_max = data.alternator_count * data.alternator_amps * 1.08
-    wire_resistance = 0.003 / (data.alternator_count ** 0.5)
+
+    # 0 AWG OFC wire: ~0.0001 ohms/ft, typical run ~6ft each way = 12ft round trip
+    # Multiple alternators = multiple parallel 0 AWG runs
+    wire_ohms_per_ft = 0.0001
+    run_length_ft = 12
+    wire_runs = data.alternator_count
+    wire_resistance = (wire_ohms_per_ft * run_length_ft) / wire_runs
 
     # Actual current capped at what alternators can deliver
     actual_current = min(demand_current, alternator_max)
