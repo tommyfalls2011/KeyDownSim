@@ -450,22 +450,34 @@ async def calculate_rf(data: RFCalcRequest):
     effective_dead = dead_key_power * antenna_factor
     effective_peak = peak_power * antenna_factor
 
-    # Voltage drop — alternator capacity = count × amps per alternator
-    total_current = driver["current_draw"] + final["current_draw"]
+    # Voltage drop — self-limiting equilibrium model
+    max_current_draw = driver["current_draw"] + final["current_draw"]
     battery_voltage = 14.2
-    alternator_capacity = data.alternator_count * data.alternator_amps
-    # Wire resistance scales down with more alternators (bigger wire, more parallel runs)
+    # Alternator puts out ~10-15% more than rated under hard pull
+    alternator_capacity = data.alternator_count * data.alternator_amps * 1.12
     base_wire_resistance = 0.003
     wire_resistance = base_wire_resistance / (data.alternator_count ** 0.5)
-    voltage_drop = total_current * wire_resistance
-    effective_voltage = battery_voltage - voltage_drop
-    overloaded = total_current > alternator_capacity
+
+    # Iterate to find equilibrium — as voltage drops, amps draw less
+    voltage = battery_voltage
+    actual_current = max_current_draw
+    for _ in range(10):
+        voltage_factor = max(0.3, voltage / battery_voltage)
+        actual_current = max_current_draw * voltage_factor
+        wire_drop = actual_current * wire_resistance
+        v = battery_voltage - wire_drop
+        if actual_current > alternator_capacity:
+            overload_ratio = (actual_current - alternator_capacity) / alternator_capacity
+            sag = overload_ratio * 3
+            v -= sag
+        v = max(8.0, v)
+        voltage = v
+
+    effective_voltage = voltage
+    total_current = round(actual_current)
+    overloaded = max_current_draw > alternator_capacity
 
     if overloaded:
-        overload_ratio = (total_current - alternator_capacity) / alternator_capacity
-        voltage_sag = overload_ratio * 4
-        effective_voltage -= voltage_sag
-        effective_voltage = max(0, effective_voltage)
         power_reduction = max(0.3, effective_voltage / battery_voltage)
         effective_dead *= power_reduction
         effective_peak *= power_reduction
