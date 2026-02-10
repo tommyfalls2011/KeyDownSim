@@ -17,8 +17,17 @@ import { Button } from '@/components/ui/button';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
-  const { keyed } = useRF();
+  const { keyed, loadConfig } = useRF();
   const navigate = useNavigate();
+
+  // Load config from sessionStorage if navigated from Configurations page
+  useEffect(() => {
+    const stored = sessionStorage.getItem('loadConfig');
+    if (stored) {
+      try { loadConfig(JSON.parse(stored)); } catch {}
+      sessionStorage.removeItem('loadConfig');
+    }
+  }, [loadConfig]);
 
   return (
     <div className={`h-screen flex flex-col bg-void overflow-hidden transition-all duration-300 ${keyed ? '' : ''}`} data-testid="dashboard-page">
