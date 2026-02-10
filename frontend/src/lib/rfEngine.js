@@ -48,18 +48,22 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding) {
   let deadKey = radio.deadKey;
   let peakKey = radio.peakKey;
 
-  // Driver stage: high gain but capped at pills × wattsPerPill × combiningBonus
+  // Driver stage: high gain but capped at pills x wpp x compounded combining bonus
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
-    const driverMax = driver.transistors * (driver.wattsPerPill || 275) * (driver.combiningBonus || 1.0);
+    const stages = driver.combiningStages || 0;
+    const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
+    const driverMax = driver.transistors * (driver.wattsPerPill || 275) * combining;
     deadKey = Math.min(deadKey * driverGain, driverMax);
     peakKey = Math.min(peakKey * driverGain, driverMax);
   }
 
-  // Final stage: lower gain but capped at pills × wattsPerPill × combiningBonus
+  // Final stage: lower gain but capped at pills x wpp x compounded combining bonus
   if (final_.gainDB > 0) {
     const finalGain = Math.pow(10, final_.gainDB / 10);
-    const finalMax = final_.transistors * (final_.wattsPerPill || 275) * (final_.combiningBonus || 1.0);
+    const stages = final_.combiningStages || 0;
+    const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
+    const finalMax = final_.transistors * (final_.wattsPerPill || 275) * combining;
     deadKey = Math.min(deadKey * finalGain, finalMax);
     peakKey = Math.min(peakKey * finalGain, finalMax);
   }
