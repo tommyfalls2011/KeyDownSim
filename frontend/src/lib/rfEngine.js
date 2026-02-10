@@ -81,51 +81,56 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
 
   const demandCurrent = driver.currentDraw + final_.currentDraw;
   const batteryVoltage = 14.2;
-  // Alternator can push ~8% over rating briefly
   const alternatorMax = alternatorCount * alternatorAmps * 1.08;
 
-  // 0 AWG OFC wire: ~0.0001 ohms/ft, 12ft round trip, one run per alt
-  const wireResistance = (0.0001 * 12) / alternatorCount;
+  // 0 AWG OFC wire
+  const wireResistance = (0.0001 * 12) / Math.max(1, alternatorCount);
 
-  // Battery bank specs — internal resistance and burst current per unit
+  // Battery bank specs — Ah, C rating, internal resistance per unit
   const BATTERY_SPECS = {
-    'none':    { internalR: 999,    burstAmps: 0,   name: 'No Bank' },
-    'lead':    { internalR: 0.015,  burstAmps: 120, name: 'Lead Acid' },
-    'agm':     { internalR: 0.007,  burstAmps: 200, name: 'AGM' },
-    'lithium': { internalR: 0.0025, burstAmps: 400, name: 'Lithium' },
-    'caps':    { internalR: 0.001,  burstAmps: 600, name: 'Cap Bank' },
+    'none':    { ah: 0,   cRate: 0,  internalR: 999,   name: 'No Bank' },
+    'lead':    { ah: 100, cRate: 3,  internalR: 0.012, name: 'Lead Acid' },
+    'agm':     { ah: 100, cRate: 5,  internalR: 0.006, name: 'AGM' },
+    'lithium': { ah: 100, cRate: 15, internalR: 0.002, name: 'Lithium' },
+    'caps':    { ah: 5,   cRate: 200,internalR: 0.0005,name: 'Cap Bank' },
   };
 
   const batt = BATTERY_SPECS[batteryType] || BATTERY_SPECS['none'];
-  const bankBurstAmps = batt.burstAmps * (batteryCount || 0);
+  const bankAh = batt.ah * (batteryCount || 0);
+  // Max discharge = total Ah × C rating
+  const bankMaxDischarge = bankAh * batt.cRate;
   // Bank internal resistance drops with parallel batteries
   const bankResistance = batteryCount > 0 ? batt.internalR / batteryCount : 999;
 
-  // Total system capacity = alternator steady-state + battery bank burst
-  const totalSystemCapacity = alternatorMax + bankBurstAmps;
+  // Battery bank takes most of the load — it's the primary power source
+  // Alternator recharges the bank and covers what it can in steady state
+  const bankProvides = Math.min(demandCurrent, bankMaxDischarge);
+  // Whatever the bank can't cover, alternator tries to supplement directly
+  const altDirect = Math.min(Math.max(0, demandCurrent - bankProvides), alternatorMax);
+  const actualCurrent = bankProvides + altDirect;
+  const overloaded = demandCurrent > (bankMaxDischarge + alternatorMax);
 
-  // Current is shared between alternator and battery bank
-  // Alternator provides up to its max, bank covers the rest
-  const altProvides = Math.min(demandCurrent, alternatorMax);
-  const bankProvides = Math.min(Math.max(0, demandCurrent - alternatorMax), bankBurstAmps);
-  const actualCurrent = altProvides + bankProvides;
-  const overloaded = demandCurrent > totalSystemCapacity;
-
-  // Wire loss from alternator current
-  const wireDrop = altProvides * wireResistance;
-  // Bank voltage sag from bank current through internal resistance
+  // Voltage drop from bank internal resistance under load
   const bankDrop = bankProvides * bankResistance;
+  // Wire drop from alternator's contribution
+  const wireDrop = altDirect * wireResistance;
 
-  let voltage = batteryVoltage - wireDrop - bankDrop;
+  let voltage = batteryVoltage - bankDrop - wireDrop;
 
-  // If still overloaded beyond both alt + bank, voltage sags
   if (overloaded) {
-    const demandRatio = demandCurrent / totalSystemCapacity;
+    const demandRatio = demandCurrent / (bankMaxDischarge + alternatorMax);
     const sag = Math.min(4.5, (demandRatio - 1) * 2.5);
     voltage -= sag;
   }
 
   voltage = Math.max(8.0, voltage);
+
+  // How long can the bank sustain this key-down (in seconds)?
+  // Net drain = what bank provides minus what alternator recharges
+  const altRechargeRate = Math.min(alternatorMax, alternatorMax); // alt charges bank when not overloaded
+  const netBankDrain = Math.max(0, bankProvides - altRechargeRate);
+  // Time = Ah capacity / net drain amps × 3600 (convert to seconds)
+  const holdTimeSec = netBankDrain > 0 ? (bankAh / netBankDrain) * 3600 : 9999;
 
   return {
     effectiveVoltage: Math.round(voltage * 100) / 100,
@@ -134,9 +139,11 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
     currentDraw: Math.round(actualCurrent),
     demandCurrent,
     alternatorCapacity: Math.round(alternatorMax),
-    bankBurstAmps: Math.round(bankBurstAmps),
-    altProvides: Math.round(altProvides),
+    bankMaxDischarge: Math.round(bankMaxDischarge),
     bankProvides: Math.round(bankProvides),
+    altProvides: Math.round(altDirect),
+    holdTimeSec: Math.round(holdTimeSec),
+    bankAh,
   };
 }
 
