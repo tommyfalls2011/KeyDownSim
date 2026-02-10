@@ -120,7 +120,10 @@ export default function SubscriptionPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {PLANS.map(plan => (
+              {[
+                { id: 'monthly', name: 'Monthly', period: '/month', desc: 'Billed monthly' },
+                { id: 'yearly', name: 'Yearly', period: '/year', desc: `Save ${formatPrice(pricing.monthly.amount * 12 - pricing.yearly.amount)} — best value`, badge: 'BEST VALUE' },
+              ].map(plan => (
                 <div
                   key={plan.id}
                   onClick={() => setSelectedPlan(plan.id)}
@@ -136,7 +139,7 @@ export default function SubscriptionPage() {
                     </div>
                   )}
                   <div className="font-chakra text-xs text-slate-500 uppercase tracking-widest mb-2">{plan.name}</div>
-                  <div className="font-mono text-3xl text-white">{plan.price}</div>
+                  <div className="font-mono text-3xl text-white">{formatPrice(pricing[plan.id]?.amount)}</div>
                   <div className="font-exo text-xs text-slate-600 mt-1">{plan.period}</div>
                   <div className="font-exo text-[10px] text-slate-700 mt-2">{plan.desc}</div>
                 </div>
