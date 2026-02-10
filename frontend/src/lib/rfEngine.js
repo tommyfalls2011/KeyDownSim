@@ -81,12 +81,17 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
 
   const demandCurrent = driver.currentDraw + final_.currentDraw;
   const batteryVoltage = 14.2;
-  // Alternator can push a little over rating briefly (~8% overrate)
+  // Alternator can push a little over rating briefly (~8%)
   const alternatorMax = alternatorCount * alternatorAmps * 1.08;
-  // Wire resistance scales down with more alternators (bigger wire, parallel runs)
-  const wireResistance = 0.003 / Math.sqrt(alternatorCount);
 
-  // Actual current is capped at what the alternators can deliver
+  // 0 AWG OFC wire: ~0.0001 ohms/ft, typical run ~6ft each way = 12ft round trip
+  // Multiple alternators = multiple parallel 0 AWG runs, cuts resistance
+  const wireOhmsPerFt = 0.0001;  // 0 AWG OFC copper
+  const runLengthFt = 12;        // ~6ft each way typical
+  const wireRuns = alternatorCount; // one run per alternator
+  const wireResistance = (wireOhmsPerFt * runLengthFt) / wireRuns;
+
+  // Actual current capped at what alternators can deliver
   const actualCurrent = Math.min(demandCurrent, alternatorMax);
   const overloaded = demandCurrent > alternatorMax;
 
@@ -94,16 +99,14 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
   const wireDrop = actualCurrent * wireResistance;
   let voltage = batteryVoltage - wireDrop;
 
-  // When overloaded, voltage sags because alternator can't keep up
+  // Voltage sag when demand exceeds alternator supply
   if (overloaded) {
-    // The more you're asking vs what it can give, the more voltage sags
     const demandRatio = demandCurrent / alternatorMax;
-    // Voltage drops proportionally — heavy overload sags to ~9-10V
     const sag = Math.min(4.5, (demandRatio - 1) * 2.5);
     voltage -= sag;
   }
 
-  // Floor at ~8V — alternator + batteries still producing something
+  // Floor at ~8V — alternator + batteries still producing
   voltage = Math.max(8.0, voltage);
 
   return {
