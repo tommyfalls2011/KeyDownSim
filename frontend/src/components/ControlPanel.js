@@ -112,6 +112,48 @@ export default function ControlPanel() {
         </div>
       </div>
 
+      {/* Battery Bank */}
+      <div className="space-y-3 mb-6">
+        <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 block">Battery Bank</Label>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Label className="font-mono text-[8px] text-slate-700 mb-1 block">TYPE</Label>
+            <Select value={config.batteryType} onValueChange={v => updateConfig('batteryType', v)}>
+              <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="battery-type-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-panel border-white/10">
+                <SelectItem value="none" className="font-mono text-xs text-slate-300">None</SelectItem>
+                <SelectItem value="lead" className="font-mono text-xs text-slate-300">Lead Acid</SelectItem>
+                <SelectItem value="agm" className="font-mono text-xs text-slate-300">AGM</SelectItem>
+                <SelectItem value="lithium" className="font-mono text-xs text-slate-300">Lithium</SelectItem>
+                <SelectItem value="caps" className="font-mono text-xs text-slate-300">Cap Bank</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1">
+            <Label className="font-mono text-[8px] text-slate-700 mb-1 block">COUNT</Label>
+            <Select value={String(config.batteryCount)} onValueChange={v => updateConfig('batteryCount', parseInt(v))}>
+              <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="battery-count-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-panel border-white/10">
+                {[0,1,2,3,4,5,6,8,10,12].map(n => (
+                  <SelectItem key={n} value={String(n)} className="font-mono text-xs text-slate-300">{n}x</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {config.batteryType !== 'none' && config.batteryCount > 0 && (
+          <div className="font-mono text-[9px] text-slate-600">
+            Bank burst: <span className="text-cyan-400">
+              {({'lead': 120, 'agm': 200, 'lithium': 400, 'caps': 600}[config.batteryType] || 0) * config.batteryCount}A
+            </span>
+          </div>
+        )}
+      </div>
+
       {/* Separator */}
       <div className="border-t border-white/5 my-4" />
 
