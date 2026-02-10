@@ -73,7 +73,8 @@ export default function CanvasVisualizer() {
     const ctx = canvas.getContext('2d');
 
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
+      // Cap DPR at 1 on mobile for performance
+      const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 768 ? 1 : 2);
       canvas.width = canvas.offsetWidth * dpr;
       canvas.height = canvas.offsetHeight * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -82,9 +83,18 @@ export default function CanvasVisualizer() {
     window.addEventListener('resize', resize);
 
     let time = 0;
-    const draw = () => {
+    let lastFrame = 0;
+    const targetFPS = window.innerWidth < 768 ? 24 : 60;
+    const frameInterval = 1000 / targetFPS;
+
+    const draw = (timestamp) => {
+      animRef.current = requestAnimationFrame(draw);
+      if (timestamp - lastFrame < frameInterval) return;
+      lastFrame = timestamp;
+
       const w = canvas.offsetWidth;
       const h = canvas.offsetHeight;
+      if (w === 0 || h === 0) return;
       ctx.clearRect(0, 0, w, h);
       time += 0.016;
 
