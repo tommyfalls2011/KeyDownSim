@@ -85,7 +85,8 @@ class ConfigCreate(BaseModel):
     antenna: str
     vehicle: str
     bonding: bool = True
-    extra_alternators: bool = False
+    alternator_count: int = 1
+    alternator_amps: int = 130
 
 class ConfigResponse(BaseModel):
     id: str
@@ -111,7 +112,8 @@ class RFCalcRequest(BaseModel):
     antenna: str
     vehicle: str
     bonding: bool = True
-    extra_alternators: bool = False
+    alternator_count: int = 1
+    alternator_amps: int = 130
 
 # ──── RF Equipment Database ────
 
