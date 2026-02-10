@@ -34,8 +34,8 @@ JWT_EXPIRY_HOURS = 72
 
 # Subscription Plans (fixed on server - never from frontend)
 SUBSCRIPTION_PLANS = {
-    "monthly": {"name": "RF Pro Monthly", "amount": 9.99, "currency": "usd", "days": 30},
-    "yearly": {"name": "RF Pro Yearly", "amount": 99.99, "currency": "usd", "days": 365},
+    "monthly": {"name": "RF Pro Monthly", "amount": 99.99, "currency": "usd", "days": 30},
+    "yearly": {"name": "RF Pro Yearly", "amount": 999.99, "currency": "usd", "days": 365},
 }
 
 app = FastAPI()

@@ -9,8 +9,8 @@ import { ArrowLeft, Check, Loader2, Zap } from 'lucide-react';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const PLANS = [
-  { id: 'monthly', name: 'Monthly', price: '$9.99', period: '/month', desc: 'Billed monthly' },
-  { id: 'yearly', name: 'Yearly', price: '$99.99', period: '/year', desc: 'Save $20 — best value', badge: 'BEST VALUE' },
+  { id: 'monthly', name: 'Monthly', price: '$99.99', period: '/month', desc: 'Billed monthly' },
+  { id: 'yearly', name: 'Yearly', price: '$999.99', period: '/year', desc: 'Save $200 — best value', badge: 'BEST VALUE' },
 ];
 
 export default function SubscriptionPage() {
