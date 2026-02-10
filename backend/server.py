@@ -384,7 +384,8 @@ async def stripe_webhook(request: Request):
                     {"$set": {"payment_status": "paid", "status": "complete"}}
                 )
                 plan_key = tx.get("plan", "monthly")
-                plan = SUBSCRIPTION_PLANS.get(plan_key, SUBSCRIPTION_PLANS["monthly"])
+                plans = await get_subscription_plans()
+                plan = plans.get(plan_key, plans.get("monthly", DEFAULT_PLANS["monthly"]))
                 end_date = (datetime.now(timezone.utc) + timedelta(days=plan["days"])).isoformat()
                 await db.users.update_one(
                     {"id": tx["user_id"]},
