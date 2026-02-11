@@ -133,6 +133,14 @@ iframe[src*="emergent"] {
   overflow: hidden !important;
 }
 
+/* Catch-all for injected fixed badges at bottom */
+body > div:last-child:not(#root):not([data-debug-wrapper]) {
+  display: none !important;
+}
+body > a[target="_blank"] {
+  display: none !important;
+}
+
 /* Keyframes */
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); }
