@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useRF } from '@/context/RFContext';
-import { getRadiationPattern, VEHICLES } from '@/lib/rfEngine';
+import { getRadiationPattern, VEHICLES, ANTENNA_POSITIONS } from '@/lib/rfEngine';
 
 export default function CanvasVisualizer() {
   const canvasRef = useRef(null);
