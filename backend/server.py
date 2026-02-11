@@ -162,6 +162,14 @@ VEHICLES = {
     "wagon": {"name": "Station Wagon", "ground_plane": 0.80, "directional": 0.20, "takeoff": 28},
 }
 
+ANTENNA_POSITIONS = {
+    "center":     {"name": "Center Roof",  "db_loss": 0},
+    "rear":       {"name": "Rear Mount",   "db_loss": 2.1},
+    "front":      {"name": "Front Mount",  "db_loss": 1.5},
+    "back-right": {"name": "Back Right",   "db_loss": 2.8},
+    "back-left":  {"name": "Back Left",    "db_loss": 2.8},
+}
+
 # ──── Auth Helpers ────
 
 def hash_password(password: str) -> str:
