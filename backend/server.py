@@ -273,6 +273,7 @@ async def create_config(data: ConfigCreate, user: dict = Depends(get_current_use
         "driver_amp": data.driver_amp,
         "final_amp": data.final_amp,
         "antenna": data.antenna,
+        "antenna_position": data.antenna_position,
         "vehicle": data.vehicle,
         "bonding": data.bonding,
         "alternator_count": data.alternator_count,
