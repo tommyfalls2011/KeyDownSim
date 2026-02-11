@@ -176,6 +176,14 @@ export default function CanvasVisualizer() {
         const pattern = getRadiationPattern(config.vehicle, config.bonding, power, config.antenna, config.antennaPosition);
         const pulse = 1 + Math.sin(time * 4) * 0.05 * intensity;
 
+        // Auto-scale: find max pattern gain and scale to fit within 90% of maxR
+        const maxGain = Math.max(...pattern.map(p => p.gain));
+        const scaleFactor = maxGain > 0 ? (maxR * 0.9) / maxGain : 1;
+
+        // Distance model: base range in feet proportional to sqrt(power)
+        // ~500W center roof ≈ 12ft radius, rear mount ≈ 20ft forward / 6ft back
+        const baseRangeFt = Math.sqrt(Math.max(1, power)) * 0.6;
+
         // Fill
         const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
         const hue = power > 3000 ? 339 : power > 1000 ? 48 : 186;
@@ -187,7 +195,7 @@ export default function CanvasVisualizer() {
         ctx.beginPath();
         pattern.forEach((p, i) => {
           const rad = (p.angle * Math.PI) / 180;
-          const r = Math.min(p.gain * maxR * intensity * pulse, maxR);
+          const r = p.gain * scaleFactor * intensity * pulse;
           const x = cx + Math.cos(rad) * r;
           const y = cy + Math.sin(rad) * r;
           if (i === 0) ctx.moveTo(x, y);
@@ -202,7 +210,7 @@ export default function CanvasVisualizer() {
         ctx.beginPath();
         pattern.forEach((p, i) => {
           const rad = (p.angle * Math.PI) / 180;
-          const r = Math.min(p.gain * maxR * intensity * pulse, maxR);
+          const r = p.gain * scaleFactor * intensity * pulse;
           const x = cx + Math.cos(rad) * r;
           const y = cy + Math.sin(rad) * r;
           if (i === 0) ctx.moveTo(x, y);
@@ -210,6 +218,37 @@ export default function CanvasVisualizer() {
         });
         ctx.closePath();
         ctx.stroke();
+
+        // Distance labels (feet) at N/S/E/W edges of the pattern
+        if (keyed && power > 0) {
+          ctx.font = 'bold 10px "JetBrains Mono"';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          // Find gain at cardinal directions (N=270°, S=90°, E=0°, W=180°)
+          const cardinals = [
+            { label: 'N', angle: 270, dir: 'FRONT' },
+            { label: 'S', angle: 90,  dir: 'REAR' },
+            { label: 'E', angle: 0,   dir: 'RIGHT' },
+            { label: 'W', angle: 180, dir: 'LEFT' },
+          ];
+
+          cardinals.forEach(c => {
+            // Find the pattern point closest to this cardinal angle
+            const idx = Math.round(c.angle / 2) % 180;
+            const p = pattern[idx] || pattern[0];
+            const distFt = Math.round((p.gain / maxGain) * baseRangeFt);
+            const r = p.gain * scaleFactor * intensity * pulse;
+            const rad = (c.angle * Math.PI) / 180;
+            const lx = cx + Math.cos(rad) * (r + 16);
+            const ly = cy + Math.sin(rad) * (r + 16);
+
+            if (distFt > 0) {
+              ctx.fillStyle = `hsla(${hue},100%,70%,${0.7 * intensity})`;
+              ctx.fillText(`${distFt}ft`, lx, ly);
+            }
+          });
+        }
 
         // Voltage nodes (hot spots)
         if (intensity > 0.5 && power > 500) {
