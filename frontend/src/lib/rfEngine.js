@@ -163,21 +163,18 @@ export function calculateSWR(antennaKey, vehicleKey, bonding) {
   const antenna = ANTENNAS[antennaKey] || ANTENNAS['whip-102'];
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
 
-  // Base SWR by antenna type — how well it couples to a ground plane
-  let baseSWR = 1.2;
-  if (antenna.type === 'mag-mount') baseSWR = 1.5;
-  else if (antenna.type === 'base-load') baseSWR = 1.3;
-  else if (antenna.type === 'vertical') baseSWR = 1.2;
+  // Base SWR — a perfect antenna on a perfect ground plane
+  let baseSWR = 1.0;
+  if (antenna.type === 'mag-mount') baseSWR = 1.2;
+  else if (antenna.type === 'base-load') baseSWR = 1.1;
 
-  // Vehicle surface area effect — less ground plane = higher SWR
-  // groundPlane ranges 0.65 (truck) to 0.90 (van)
-  // Poor surface area adds up to +1.5 SWR
-  const surfacePenalty = (1 - vehicle.groundPlane) * 4;
+  // Vehicle surface area penalty — less metal = worse SWR
+  const surfacePenalty = (1 - vehicle.groundPlane) * 2.5;
   let swr = baseSWR + surfacePenalty;
 
-  // Bonding effect — poor bonding dramatically raises SWR
+  // Poor bonding — panels not connected, ground plane is fragmented
   if (!bonding) {
-    swr += 1.5;
+    swr += 0.9;
   }
 
   return Math.round(Math.max(1.0, swr) * 10) / 10;
