@@ -147,12 +147,28 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
   };
 }
 
-export function calculateSWR(antennaKey, bonding) {
+export function calculateSWR(antennaKey, vehicleKey, bonding) {
   const antenna = ANTENNAS[antennaKey] || ANTENNAS['whip-102'];
-  let swr = bonding ? 1.5 : 3.2;
-  if (antenna.type === 'mag-mount') swr += 0.3;
-  if (antenna.type === 'base-load') swr -= 0.2;
-  return Math.round(swr * 10) / 10;
+  const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
+
+  // Base SWR by antenna type — how well it couples to a ground plane
+  let baseSWR = 1.2;
+  if (antenna.type === 'mag-mount') baseSWR = 1.5;
+  else if (antenna.type === 'base-load') baseSWR = 1.3;
+  else if (antenna.type === 'vertical') baseSWR = 1.2;
+
+  // Vehicle surface area effect — less ground plane = higher SWR
+  // groundPlane ranges 0.65 (truck) to 0.90 (van)
+  // Poor surface area adds up to +1.5 SWR
+  const surfacePenalty = (1 - vehicle.groundPlane) * 4;
+  let swr = baseSWR + surfacePenalty;
+
+  // Bonding effect — poor bonding dramatically raises SWR
+  if (!bonding) {
+    swr += 1.5;
+  }
+
+  return Math.round(Math.max(1.0, swr) * 10) / 10;
 }
 
 export function calculateTakeoffAngle(vehicleKey, bonding) {
