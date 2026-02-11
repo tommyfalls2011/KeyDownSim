@@ -3,9 +3,10 @@ import { RADIOS, DRIVER_AMPS, FINAL_AMPS, ANTENNAS } from '@/lib/rfEngine';
 import { calculateSignalChain } from '@/lib/rfEngine';
 import RackUnit from '@/components/RackUnit';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertTriangle } from 'lucide-react';
 
 export default function EquipmentRack() {
-  const { config, updateConfig } = useRF();
+  const { config, updateConfig, metrics } = useRF();
 
   return (
     <div className="p-3 space-y-1">
@@ -70,6 +71,14 @@ export default function EquipmentRack() {
           <div className="flex justify-between mt-2 font-mono text-[10px]">
             <span className="text-slate-600">GAIN: <span className="text-cyan-400">+{FINAL_AMPS[config.finalAmp]?.gainDB}dB</span></span>
             <span className="text-slate-600">DRAW: <span className="text-hot">{FINAL_AMPS[config.finalAmp]?.currentDraw}A</span></span>
+          </div>
+        )}
+        {metrics.underDriven && config.finalAmp !== 'none' && (
+          <div className="mt-2 flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1.5" data-testid="under-driven-warning">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <div className="font-mono text-[9px] text-amber-400 leading-tight">
+              UNDER-DRIVEN — {Math.round(metrics.driveRatio * 100)}% drive ({metrics.driveWatts}W / {metrics.idealDrive}W needed)
+            </div>
           </div>
         )}
       </RackUnit>
