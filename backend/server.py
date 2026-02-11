@@ -512,6 +512,27 @@ async def calculate_rf(data: RFCalcRequest):
     # Ground plane quality
     gp_quality = vehicle["ground_plane"] * (1.0 if data.bonding else 0.5)
 
+    # Under-driven detection
+    drive_watts = radio["dead_key"]
+    if driver["gain_db"] > 0:
+        driver_gain_raw = 10 ** (driver["gain_db"] / 10)
+        d_stages = driver.get("combining_stages", 0)
+        d_combining = COMBINING_BONUS_PER_STAGE ** d_stages
+        d_max = driver["transistors"] * driver.get("watts_per_pill", 275) * d_combining
+        drive_watts = min(drive_watts * driver_gain_raw, d_max)
+
+    under_driven = False
+    drive_ratio = 1.0
+    ideal_drive = 0
+    if final["gain_db"] > 0:
+        f_gain = 10 ** (final["gain_db"] / 10)
+        f_stages = final.get("combining_stages", 0)
+        f_combining = COMBINING_BONUS_PER_STAGE ** f_stages
+        f_capacity = final["transistors"] * final.get("watts_per_pill", 275) * f_combining
+        ideal_drive = f_capacity / f_gain
+        drive_ratio = drive_watts / ideal_drive if ideal_drive > 0 else 1.0
+        under_driven = drive_ratio < 0.6
+
     return {
         "dead_key_watts": round(effective_dead, 1),
         "peak_watts": round(effective_peak, 1),
@@ -525,6 +546,10 @@ async def calculate_rf(data: RFCalcRequest):
         "takeoff_angle": takeoff_angle,
         "ground_plane_quality": round(gp_quality, 2),
         "directional_bias": vehicle["directional"],
+        "under_driven": under_driven,
+        "drive_ratio": round(drive_ratio, 2),
+        "drive_watts": round(drive_watts),
+        "ideal_drive": round(ideal_drive),
     }
 
 # ──── Equipment Data Route ────
