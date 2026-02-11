@@ -191,7 +191,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 bg-surface border-t border-white/5">
+      <footer className="py-8 pb-16 px-6 bg-surface border-t border-white/5">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <div className="font-chakra text-xs text-slate-600 uppercase tracking-widest">KEY DOWN RF VIZ</div>
           <div className="font-mono text-xs text-slate-700">&copy; 2026</div>
