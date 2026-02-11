@@ -121,9 +121,7 @@ body {
 }
 
 /* Hide platform badge */
-a[href*="emergentagent.com"],
-div[style*="position: fixed"][style*="bottom"],
-iframe[src*="emergent"] {
+#emergent-badge {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -131,14 +129,9 @@ iframe[src*="emergent"] {
   height: 0 !important;
   width: 0 !important;
   overflow: hidden !important;
-}
-
-/* Catch-all for injected fixed badges at bottom */
-body > div:last-child:not(#root):not([data-debug-wrapper]) {
-  display: none !important;
-}
-body > a[target="_blank"] {
-  display: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
 }
 
 /* Keyframes */
