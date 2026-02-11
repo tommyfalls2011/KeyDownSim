@@ -38,6 +38,18 @@ export const VEHICLES = {
   'wagon': { name: 'Station Wagon', groundPlane: 0.80, directional: 0.20, takeoff: 28, shape: 'wagon' },
 };
 
+// Antenna mount positions — the vehicle body reflects signal away from itself
+// biasAngle: direction the pattern skews toward (0=front, 90=right, 180=rear, 270=left)
+// biasStrength: how much the pattern skews (0=omni, 1=very directional)
+// xOffset/yOffset: position on vehicle for visual (-1 to 1 range, 0=center)
+export const ANTENNA_POSITIONS = {
+  'center':     { name: 'Center Roof',  biasAngle: 0,   biasStrength: 0.0,  xOffset: 0,    yOffset: 0 },
+  'rear':       { name: 'Rear Mount',   biasAngle: 0,   biasStrength: 0.45, xOffset: 0,    yOffset: 0.8 },
+  'front':      { name: 'Front Mount',  biasAngle: 180, biasStrength: 0.35, xOffset: 0,    yOffset: -0.8 },
+  'back-right': { name: 'Back Right',   biasAngle: 315, biasStrength: 0.5,  xOffset: 0.7,  yOffset: 0.7 },
+  'back-left':  { name: 'Back Left',    biasAngle: 45,  biasStrength: 0.5,  xOffset: -0.7, yOffset: 0.7 },
+};
+
 // ─── Calculation Functions ───
 
 export function calculateSignalChain(radioKey, driverKey, finalKey, bonding) {
