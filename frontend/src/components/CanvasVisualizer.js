@@ -229,6 +229,88 @@ export default function CanvasVisualizer() {
         }
       }
 
+      // Under-driven amplifier warning
+      if (metrics.underDriven && config.finalAmp !== 'none') {
+        const flash = Math.sin(time * 4) > -0.3;
+        if (flash) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(255,165,0,0.85)';
+          ctx.font = 'bold 10px "Chakra Petch"';
+          ctx.textAlign = 'center';
+          ctx.fillText('UNDER-DRIVEN AMP', cx, h - 40);
+          ctx.font = '8px "JetBrains Mono"';
+          ctx.fillStyle = 'rgba(255,165,0,0.6)';
+          ctx.fillText(`Drive: ${metrics.driveWatts}W / Need: ${metrics.idealDrive}W (${Math.round(metrics.driveRatio * 100)}%)`, cx, h - 28);
+          ctx.restore();
+        }
+      }
+
+      // Take-off angle visualization (mini side-view in bottom-right corner)
+      {
+        const taSize = Math.min(w, h) * 0.15;
+        const taX = w - taSize - 16;
+        const taY = h - taSize - 16;
+        const angleRad = (metrics.takeoffAngle * Math.PI) / 180;
+
+        // Background
+        ctx.save();
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(taX - 8, taY - 20, taSize + 16, taSize + 28, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        // Label
+        ctx.fillStyle = 'rgba(0,240,255,0.5)';
+        ctx.font = '8px "Chakra Petch"';
+        ctx.textAlign = 'center';
+        ctx.fillText('TAKE-OFF', taX + taSize / 2, taY - 8);
+
+        // Ground line
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(taX, taY + taSize);
+        ctx.lineTo(taX + taSize, taY + taSize);
+        ctx.stroke();
+
+        // Vehicle dot
+        ctx.fillStyle = '#00F0FF';
+        ctx.beginPath();
+        ctx.arc(taX + taSize * 0.3, taY + taSize - 2, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Take-off angle beam
+        const beamLen = taSize * 0.8;
+        const beamEndX = taX + taSize * 0.3 + Math.cos(-angleRad) * beamLen;
+        const beamEndY = taY + taSize - 2 + Math.sin(-angleRad) * beamLen;
+
+        ctx.strokeStyle = keyed ? `hsla(186,100%,50%,${0.4 + intensity * 0.4})` : 'rgba(0,240,255,0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(taX + taSize * 0.3, taY + taSize - 2);
+        ctx.lineTo(beamEndX, beamEndY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Angle arc
+        ctx.strokeStyle = 'rgba(0,240,255,0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(taX + taSize * 0.3, taY + taSize - 2, taSize * 0.25, -angleRad, 0);
+        ctx.stroke();
+
+        // Angle label
+        ctx.fillStyle = metrics.takeoffAngle > 40 ? 'rgba(255,200,0,0.8)' : 'rgba(0,240,255,0.7)';
+        ctx.font = 'bold 10px "JetBrains Mono"';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${metrics.takeoffAngle}°`, taX + taSize * 0.7, taY + taSize - 8);
+        ctx.restore();
+      }
+
       // Power readout overlay
       if (keyed) {
         ctx.fillStyle = `rgba(0,240,255,${0.7 * intensity})`;
