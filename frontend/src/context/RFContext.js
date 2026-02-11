@@ -44,7 +44,7 @@ export function RFProvider({ children }) {
   // Calculate derived values
   const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding);
   const voltage = calculateVoltageDrop(config.driverAmp, config.finalAmp, config.alternatorCount, config.alternatorAmps, config.batteryType, config.batteryCount);
-  const swr = calculateSWR(config.antenna, config.bonding);
+  const swr = calculateSWR(config.antenna, config.vehicle, config.bonding);
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding);
 
