@@ -117,7 +117,7 @@ export default function Dashboard() {
         </div>
 
         {/* Mobile Tab Bar */}
-        <div className="h-14 bg-surface border-t border-white/5 grid grid-cols-3 shrink-0" data-testid="mobile-tab-bar">
+        <div className="h-14 bg-surface border-t border-white/5 grid grid-cols-3 shrink-0 mb-8" data-testid="mobile-tab-bar">
           <button
             onClick={() => setMobileTab('rack')}
             className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${mobileTab === 'rack' ? 'text-cyan-400' : 'text-slate-600'}`}
