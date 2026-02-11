@@ -509,15 +509,15 @@ async def calculate_rf(data: RFCalcRequest):
     takeoff_angle = base_takeoff + bonding_penalty
 
     # SWR calculation — based on antenna type and vehicle surface area
-    base_swr = 1.2
+    base_swr = 1.0
     if antenna["type"] == "mag-mount":
-        base_swr = 1.5
+        base_swr = 1.2
     elif antenna["type"] == "base-load":
-        base_swr = 1.3
-    surface_penalty = (1 - vehicle["ground_plane"]) * 4
+        base_swr = 1.1
+    surface_penalty = (1 - vehicle["ground_plane"]) * 2.5
     swr = base_swr + surface_penalty
     if not data.bonding:
-        swr += 1.5
+        swr += 0.9
     swr = round(max(1.0, swr), 1)
 
     # Ground plane quality
