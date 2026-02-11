@@ -83,12 +83,8 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, ant
     peakKey = Math.min(peakKey * finalGain, finalMax);
   }
 
-  // Antenna position efficiency loss (Larsen data: rear ~2.1dB, corners ~2.8dB)
-  if (pos.dBLoss > 0) {
-    const positionFactor = Math.pow(10, -pos.dBLoss / 10);
-    deadKey *= positionFactor;
-    peakKey *= positionFactor;
-  }
+  // Antenna position affects pattern shape (directional), NOT total power output
+  // The amp puts out the same watts — the ground plane redirects it
 
   const bondingFactor = bonding ? 1.0 : 0.6;
   return {
