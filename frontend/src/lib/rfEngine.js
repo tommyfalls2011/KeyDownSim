@@ -54,10 +54,11 @@ export const ANTENNA_POSITIONS = {
 
 // ─── Calculation Functions ───
 
-export function calculateSignalChain(radioKey, driverKey, finalKey, bonding) {
+export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, antennaPosKey) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
+  const pos = ANTENNA_POSITIONS[antennaPosKey] || ANTENNA_POSITIONS['center'];
 
   let deadKey = radio.deadKey;
   let peakKey = radio.peakKey;
@@ -80,6 +81,13 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding) {
     const finalMax = final_.transistors * (final_.wattsPerPill || 275) * combining;
     deadKey = Math.min(deadKey * finalGain, finalMax);
     peakKey = Math.min(peakKey * finalGain, finalMax);
+  }
+
+  // Antenna position efficiency loss (Larsen data: rear ~2.1dB, corners ~2.8dB)
+  if (pos.dBLoss > 0) {
+    const positionFactor = Math.pow(10, -pos.dBLoss / 10);
+    deadKey *= positionFactor;
+    peakKey *= positionFactor;
   }
 
   const bondingFactor = bonding ? 1.0 : 0.6;
