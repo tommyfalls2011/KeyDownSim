@@ -83,6 +83,7 @@ class ConfigCreate(BaseModel):
     driver_amp: str
     final_amp: str
     antenna: str
+    antenna_position: str = "center"
     vehicle: str
     bonding: bool = True
     alternator_count: int = 1
@@ -98,6 +99,7 @@ class ConfigResponse(BaseModel):
     driver_amp: str
     final_amp: str
     antenna: str
+    antenna_position: str
     vehicle: str
     bonding: bool
     extra_alternators: bool
@@ -112,6 +114,7 @@ class RFCalcRequest(BaseModel):
     driver_amp: str
     final_amp: str
     antenna: str
+    antenna_position: str = "center"
     vehicle: str
     bonding: bool = True
     alternator_count: int = 1
