@@ -120,6 +120,19 @@ body {
   }
 }
 
+/* Hide platform badge */
+a[href*="emergentagent.com"],
+div[style*="position: fixed"][style*="bottom"],
+iframe[src*="emergent"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
+
 /* Keyframes */
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); }
