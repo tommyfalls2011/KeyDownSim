@@ -8,8 +8,9 @@ export default function CanvasVisualizer() {
   const intensityRef = useRef(0);
   const { config, keyed, metrics } = useRF();
 
-  const drawVehicle = useCallback((ctx, cx, cy, vehicleKey, scale) => {
+  const drawVehicle = useCallback((ctx, cx, cy, vehicleKey, scale, antennaPosKey) => {
     const v = VEHICLES[vehicleKey];
+    const pos = ANTENNA_POSITIONS[antennaPosKey] || ANTENNA_POSITIONS['center'];
     ctx.strokeStyle = '#00F0FF';
     ctx.lineWidth = 1.5;
     ctx.fillStyle = 'rgba(0,240,255,0.03)';
@@ -60,11 +61,19 @@ export default function CanvasVisualizer() {
       ctx.fillRect(cx + 23*s, cy + 30*s, 5*s, 12*s);
     }
 
-    // Antenna dot on roof center
+    // Antenna dot — positioned based on mount location
+    const antX = cx + pos.xOffset * 22 * s;
+    const antY = cy + pos.yOffset * 50 * s;
     ctx.fillStyle = '#00F0FF';
     ctx.beginPath();
-    ctx.arc(cx, cy - 52*s - 4*s, 3, 0, Math.PI * 2);
+    ctx.arc(antX, antY, 3, 0, Math.PI * 2);
     ctx.fill();
+    // Small ring around antenna
+    ctx.strokeStyle = 'rgba(0,240,255,0.3)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.arc(antX, antY, 6, 0, Math.PI * 2);
+    ctx.stroke();
   }, []);
 
   useEffect(() => {
