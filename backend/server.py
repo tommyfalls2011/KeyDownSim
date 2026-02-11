@@ -463,12 +463,8 @@ async def calculate_rf(data: RFCalcRequest):
     dead_key_power *= bonding_factor
     peak_power *= bonding_factor
 
-    # Antenna position efficiency loss (Larsen data: rear ~2.1dB avg vs center roof)
-    ant_pos = ANTENNA_POSITIONS.get(data.antenna_position, ANTENNA_POSITIONS["center"])
-    if ant_pos["db_loss"] > 0:
-        position_factor = 10 ** (-ant_pos["db_loss"] / 10)
-        dead_key_power *= position_factor
-        peak_power *= position_factor
+    # Antenna position affects pattern shape only, NOT total power output
+    # The amp puts out the same watts — the ground plane redirects it
 
     # Antenna gain
     antenna_factor = 10 ** (antenna["gain_dbi"] / 10)
