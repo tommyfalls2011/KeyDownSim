@@ -1,5 +1,5 @@
 import { useRF } from '@/context/RFContext';
-import { VEHICLES } from '@/lib/rfEngine';
+import { VEHICLES, ANTENNA_POSITIONS } from '@/lib/rfEngine';
 import KeyButton from '@/components/KeyButton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -30,6 +30,7 @@ export default function ControlPanel() {
         driver_amp: config.driverAmp,
         final_amp: config.finalAmp,
         antenna: config.antenna,
+        antenna_position: config.antennaPosition,
         vehicle: config.vehicle,
         bonding: config.bonding,
         alternator_count: config.alternatorCount,
@@ -65,10 +66,27 @@ export default function ControlPanel() {
         </Select>
       </div>
 
+      {/* Antenna Position */}
+      <div className="mb-6">
+        <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-2 block">Antenna Position</Label>
+        <Select value={config.antennaPosition} onValueChange={v => updateConfig('antennaPosition', v)}>
+          <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="antenna-pos-select">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-panel border-white/10">
+            {Object.entries(ANTENNA_POSITIONS).map(([key, p]) => (
+              <SelectItem key={key} value={key} className="font-mono text-xs text-slate-300">
+                {p.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Toggles */}
       <div className="space-y-4 mb-6">
         <div className="flex items-center justify-between">
-          <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600">Bonding</Label>
+          <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600">Bond All Panels</Label>
           <Switch
             data-testid="bonding-toggle"
             checked={config.bonding}
