@@ -189,6 +189,73 @@ function ConfigsTab({ token }) {
   );
 }
 
+// ─── Category-specific form fields ───
+const CATEGORY_FIELDS = {
+  radios: [
+    { key: 'dead_key', label: 'Dead Key (watts)', type: 'number', placeholder: '5' },
+    { key: 'peak_key', label: 'Peak Key (watts)', type: 'number', placeholder: '15' },
+    { key: 'type', label: 'Modulation Type', type: 'select', options: ['AM', 'AM/SSB', 'SSB', 'FM'] },
+    { key: 'impedance', label: 'Impedance (ohms)', type: 'number', placeholder: '50' },
+  ],
+  driver_amps: [
+    { key: 'gain_db', label: 'Gain (dB)', type: 'number', placeholder: '17' },
+    { key: 'transistors', label: 'Transistor Count', type: 'number', placeholder: '2' },
+    { key: 'current_draw', label: 'Current Draw (amps)', type: 'number', placeholder: '50' },
+    { key: 'watts_per_pill', label: 'Watts per Pill', type: 'number', placeholder: '275' },
+    { key: 'combining_stages', label: 'Combining Stages', type: 'number', placeholder: '0' },
+  ],
+  final_amps: [
+    { key: 'gain_db', label: 'Gain (dB)', type: 'number', placeholder: '10' },
+    { key: 'transistors', label: 'Transistor Count', type: 'number', placeholder: '4' },
+    { key: 'current_draw', label: 'Current Draw (amps)', type: 'number', placeholder: '100' },
+    { key: 'watts_per_pill', label: 'Watts per Pill', type: 'number', placeholder: '275' },
+    { key: 'combining_stages', label: 'Combining Stages', type: 'number', placeholder: '1' },
+  ],
+  antennas: [
+    { key: 'gain_dbi', label: 'Gain (dBi)', type: 'number', placeholder: '3', step: '0.1' },
+    { key: 'type', label: 'Antenna Type', type: 'select', options: ['vertical', 'mag-mount', 'base-load', 'dipole', 'beam'] },
+  ],
+  vehicles: [
+    { key: 'ground_plane', label: 'Ground Plane (0-1)', type: 'number', placeholder: '0.85', step: '0.05' },
+    { key: 'directional', label: 'Directional Bias (0-1)', type: 'number', placeholder: '0.15', step: '0.05' },
+    { key: 'takeoff', label: 'Take-off Angle (deg)', type: 'number', placeholder: '25' },
+    { key: 'shape', label: 'Shape', type: 'select', options: ['suv', 'truck', 'van', 'wagon'] },
+  ],
+};
+
+function EquipmentForm({ category, values, onChange }) {
+  const fields = CATEGORY_FIELDS[category] || [];
+  return (
+    <div className="space-y-3">
+      {fields.map(f => (
+        <div key={f.key}>
+          <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-1 block">{f.label}</Label>
+          {f.type === 'select' ? (
+            <Select value={values[f.key] || ''} onValueChange={v => onChange(f.key, v)}>
+              <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid={`eq-field-${f.key}`}>
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent className="bg-panel border-white/10">
+                {f.options.map(o => <SelectItem key={o} value={o} className="font-mono text-xs text-slate-300">{o}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              type={f.type}
+              step={f.step || (f.type === 'number' ? '1' : undefined)}
+              value={values[f.key] ?? ''}
+              onChange={e => onChange(f.key, f.type === 'number' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value)}
+              placeholder={f.placeholder}
+              className="bg-void border-white/10 text-white font-mono text-xs h-8"
+              data-testid={`eq-field-${f.key}`}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Equipment Tab ───
 function EquipmentTab({ token }) {
   const [equipment, setEquipment] = useState([]);
@@ -199,7 +266,7 @@ function EquipmentTab({ token }) {
   const [newCategory, setNewCategory] = useState('radios');
   const [newKey, setNewKey] = useState('');
   const [newName, setNewName] = useState('');
-  const [newFields, setNewFields] = useState('{}');
+  const [formValues, setFormValues] = useState({});
 
   const fetchEquipment = useCallback(async () => {
     setLoading(true);
@@ -212,26 +279,39 @@ function EquipmentTab({ token }) {
 
   useEffect(() => { fetchEquipment(); }, [fetchEquipment]);
 
+  const updateField = (key, value) => {
+    setFormValues(prev => ({ ...prev, [key]: value }));
+  };
+
+  const resetForm = () => {
+    setNewKey('');
+    setNewName('');
+    setFormValues({});
+  };
+
   const addEquipment = async () => {
+    if (!newKey.trim()) { toast.error('Enter a unique key/ID'); return; }
+    if (!newName.trim()) { toast.error('Enter a display name'); return; }
     try {
-      let data = JSON.parse(newFields);
-      data.name = newName;
+      const data = { ...formValues, name: newName };
       await axios.post(`${API}/admin/equipment`, {
-        key: newKey, category: newCategory, data
+        key: newKey.trim().toLowerCase().replace(/\s+/g, '-'),
+        category: newCategory,
+        data,
       }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Equipment added');
       setAddOpen(false);
-      setNewKey(''); setNewName(''); setNewFields('{}');
+      resetForm();
       fetchEquipment();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Invalid JSON or add failed');
+      toast.error(err.response?.data?.detail || 'Failed to add equipment');
     }
   };
 
   const updateEquipment = async () => {
     if (!editItem) return;
     try {
-      const data = JSON.parse(newFields);
+      const data = { ...formValues };
       await axios.put(`${API}/admin/equipment/${editItem.category}/${editItem.key}`, data, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
@@ -240,7 +320,7 @@ function EquipmentTab({ token }) {
       setEditItem(null);
       fetchEquipment();
     } catch (err) {
-      toast.error('Update failed — check JSON format');
+      toast.error(err.response?.data?.detail || 'Update failed');
     }
   };
 
@@ -254,8 +334,14 @@ function EquipmentTab({ token }) {
 
   const openEdit = (item) => {
     setEditItem(item);
-    setNewFields(JSON.stringify(item.data, null, 2));
+    setFormValues({ ...item.data });
+    setNewName(item.data?.name || '');
     setEditOpen(true);
+  };
+
+  const openAdd = () => {
+    resetForm();
+    setAddOpen(true);
   };
 
   const categories = ['radios', 'driver_amps', 'final_amps', 'antennas', 'vehicles'];
@@ -268,43 +354,37 @@ function EquipmentTab({ token }) {
         <span className="font-mono text-xs text-slate-600">{equipment.length} items</span>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20 font-chakra text-xs uppercase" data-testid="add-equipment-btn">
+            <Button size="sm" onClick={openAdd} className="bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20 font-chakra text-xs uppercase" data-testid="add-equipment-btn">
               <Plus className="w-3.5 h-3.5 mr-1" /> Add Equipment
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-panel border-white/10 max-w-md">
+          <DialogContent className="bg-panel border-white/10 max-w-md max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="font-chakra text-white uppercase tracking-wider">Add Equipment</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <div>
                 <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-1 block">Category</Label>
-                <Select value={newCategory} onValueChange={setNewCategory}>
+                <Select value={newCategory} onValueChange={v => { setNewCategory(v); setFormValues({}); }}>
                   <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="eq-category-select">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-panel border-white/10">
-                    {categories.map(c => <SelectItem key={c} value={c} className="font-mono text-xs text-slate-300">{c}</SelectItem>)}
+                    {categories.map(c => <SelectItem key={c} value={c} className="font-mono text-xs text-slate-300">{c.replace('_', ' ')}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-1 block">Key (unique ID)</Label>
-                <Input value={newKey} onChange={e => setNewKey(e.target.value)} placeholder="e.g. my-radio" className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="eq-key-input" />
+                <Input value={newKey} onChange={e => setNewKey(e.target.value)} placeholder="e.g. my-radio-500" className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="eq-key-input" />
               </div>
               <div>
-                <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-1 block">Name</Label>
-                <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Display name" className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="eq-name-input" />
+                <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-1 block">Display Name</Label>
+                <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Galaxy DX 2547" className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="eq-name-input" />
               </div>
-              <div>
-                <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-1 block">Data (JSON)</Label>
-                <textarea
-                  value={newFields}
-                  onChange={e => setNewFields(e.target.value)}
-                  rows={4}
-                  className="w-full bg-void border border-white/10 text-cyan-400 font-mono text-xs p-2 rounded resize-none focus:outline-none focus:border-cyan-400/50"
-                  data-testid="eq-data-input"
-                />
+              <div className="border-t border-white/5 pt-3">
+                <div className="font-chakra text-[10px] uppercase tracking-[0.2em] text-cyan-400/60 mb-3">Specifications</div>
+                <EquipmentForm category={newCategory} values={formValues} onChange={updateField} />
               </div>
-              <Button onClick={addEquipment} className="w-full bg-cyan-400 text-black font-chakra uppercase tracking-wider text-xs" data-testid="eq-submit-add">Add</Button>
+              <Button onClick={addEquipment} className="w-full bg-cyan-400 text-black font-chakra uppercase tracking-wider text-xs" data-testid="eq-submit-add">Add Equipment</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -312,19 +392,16 @@ function EquipmentTab({ token }) {
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="bg-panel border-white/10 max-w-md">
-          <DialogHeader><DialogTitle className="font-chakra text-white uppercase tracking-wider">Edit: {editItem?.key}</DialogTitle></DialogHeader>
+        <DialogContent className="bg-panel border-white/10 max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="font-chakra text-white uppercase tracking-wider">Edit: {editItem?.data?.name || editItem?.key}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-1 block">Data (JSON)</Label>
-              <textarea
-                value={newFields}
-                onChange={e => setNewFields(e.target.value)}
-                rows={8}
-                className="w-full bg-void border border-white/10 text-cyan-400 font-mono text-xs p-2 rounded resize-none focus:outline-none focus:border-cyan-400/50"
-                data-testid="eq-edit-data"
-              />
+              <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-1 block">Display Name</Label>
+              <Input value={newName} onChange={e => { setNewName(e.target.value); updateField('name', e.target.value); }} className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="eq-edit-name" />
             </div>
+            {editItem && (
+              <EquipmentForm category={editItem.category} values={formValues} onChange={updateField} />
+            )}
             <Button onClick={updateEquipment} className="w-full bg-cyan-400 text-black font-chakra uppercase tracking-wider text-xs" data-testid="eq-submit-edit">Update</Button>
           </div>
         </DialogContent>
@@ -340,12 +417,17 @@ function EquipmentTab({ token }) {
               <div className="space-y-1">
                 {items.map(item => (
                   <div key={`${item.category}-${item.key}`} className="bg-surface border border-white/5 p-3 flex items-center justify-between group hover:border-white/10" data-testid={`eq-item-${item.key}`}>
-                    <div>
+                    <div className="min-w-0">
                       <span className="font-mono text-xs text-white">{item.data?.name || item.key}</span>
                       <span className="font-mono text-[9px] text-slate-700 ml-3">{item.key}</span>
+                      <div className="font-mono text-[9px] text-slate-600 mt-1 flex flex-wrap gap-x-3">
+                        {Object.entries(item.data || {}).filter(([k]) => k !== 'name').map(([k, v]) => (
+                          <span key={k}>{k}: <span className="text-cyan-400/70">{v}</span></span>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(item)} className="text-slate-500 hover:text-cyan-400 h-7 w-7 p-0">
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <Button variant="ghost" size="sm" onClick={() => openEdit(item)} className="text-slate-500 hover:text-cyan-400 h-7 w-7 p-0" data-testid={`eq-edit-${item.key}`}>
                         <Pencil className="w-3 h-3" />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => deleteEquipment(item.category, item.key)} className="text-slate-500 hover:text-hot h-7 w-7 p-0" data-testid={`eq-del-${item.key}`}>
