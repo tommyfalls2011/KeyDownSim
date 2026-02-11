@@ -229,20 +229,30 @@ export function checkUnderDriven(radioKey, driverKey, finalKey, bonding) {
 
 // ─── Radiation Pattern Calculation ───
 
-export function getRadiationPattern(vehicleKey, bonding, power, antennaKey) {
+export function getRadiationPattern(vehicleKey, bonding, power, antennaKey, antennaPosKey) {
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const antenna = ANTENNAS[antennaKey] || ANTENNAS['whip-102'];
+  const pos = ANTENNA_POSITIONS[antennaPosKey] || ANTENNA_POSITIONS['center'];
   const points = [];
   const dir = vehicle.directional;
   const gp = vehicle.groundPlane * (bonding ? 1.0 : 0.5);
   const antennaGain = Math.pow(10, antenna.gainDBI / 10);
+  const biasRad = (pos.biasAngle * Math.PI) / 180;
 
   for (let angle = 0; angle < 360; angle += 2) {
     const rad = (angle * Math.PI) / 180;
     // Base omnidirectional pattern
     let gain = 1.0;
-    // Directional modification (forward bias for trucks)
+    // Vehicle body directional modification
     gain += dir * Math.cos(rad) * 0.5;
+    // Antenna position bias — vehicle body reflects signal away from the mount
+    // cos of angle difference: max gain in bias direction, min opposite
+    if (pos.biasStrength > 0) {
+      const angleDiff = rad - biasRad;
+      gain += pos.biasStrength * Math.cos(angleDiff) * 0.8;
+      // Reduce signal on the side where the vehicle body is (opposite of bias)
+      gain -= pos.biasStrength * Math.cos(angleDiff + Math.PI) * 0.3;
+    }
     // Ground plane quality affects uniformity
     gain *= (0.5 + gp * 0.5);
     // Add noise if bonding is poor
