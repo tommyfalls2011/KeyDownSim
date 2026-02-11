@@ -38,17 +38,19 @@ Build a Real-Time RF Visualizer for "Key Down" / "Big Radio" culture. Simulates 
 - [x] Bonding toggle affecting radiation pattern quality
 - [x] Extra alternator toggle for voltage drop simulation
 - [x] Voltage drop warnings when system is overloaded
+- [x] Under-driven amplifier warning (amber box in Equipment Rack + canvas overlay)
+- [x] Take-off angle side-view visualization (mini diagram in canvas bottom-right)
 - [x] Save/load configurations
 - [x] Configurations page with list and delete
 - [x] Subscription page with Stripe checkout integration
 - [x] Dark "Digital Shack" theme (Black/Cyan/White)
-- [x] Admin Panel at /admin (hidden from regular users)
+- [x] "Made with Emergent" badge hidden via CSS
+- [x] Admin Panel at /admin with proper form-based equipment management
 - [x] Admin account seeded: fallstommy@gmail.com / admin123
 - [x] Equipment data stored in MongoDB (seeded from defaults, admin-manageable)
-- [x] "Made with Emergent" badge hidden via CSS
-- [x] Under-driven amplifier warning (amber box in Equipment Rack + canvas overlay)
-- [x] Take-off angle side-view visualization (mini diagram in canvas bottom-right)
-- [x] Backend /api/calculate returns under_driven, drive_ratio, drive_watts, ideal_drive
+
+## Bug Fixes
+- [x] (Feb 2026) Fixed "Invalid JSON or add failed" error in admin equipment management — replaced raw JSON textarea with proper form fields per category
 
 ## Testing Results
 - Backend: 100% pass
@@ -74,7 +76,7 @@ Build a Real-Time RF Visualizer for "Key Down" / "Big Radio" culture. Simulates 
 
 ## Refactoring Backlog
 - Split AdminPage.jsx into smaller tab components
-- Clean up RF simulation logic in server.py and rfEngine.js (comments, standardize variable names)
+- Clean up RF simulation logic in server.py and rfEngine.js
 
 ## Next Tasks
 1. Antenna position selection on vehicle
