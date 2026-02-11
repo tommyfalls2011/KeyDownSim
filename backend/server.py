@@ -130,19 +130,19 @@ RADIOS = {
 }
 
 DRIVER_AMPS = {
-    "none": {"name": "No Driver", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 275, "combining_stages": 0},
-    "2-pill": {"name": "2-Pill Driver", "gain_db": 17, "transistors": 2, "current_draw": 50, "watts_per_pill": 275, "combining_stages": 0},
-    "4-pill": {"name": "4-Pill Driver", "gain_db": 20, "transistors": 4, "current_draw": 100, "watts_per_pill": 275, "combining_stages": 1},
+    "none": {"name": "No Driver", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 150, "combining_stages": 0},
+    "2-pill": {"name": "2-Pill Driver", "gain_db": 17, "transistors": 2, "current_draw": 50, "watts_per_pill": 150, "combining_stages": 0},
+    "4-pill": {"name": "4-Pill Driver", "gain_db": 20, "transistors": 4, "current_draw": 100, "watts_per_pill": 150, "combining_stages": 1},
 }
 
 FINAL_AMPS = {
-    "none": {"name": "No Final", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 275, "combining_stages": 0},
-    "4-pill": {"name": "4-Pill Amp", "gain_db": 10, "transistors": 4, "current_draw": 100, "watts_per_pill": 275, "combining_stages": 1},
-    "8-pill": {"name": "8-Pill Amp", "gain_db": 10, "transistors": 8, "current_draw": 200, "watts_per_pill": 275, "combining_stages": 2},
-    "16-pill": {"name": "16-Pill Amp", "gain_db": 10, "transistors": 16, "current_draw": 400, "watts_per_pill": 275, "combining_stages": 4},
+    "none": {"name": "No Final", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 150, "combining_stages": 0},
+    "4-pill": {"name": "4-Pill Amp", "gain_db": 10, "transistors": 4, "current_draw": 80, "watts_per_pill": 150, "combining_stages": 1},
+    "8-pill": {"name": "8-Pill Amp", "gain_db": 11, "transistors": 8, "current_draw": 160, "watts_per_pill": 150, "combining_stages": 2},
+    "16-pill": {"name": "16-Pill Amp", "gain_db": 13, "transistors": 16, "current_draw": 300, "watts_per_pill": 150, "combining_stages": 4},
 }
 
-COMBINING_BONUS_PER_STAGE = 1.2
+COMBINING_BONUS_PER_STAGE = 1.12
 
 ANTENNAS = {
     "whip-102": {"name": "102\" Whip", "gain_dbi": 0, "type": "vertical"},
