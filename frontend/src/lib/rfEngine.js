@@ -241,15 +241,19 @@ export function getRadiationPattern(vehicleKey, bonding, power, antennaKey, ante
     const rad = (angle * Math.PI) / 180;
     // Base omnidirectional pattern
     let gain = 1.0;
-    // Vehicle body directional modification
-    gain += dir * Math.cos(rad) * 0.5;
-    // Antenna position bias — vehicle body reflects signal away from the mount
-    // cos of angle difference: max gain in bias direction, min opposite
+    // Vehicle body directional modification (trucks have natural forward bias)
+    gain += dir * Math.cos(rad - 3 * Math.PI / 2) * 0.3;
+    // Antenna position — signal is DRAWN TOWARD the metal surface
+    // Where there's lots of metal = strong signal, where there's no metal = weak
     if (pos.biasStrength > 0) {
       const angleDiff = rad - biasRad;
-      gain += pos.biasStrength * Math.cos(angleDiff) * 0.8;
-      // Reduce signal on the side where the vehicle body is (opposite of bias)
-      gain -= pos.biasStrength * Math.cos(angleDiff + Math.PI) * 0.3;
+      const towardMetal = Math.cos(angleDiff);
+      // Strong gain toward metal, heavy suppression away from metal
+      gain += pos.biasStrength * towardMetal * 1.2;
+      // Where there's no metal behind the mount — signal drops off hard
+      if (towardMetal < -0.3) {
+        gain *= (1.0 - pos.biasStrength * 0.6);
+      }
     }
     // Ground plane quality affects uniformity
     gain *= (0.5 + gp * 0.5);
