@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback } from 'react';
-import { calculateSignalChain, calculateVoltageDrop, calculateSWR, calculateTakeoffAngle } from '@/lib/rfEngine';
+import { calculateSignalChain, calculateVoltageDrop, calculateSWR, calculateTakeoffAngle, checkUnderDriven } from '@/lib/rfEngine';
 
 const RFContext = createContext(null);
 
@@ -46,6 +46,7 @@ export function RFProvider({ children }) {
   const voltage = calculateVoltageDrop(config.driverAmp, config.finalAmp, config.alternatorCount, config.alternatorAmps, config.batteryType, config.batteryCount);
   const swr = calculateSWR(config.antenna, config.bonding);
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
+  const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding);
 
   // Apply voltage overload power reduction
   let effectivePower = chain;
@@ -71,6 +72,11 @@ export function RFProvider({ children }) {
     bankAh: voltage.bankAh,
     swr: swr,
     takeoffAngle: takeoff,
+    underDriven: underDriven.isUnderDriven,
+    driveRatio: underDriven.driveRatio,
+    driveWatts: underDriven.driveWatts,
+    finalCapacity: underDriven.finalCapacity,
+    idealDrive: underDriven.idealDrive,
   };
 
   return (
