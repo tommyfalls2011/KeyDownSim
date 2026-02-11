@@ -171,7 +171,7 @@ export default function ControlPanel() {
       </div>
 
       {/* Save Config */}
-      <div className="border-t border-white/5 pt-4 mt-4 pb-12">
+      <div className="border-t border-white/5 pt-4 mt-4 pb-16 sm:pb-12">
         <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-2 block">Save Configuration</Label>
         <div className="flex gap-2">
           <Input
