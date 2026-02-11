@@ -168,12 +168,12 @@ export default function CanvasVisualizer() {
       }
 
       // Draw vehicle
-      drawVehicle(ctx, cx, cy, config.vehicle, 1.2);
+      drawVehicle(ctx, cx, cy, config.vehicle, 1.2, config.antennaPosition);
 
       // Radiation pattern
       if (intensity > 0.01) {
         const power = keyed ? metrics.deadKeyWatts : 0;
-        const pattern = getRadiationPattern(config.vehicle, config.bonding, power, config.antenna);
+        const pattern = getRadiationPattern(config.vehicle, config.bonding, power, config.antenna, config.antennaPosition);
         const pulse = 1 + Math.sin(time * 4) * 0.05 * intensity;
 
         // Fill
