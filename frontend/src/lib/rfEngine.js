@@ -38,16 +38,17 @@ export const VEHICLES = {
   'wagon': { name: 'Station Wagon', groundPlane: 0.80, directional: 0.20, takeoff: 28, shape: 'wagon' },
 };
 
-// Antenna mount positions — the vehicle body reflects signal away from itself
-// biasAngle: direction the pattern skews toward (0=front, 90=right, 180=rear, 270=left)
-// biasStrength: how much the pattern skews (0=omni, 1=very directional)
-// xOffset/yOffset: position on vehicle for visual (-1 to 1 range, 0=center)
+// Antenna mount positions — the pattern is DRAWN TOWARD the metal surface
+// More metal in a direction = more signal that way
+// biasAngle: direction the signal pulls toward (canvas coords: 0=E, 90=S, 180=W, 270=N/front)
+// biasStrength: how much the pattern skews (0=omni, higher=more directional)
+// xOffset/yOffset: position on vehicle visual (-1 to 1, 0=center)
 export const ANTENNA_POSITIONS = {
-  'center':     { name: 'Center Roof',  biasAngle: 0,   biasStrength: 0.0,  xOffset: 0,    yOffset: 0 },
-  'rear':       { name: 'Rear Mount',   biasAngle: 0,   biasStrength: 0.45, xOffset: 0,    yOffset: 0.8 },
-  'front':      { name: 'Front Mount',  biasAngle: 180, biasStrength: 0.35, xOffset: 0,    yOffset: -0.8 },
-  'back-right': { name: 'Back Right',   biasAngle: 315, biasStrength: 0.5,  xOffset: 0.7,  yOffset: 0.7 },
-  'back-left':  { name: 'Back Left',    biasAngle: 45,  biasStrength: 0.5,  xOffset: -0.7, yOffset: 0.7 },
+  'center':     { name: 'Center Roof',  biasAngle: 270, biasStrength: 0.0,  xOffset: 0,    yOffset: 0 },
+  'rear':       { name: 'Rear Mount',   biasAngle: 270, biasStrength: 0.7,  xOffset: 0,    yOffset: 0.8 },
+  'front':      { name: 'Front Mount',  biasAngle: 90,  biasStrength: 0.5,  xOffset: 0,    yOffset: -0.8 },
+  'back-right': { name: 'Back Right',   biasAngle: 225, biasStrength: 0.65, xOffset: 0.7,  yOffset: 0.7 },
+  'back-left':  { name: 'Back Left',    biasAngle: 315, biasStrength: 0.65, xOffset: -0.7, yOffset: 0.7 },
 };
 
 // ─── Calculation Functions ───
