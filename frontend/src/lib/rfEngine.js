@@ -9,19 +9,19 @@ export const RADIOS = {
 };
 
 export const DRIVER_AMPS = {
-  'none': { name: 'No Driver', gainDB: 0, transistors: 0, currentDraw: 0, wattsPerPill: 150, combiningStages: 0 },
-  '2-pill': { name: '2-Pill Driver', gainDB: 17, transistors: 2, currentDraw: 50, wattsPerPill: 150, combiningStages: 0 },
-  '4-pill': { name: '4-Pill Driver', gainDB: 20, transistors: 4, currentDraw: 100, wattsPerPill: 150, combiningStages: 1 },
+  'none': { name: 'No Driver', gainDB: 0, transistors: 0, currentDraw: 0, wattsPerPill: 275, combiningStages: 0 },
+  '2-pill': { name: '2-Pill Driver', gainDB: 17, transistors: 2, currentDraw: 50, wattsPerPill: 275, combiningStages: 0 },
+  '4-pill': { name: '4-Pill Driver', gainDB: 20, transistors: 4, currentDraw: 100, wattsPerPill: 275, combiningStages: 1 },
 };
 
 export const FINAL_AMPS = {
-  'none': { name: 'No Final', gainDB: 0, transistors: 0, currentDraw: 0, wattsPerPill: 150, combiningStages: 0 },
-  '4-pill': { name: '4-Pill Amp', gainDB: 10, transistors: 4, currentDraw: 80, wattsPerPill: 150, combiningStages: 1 },
-  '8-pill': { name: '8-Pill Amp', gainDB: 11, transistors: 8, currentDraw: 160, wattsPerPill: 150, combiningStages: 2 },
-  '16-pill': { name: '16-Pill Amp', gainDB: 13, transistors: 16, currentDraw: 300, wattsPerPill: 150, combiningStages: 4 },
+  'none': { name: 'No Final', gainDB: 0, transistors: 0, currentDraw: 0, wattsPerPill: 275, combiningStages: 0 },
+  '4-pill': { name: '4-Pill Amp', gainDB: 10, transistors: 4, currentDraw: 100, wattsPerPill: 275, combiningStages: 1 },
+  '8-pill': { name: '8-Pill Amp', gainDB: 10, transistors: 8, currentDraw: 200, wattsPerPill: 275, combiningStages: 2 },
+  '16-pill': { name: '16-Pill Amp', gainDB: 13, transistors: 16, currentDraw: 400, wattsPerPill: 275, combiningStages: 4 },
 };
 
-const COMBINING_BONUS_PER_STAGE = 1.12;
+const COMBINING_BONUS_PER_STAGE = 1.2;
 
 export const ANTENNAS = {
   'whip-102': { name: '102" Whip', gainDBI: 0, type: 'vertical' },
