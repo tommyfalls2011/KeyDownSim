@@ -217,6 +217,11 @@ export default function EquipmentRack() {
           })()}
         </div>
       </div>
+
+      {/* Thermal Preview */}
+      <div className="mt-3">
+        <ThermalPreview />
+      </div>
     </div>
   );
 }
