@@ -123,6 +123,7 @@ class RFCalcRequest(BaseModel):
     battery_type: str = "lead"
     battery_count: int = 1
     regulator_voltages: list = [14.2]
+    tip_length: float = 48
 
 # ──── RF Equipment Database ────
 
