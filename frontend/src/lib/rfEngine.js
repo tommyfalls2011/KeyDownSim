@@ -62,40 +62,45 @@ export const ANTENNA_POSITIONS = {
 // ─── Calculation Functions ───
 
 // Per-stage output and load ratios — for thermal model and actual current draw
+// Returns both dead key and peak ratios so current swings with modulation
 export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
+  const bondingFactor = bonding ? 1.0 : 0.6;
 
-  let driverOut = 0, driverMax = 0;
-  let inputToFinal = radio.deadKey;
+  let driverOutDK = 0, driverOutPK = 0, driverMax = 0;
+  let inputToFinalDK = radio.deadKey;
+  let inputToFinalPK = radio.peakKey;
 
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
     const stages = driver.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
     driverMax = driver.transistors * (driver.wattsPerPill || 275) * combining;
-    driverOut = Math.min(radio.deadKey * driverGain, driverMax);
-    inputToFinal = driverOut;
+    driverOutDK = Math.min(radio.deadKey * driverGain, driverMax);
+    driverOutPK = Math.min(radio.peakKey * driverGain, driverMax);
+    inputToFinalDK = driverOutDK;
+    inputToFinalPK = driverOutPK;
   }
 
-  let finalOut = 0, finalMax = 0;
+  let finalOutDK = 0, finalOutPK = 0, finalMax = 0;
   if (final_.gainDB > 0) {
     const finalGain = Math.pow(10, final_.gainDB / 10);
     const stages = final_.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
     finalMax = final_.transistors * (final_.wattsPerPill || 275) * combining;
-    finalOut = Math.min(inputToFinal * finalGain, finalMax);
+    finalOutDK = Math.min(inputToFinalDK * finalGain, finalMax);
+    finalOutPK = Math.min(inputToFinalPK * finalGain, finalMax);
   }
 
-  const bondingFactor = bonding ? 1.0 : 0.6;
   return {
-    driverOutput: driverOut * bondingFactor,
     driverMax,
-    driverLoadRatio: driverMax > 0 ? Math.min(1, (driverOut * bondingFactor) / driverMax) : 0,
-    finalOutput: finalOut * bondingFactor,
+    driverLoadRatioDK: driverMax > 0 ? Math.min(1, (driverOutDK * bondingFactor) / driverMax) : 0,
+    driverLoadRatioPK: driverMax > 0 ? Math.min(1, (driverOutPK * bondingFactor) / driverMax) : 0,
     finalMax,
-    finalLoadRatio: finalMax > 0 ? Math.min(1, (finalOut * bondingFactor) / finalMax) : 0,
+    finalLoadRatioDK: finalMax > 0 ? Math.min(1, (finalOutDK * bondingFactor) / finalMax) : 0,
+    finalLoadRatioPK: finalMax > 0 ? Math.min(1, (finalOutPK * bondingFactor) / finalMax) : 0,
   };
 }
 
