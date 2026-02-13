@@ -44,8 +44,24 @@ export default function EquipmentRack() {
           </SelectContent>
         </Select>
         <div className="flex justify-between mt-2 font-mono text-[10px]">
-          <span className="text-slate-600">DEAD KEY: <span className="text-cyan-400">{RADIOS[config.radio]?.deadKey}W</span></span>
-          <span className="text-slate-600">PEAK: <span className="text-cyan-400">{RADIOS[config.radio]?.peakKey}W</span></span>
+          <span className="text-slate-600">DEAD KEY: <span className="text-cyan-400">{Math.round((RADIOS[config.radio]?.deadKey || 1) * (config.driveLevel || 1) * 100) / 100}W</span></span>
+          <span className="text-slate-600">PEAK: <span className="text-cyan-400">{Math.round((RADIOS[config.radio]?.peakKey || 4) * (config.driveLevel || 1) * 100) / 100}W</span></span>
+        </div>
+        <div className="mt-2">
+          <div className="flex justify-between font-mono text-[9px] text-slate-600 mb-0.5">
+            <span>DRIVE LEVEL</span>
+            <span className="text-amber-400">{Math.round((config.driveLevel || 1) * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            min="0.25"
+            max="1"
+            step="0.05"
+            value={config.driveLevel || 1}
+            onChange={e => updateConfig('driveLevel', parseFloat(e.target.value))}
+            className="w-full h-1 accent-cyan-400 bg-slate-800 rounded cursor-pointer"
+            data-testid="drive-level-slider"
+          />
         </div>
       </RackUnit>
 
