@@ -108,6 +108,9 @@ export function RFProvider({ children }) {
 
   // Thermal simulation tick — reads keyed/blown/micLevel from refs to avoid stale closures
   useEffect(() => {
+    // Pre-calculate stage outputs and load ratios for this config
+    const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding);
+
     const interval = setInterval(() => {
       const now = Date.now();
       const dt = Math.min((now - lastTickRef.current) / 1000, 0.5);
@@ -135,10 +138,12 @@ export function RFProvider({ children }) {
         if (driver.currentDraw <= 0) return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
 
         if (isKeyed) {
-          // 2SC2879 thermal model: more pills = more thermal mass = slower temp rise
-          // 2-pill is reference (thermalMass=1), 4-pill=1.41x mass, 8-pill=2x, 16-pill=2.83x
+          // 2SC2879 thermal: heat proportional to how hard the amp is working
+          // A Cobra 29 (1W) barely loads a 2-pill (550W max) — loadRatio ~0.09
+          // A Ranger RCI-2970 (12W) fully loads it — loadRatio ~1.0
           const thermalMass = driver.transistors >= 2 ? Math.sqrt(driver.transistors / 2) : 1;
-          const loadFactor = voltageStress * modStress;
+          const loadRatio = Math.max(0.05, stages.driverLoadRatio); // minimum 5% idle heat
+          const loadFactor = loadRatio * voltageStress * modStress;
           const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {
@@ -158,7 +163,8 @@ export function RFProvider({ children }) {
 
         if (isKeyed) {
           const thermalMass = final_.transistors >= 2 ? Math.sqrt(final_.transistors / 2) : 1;
-          const loadFactor = voltageStress * modStress * overDriveStress;
+          const loadRatio = Math.max(0.05, stages.finalLoadRatio);
+          const loadFactor = loadRatio * voltageStress * modStress * overDriveStress;
           const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {
