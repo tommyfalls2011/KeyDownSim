@@ -22,7 +22,7 @@ function TempBar({ temp, blown }) {
 }
 
 export default function EquipmentRack() {
-  const { config, updateConfig, metrics, resetAmp, keyed } = useRF();
+  const { config, updateConfig, metrics, resetAmp, keyed, equipmentLoaded } = useRF();
 
   return (
     <div className="p-3 space-y-1">
