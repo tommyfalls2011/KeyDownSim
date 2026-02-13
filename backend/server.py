@@ -150,18 +150,25 @@ FINAL_AMPS = {
 COMBINING_BONUS_PER_STAGE = 1.2
 
 ANTENNAS = {
-    "whip-102": {"name": "102\" Whip", "gain_dbi": 0, "type": "vertical"},
-    "center-load": {"name": "Center-Load", "gain_dbi": -1.5, "type": "vertical"},
-    "wilson-1000": {"name": "Wilson 1000", "gain_dbi": 3.0, "type": "mag-mount"},
-    "predator-10k": {"name": "Predator 10K", "gain_dbi": 5.0, "type": "base-load"},
+    "whip-102": {"name": "102\" Stainless Whip", "gain_dbi": 0, "type": "vertical", "tunable": False},
+    "center-load": {"name": "Center-Load", "gain_dbi": -1.5, "type": "vertical", "tunable": False},
+    "wilson-1000": {"name": "Wilson 1000", "gain_dbi": 3.0, "type": "mag-mount", "tunable": False},
+    "predator-k1-9": {"name": "Predator 10K K-1-9", "gain_dbi": 4.0, "type": "base-load", "tunable": True, "tip_default": 48},
+    "predator-k1-12": {"name": "Predator 10K K-1-12", "gain_dbi": 4.5, "type": "base-load", "tunable": True, "tip_default": 46},
+    "predator-k1-17": {"name": "Predator 10K K-1-17", "gain_dbi": 5.0, "type": "base-load", "tunable": True, "tip_default": 44},
+    "predator-k1-22": {"name": "Predator 10K K-1-22", "gain_dbi": 5.5, "type": "base-load", "tunable": True, "tip_default": 42},
+    "predator-k1-27": {"name": "Predator 10K K-1-27", "gain_dbi": 6.0, "type": "base-load", "tunable": True, "tip_default": 40},
+    "predator-k2-9": {"name": "Predator 20K K-2-9", "gain_dbi": 6.5, "type": "base-load", "tunable": True, "tip_default": 44},
+    "fight-stix-8": {"name": "Fight Stix 8'", "gain_dbi": 5.5, "type": "vertical", "tunable": True, "tip_default": 50},
+    "fight-stix-10": {"name": "Fight Stix 10'", "gain_dbi": 7.0, "type": "vertical", "tunable": True, "tip_default": 50},
 }
 
 VEHICLES = {
-    "suburban": {"name": "Suburban/SUV", "ground_plane": 0.85, "directional": 0.15, "takeoff": 25},
-    "f150": {"name": "Ford F-150", "ground_plane": 0.65, "directional": 0.45, "takeoff": 35},
-    "ram": {"name": "Dodge Ram", "ground_plane": 0.70, "directional": 0.40, "takeoff": 32},
-    "van": {"name": "Cargo Van", "ground_plane": 0.90, "directional": 0.10, "takeoff": 20},
-    "wagon": {"name": "Station Wagon", "ground_plane": 0.80, "directional": 0.20, "takeoff": 28},
+    "suburban": {"name": "Suburban/SUV", "ground_plane": 0.88, "surface_sqft": 42, "directional": 0.12, "takeoff": 22},
+    "f150": {"name": "Ford F-150", "ground_plane": 0.62, "surface_sqft": 28, "directional": 0.48, "takeoff": 35},
+    "ram": {"name": "Dodge Ram", "ground_plane": 0.68, "surface_sqft": 31, "directional": 0.42, "takeoff": 32},
+    "van": {"name": "Cargo Van", "ground_plane": 0.92, "surface_sqft": 52, "directional": 0.08, "takeoff": 18},
+    "wagon": {"name": "Station Wagon", "ground_plane": 0.80, "surface_sqft": 36, "directional": 0.20, "takeoff": 26},
 }
 
 ANTENNA_POSITIONS = {
