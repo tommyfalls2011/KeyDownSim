@@ -165,24 +165,35 @@ export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding, dr
   };
 }
 
-export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, antennaPosKey, driveLevel) {
+export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, antennaPosKey, driveLevel, ampVoltage) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
   const pos = ANTENNA_POSITIONS[antennaPosKey] || ANTENNA_POSITIONS['center'];
   const dl = driveLevel ?? 1.0;
 
+  // Voltage scaling: amps are rated at ~13.8V nominal
+  // Power scales roughly with V² — but we use a gentler curve for realism
+  // At 14.2V (typical running) = baseline, at 18V = significant boost
+  const nominalVoltage = 13.8;
+  const voltage = ampVoltage ?? 14.2;
+  // Gentler scaling: sqrt of V²/Vnom² = V/Vnom, then blend 50/50 with linear
+  const vRatio = voltage / nominalVoltage;
+  const voltageBoost = (vRatio + vRatio * vRatio) / 2; // Blend linear + squared
+
   let deadKey = radio.deadKey * dl;
   let peakKey = radio.peakKey * dl;
 
   // Driver stage: high gain but capped at pills x wpp x compounded combining bonus
+  // Voltage boost applies to amp output, not radio
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
     const stages = driver.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    const driverMax = driver.transistors * (driver.wattsPerPill || 275) * combining;
-    deadKey = Math.min(deadKey * driverGain, driverMax);
-    peakKey = Math.min(peakKey * driverGain, driverMax);
+    // Max output scales with voltage
+    const driverMax = driver.transistors * (driver.wattsPerPill || 275) * combining * voltageBoost;
+    deadKey = Math.min(deadKey * driverGain * voltageBoost, driverMax);
+    peakKey = Math.min(peakKey * driverGain * voltageBoost, driverMax);
   }
 
   // Final stage: lower gain but capped at pills x wpp x compounded combining bonus
@@ -190,9 +201,10 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, ant
     const finalGain = Math.pow(10, final_.gainDB / 10);
     const stages = final_.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    const finalMax = final_.transistors * (final_.wattsPerPill || 275) * combining;
-    deadKey = Math.min(deadKey * finalGain, finalMax);
-    peakKey = Math.min(peakKey * finalGain, finalMax);
+    // Max output scales with voltage
+    const finalMax = final_.transistors * (final_.wattsPerPill || 275) * combining * voltageBoost;
+    deadKey = Math.min(deadKey * finalGain * voltageBoost, finalMax);
+    peakKey = Math.min(peakKey * finalGain * voltageBoost, finalMax);
   }
 
   // Antenna position affects pattern shape (directional), NOT total power output
