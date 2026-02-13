@@ -296,6 +296,34 @@ export default function CanvasVisualizer() {
         }
       }
 
+      // High voltage warning (>19V)
+      if (metrics.highVoltageWarn) {
+        const flash = Math.sin(time * 6) > 0;
+        if (flash) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(255,60,60,0.9)';
+          ctx.font = 'bold 10px "Chakra Petch"';
+          ctx.textAlign = 'right';
+          ctx.fillText(`HIGH VOLTAGE: ${metrics.ampVoltage}V`, w - 12, 24);
+          ctx.restore();
+        }
+      }
+
+      // Blown pill warning
+      if (metrics.driverBlown || metrics.finalBlown) {
+        const flash = Math.sin(time * 8) > -0.2;
+        ctx.save();
+        ctx.fillStyle = flash ? 'rgba(255,30,30,0.95)' : 'rgba(255,30,30,0.4)';
+        ctx.font = 'bold 12px "Chakra Petch"';
+        ctx.textAlign = 'center';
+        const which = metrics.driverBlown && metrics.finalBlown ? 'DRIVER + FINAL' : metrics.driverBlown ? 'DRIVER' : 'FINAL';
+        ctx.fillText(`BLOWN PILL — ${which}`, cx, h - 55);
+        ctx.font = '8px "JetBrains Mono"';
+        ctx.fillStyle = 'rgba(255,100,100,0.6)';
+        ctx.fillText('Reset amp in equipment rack to continue', cx, h - 42);
+        ctx.restore();
+      }
+
       // Take-off angle visualization (mini side-view in bottom-right corner)
       {
         const taSize = Math.min(w, h) * 0.15;
