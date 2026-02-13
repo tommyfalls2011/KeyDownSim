@@ -14,29 +14,31 @@ export default function DashboardStatic() {
   const antennaPos = ANTENNA_POSITIONS[config.antennaPosition] || ANTENNA_POSITIONS['center'];
 
   return (
-    <div className="min-h-screen bg-void text-white">
+    <div className="h-screen bg-void text-white flex flex-col overflow-hidden">
       <Header />
-      <div className="flex">
-        {/* Left Panel - Equipment */}
-        <div className="w-[380px] border-r border-white/5 bg-panel min-h-[calc(100vh-56px)] overflow-y-auto">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Panel - Equipment (scrollable) */}
+        <div className="w-[380px] border-r border-white/5 bg-panel overflow-y-auto flex-shrink-0">
           <EquipmentRackStatic />
         </div>
         
-        {/* Center - Visualizer */}
-        <div className="flex-1 flex flex-col">
-          <CanvasVisualizer 
-            pattern={pattern} 
-            vehicle={vehicle} 
-            antennaPos={antennaPos}
-            keyed={keyed}
-            power={metrics.modulatedWatts}
-            takeoff={metrics.takeoffAngle}
-          />
+        {/* Center - Visualizer (fixed/sticky) */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 relative">
+            <CanvasVisualizer 
+              pattern={pattern} 
+              vehicle={vehicle} 
+              antennaPos={antennaPos}
+              keyed={keyed}
+              power={metrics.modulatedWatts}
+              takeoff={metrics.takeoffAngle}
+            />
+          </div>
           <MetricsPanel />
         </div>
         
-        {/* Right Panel - Controls */}
-        <div className="w-[380px] border-l border-white/5 bg-panel min-h-[calc(100vh-56px)] overflow-y-auto">
+        {/* Right Panel - Controls (scrollable) */}
+        <div className="w-[380px] border-l border-white/5 bg-panel overflow-y-auto flex-shrink-0">
           <ControlPanel />
           
           {/* Key Down Button */}
