@@ -59,6 +59,49 @@ export const ANTENNA_POSITIONS = {
   'back-left':  { name: 'Back Left',    biasAngle: 315, biasStrength: 0.65, dBLoss: 2.8, xOffset: -0.7, yOffset: 0.7 },
 };
 
+// ─── Merge admin-added equipment from API (snake_case → camelCase) ───
+
+function transformRadio(d) {
+  return { name: d.name, deadKey: d.dead_key ?? d.deadKey ?? 1, peakKey: d.peak_key ?? d.peakKey ?? 4, type: d.type || 'AM', impedance: d.impedance || 50 };
+}
+function transformAmp(d) {
+  return { name: d.name, gainDB: d.gain_db ?? d.gainDB ?? 0, transistors: d.transistors || 0, currentDraw: d.current_draw ?? d.currentDraw ?? 0, wattsPerPill: d.watts_per_pill ?? d.wattsPerPill ?? 275, combiningStages: d.combining_stages ?? d.combiningStages ?? 0 };
+}
+function transformAntenna(d) {
+  return { name: d.name, gainDBI: d.gain_dbi ?? d.gainDBI ?? 0, type: d.type || 'vertical', tunable: d.tunable || false, tipMin: d.tip_min ?? d.tipMin, tipMax: d.tip_max ?? d.tipMax, tipDefault: d.tip_default ?? d.tipDefault };
+}
+function transformVehicle(d) {
+  return { name: d.name, groundPlane: d.ground_plane ?? d.groundPlane ?? 0.7, surfaceSqFt: d.surface_sqft ?? d.surfaceSqFt ?? 30, directional: d.directional ?? 0.2, takeoff: d.takeoff ?? 25, shape: d.shape || 'truck' };
+}
+
+export function mergeEquipmentFromAPI(apiData) {
+  if (apiData.radios) {
+    for (const [key, data] of Object.entries(apiData.radios)) {
+      if (!RADIOS[key]) RADIOS[key] = transformRadio(data);
+    }
+  }
+  if (apiData.driver_amps) {
+    for (const [key, data] of Object.entries(apiData.driver_amps)) {
+      if (!DRIVER_AMPS[key]) DRIVER_AMPS[key] = transformAmp(data);
+    }
+  }
+  if (apiData.final_amps) {
+    for (const [key, data] of Object.entries(apiData.final_amps)) {
+      if (!FINAL_AMPS[key]) FINAL_AMPS[key] = transformAmp(data);
+    }
+  }
+  if (apiData.antennas) {
+    for (const [key, data] of Object.entries(apiData.antennas)) {
+      if (!ANTENNAS[key]) ANTENNAS[key] = transformAntenna(data);
+    }
+  }
+  if (apiData.vehicles) {
+    for (const [key, data] of Object.entries(apiData.vehicles)) {
+      if (!VEHICLES[key]) VEHICLES[key] = transformVehicle(data);
+    }
+  }
+}
+
 // ─── Calculation Functions ───
 
 // Per-stage output and load ratios — for thermal model and actual current draw
