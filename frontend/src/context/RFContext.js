@@ -184,7 +184,7 @@ export function RFProvider({ children }) {
 
   // Calculate derived values
   const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition);
-  const voltage = calculateVoltageDrop(config.driverAmp, config.finalAmp, config.alternatorCount, config.alternatorAmps, config.batteryType, config.batteryCount, config.regulatorVoltages);
+  const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding);
   const swr = calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding);
@@ -192,6 +192,18 @@ export function RFProvider({ children }) {
   // Average regulator voltage
   const regs = config.regulatorVoltages || [14.2];
   const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
+
+  // Actual current draw — proportional to load, not fixed rated max
+  // When keyed: current = rated × loadRatio (amps only draw what they need)
+  // When not keyed: near zero idle current
+  const driver = DRIVER_AMPS[config.driverAmp] || DRIVER_AMPS['none'];
+  const final_ = FINAL_AMPS[config.finalAmp] || FINAL_AMPS['none'];
+  const driverActualAmps = keyed ? driver.currentDraw * Math.max(0.05, stages.driverLoadRatio) : 0;
+  const finalActualAmps = keyed ? final_.currentDraw * Math.max(0.05, stages.finalLoadRatio) : 0;
+  const actualDemand = driverActualAmps + finalActualAmps;
+
+  // Voltage calculation uses actual demand when keyed
+  const voltage = calculateVoltageDrop(config.driverAmp, config.finalAmp, config.alternatorCount, config.alternatorAmps, config.batteryType, config.batteryCount, config.regulatorVoltages, keyed ? actualDemand : 0);
 
   // Apply blown amp — if blown, that stage produces nothing
   let effectiveChain = { ...chain };
