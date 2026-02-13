@@ -41,6 +41,16 @@ export function RFProvider({ children }) {
   const [finalBlown, setFinalBlown] = useState(false);
   const lastTickRef = useRef(Date.now());
 
+  // Refs to avoid stale closures in setInterval thermal tick
+  const keyedRef = useRef(keyed);
+  const driverBlownRef = useRef(driverBlown);
+  const finalBlownRef = useRef(finalBlown);
+  const micLevelRef = useRef(micLevel);
+  keyedRef.current = keyed;
+  driverBlownRef.current = driverBlown;
+  finalBlownRef.current = finalBlown;
+  micLevelRef.current = micLevel;
+
   const updateConfig = useCallback((key, value) => {
     setConfig(prev => {
       const next = { ...prev, [key]: value };
