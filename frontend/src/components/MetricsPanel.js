@@ -40,10 +40,11 @@ export default function MetricsPanel() {
       <div className="bg-surface flex flex-col items-center justify-center p-2">
         <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">{powerLabel}</div>
         <div className={`font-mono text-lg led-segment ${keyed ? (metrics.micLevel > 0.05 ? 'text-amber-400' : 'text-cyan-400') : 'text-slate-700'}`} data-testid="power-readout">
-          {keyed ? displayPower.toLocaleString() : '---'}</div>
+          {keyed ? displayPower.toLocaleString() : '---'}
+        </div>
         <div className="font-mono text-[8px] text-slate-600">WATTS</div>
         <MeterBar
-          value={keyed ? Math.min(metrics.deadKeyWatts, 10000) : 0}
+          value={keyed ? Math.min(displayPower, 10000) : 0}
           max={10000}
           colors={['#00FF00', '#00FF00', '#FFFF00', '#FF0000']}
         />
@@ -56,6 +57,11 @@ export default function MetricsPanel() {
           {keyed ? Math.round(metrics.peakWatts).toLocaleString() : '---'}
         </div>
         <div className="font-mono text-[8px] text-slate-600">WATTS</div>
+        <MeterBar
+          value={keyed ? Math.min(metrics.peakWatts, 10000) : 0}
+          max={10000}
+          colors={['#00FF00', '#00FF00', '#FFFF00', '#FF0000']}
+        />
       </div>
 
       {/* SWR */}
@@ -73,7 +79,7 @@ export default function MetricsPanel() {
         />
       </div>
 
-      {/* Voltage — shows amp voltage from regulators */}
+      {/* Amp Voltage */}
       <div className="bg-surface flex flex-col items-center justify-center p-2">
         <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Amp Volts</div>
         <div className={`font-mono text-lg led-segment ${metrics.highVoltageWarn ? 'text-red-500 animate-pulse' : metrics.overloaded ? 'text-hot animate-pulse' : 'text-green-400'}`} data-testid="voltage-readout">
@@ -91,26 +97,37 @@ export default function MetricsPanel() {
       {/* Take-off Angle */}
       <div className="bg-surface flex flex-col items-center justify-center p-2">
         <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Take-Off</div>
-        <div className={`font-mono text-lg led-segment ${metrics.takeoffAngle > 40 ? 'text-warn' : 'text-cyan-400'}`} data-testid="takeoff-readout">
+        <div className="font-mono text-lg led-segment text-cyan-400" data-testid="takeoff-readout">
           {metrics.takeoffAngle}
         </div>
         <div className="font-mono text-[8px] text-slate-600">DEG</div>
-        <div className="w-full mt-1 relative h-2">
-          <div className="absolute inset-0 bg-white/5 rounded-full" />
-          <div
-            className="absolute left-0 top-0 h-full rounded-full bg-cyan-400/50 transition-all duration-300"
-            style={{ width: `${Math.min(100, (metrics.takeoffAngle / 60) * 100)}%` }}
-          />
-        </div>
+        <MeterBar
+          value={metrics.takeoffAngle}
+          max={90}
+          segments={6}
+          colors={['#00F0FF', '#00F0FF', '#FFFF00', '#FF6600']}
+        />
       </div>
 
-      {/* Hold Time */}
+      {/* Amp Temp */}
       <div className="bg-surface flex flex-col items-center justify-center p-2">
-        <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Hold</div>
-        <div className={`font-mono text-lg led-segment ${metrics.holdTimeSec < 60 ? 'text-hot' : metrics.holdTimeSec < 300 ? 'text-warn' : 'text-green-400'}`} data-testid="hold-readout">
-          {metrics.holdTimeSec >= 9999 ? '---' : metrics.holdTimeSec >= 60 ? `${Math.floor(metrics.holdTimeSec / 60)}m` : `${metrics.holdTimeSec}s`}
+        <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Amp Temp</div>
+        <div className={`font-mono text-lg led-segment ${
+          metrics.driverBlown || metrics.finalBlown ? 'text-red-500 animate-pulse' :
+          Math.max(metrics.driverTemp, metrics.finalTemp) >= 135 ? 'text-red-500' :
+          Math.max(metrics.driverTemp, metrics.finalTemp) >= 100 ? 'text-amber-400' : 'text-green-400'
+        }`} data-testid="temp-readout">
+          {Math.max(metrics.driverTemp, metrics.finalTemp)}°
         </div>
-        <div className="font-mono text-[8px] text-slate-600">{metrics.bankAh > 0 ? `${metrics.bankAh}Ah` : 'NO BANK'}</div>
+        <div className="font-mono text-[8px] text-slate-600">
+          {metrics.driverBlown || metrics.finalBlown ? 'BLOWN!' : 'CELSIUS'}
+        </div>
+        <MeterBar
+          value={Math.max(metrics.driverTemp, metrics.finalTemp) - 25}
+          max={125}
+          segments={10}
+          colors={['#00FF00', '#FFFF00', '#FF6600', '#FF0000']}
+        />
       </div>
     </div>
   );
