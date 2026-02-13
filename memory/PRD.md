@@ -37,6 +37,8 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - Take-off angle visualization
 - Under-driven amplifier warnings
 - Auto-scaling distance labels on canvas
+- Voltage-to-watts scaling (more volts = more watts, like real amps)
+- **Thermal Preview** - "Test Config" button simulates key-down to predict thermal behavior before going live
 
 ## Bug Fixes
 - [Feb 2026] Fixed thermal simulation stale closure bug: temps now properly rise/cool across multiple key-down cycles. Root cause: setInterval callback captured stale `keyed`, `driverBlown`, `finalBlown` values. Fix: useRef pattern to always read latest state.
