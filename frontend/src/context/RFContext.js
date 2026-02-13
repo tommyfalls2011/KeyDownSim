@@ -84,6 +84,7 @@ export function RFProvider({ children }) {
   const loadConfig = useCallback((cfg) => {
     setConfig({
       radio: cfg.radio || 'cobra-29',
+      driveLevel: cfg.drive_level ?? cfg.driveLevel ?? 1.0,
       driverAmp: cfg.driver_amp || 'none',
       finalAmp: cfg.final_amp || 'none',
       antenna: cfg.antenna || 'whip-102',
