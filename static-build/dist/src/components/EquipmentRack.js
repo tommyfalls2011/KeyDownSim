@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useRF } from '@/context/RFContextStatic';
-import { RADIOS, DRIVER_AMPS, FINAL_AMPS, ANTENNAS } from '@/lib/rfEngine';
-import { calculateSignalChain } from '@/lib/rfEngine';
+import { RADIOS, DRIVER_AMPS, FINAL_AMPS, ANTENNAS } from '@/lib/rfEngineStatic';
+import { calculateSignalChain } from '@/lib/rfEngineStatic';
 import RackUnit from '@/components/RackUnit';
 import ThermalPreview from '@/components/ThermalPreview';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

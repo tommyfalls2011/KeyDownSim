@@ -1,5 +1,5 @@
 import { useRF } from '@/context/RFContextStatic';
-import { VEHICLES, ANTENNA_POSITIONS } from '@/lib/rfEngine';
+import { VEHICLES, ANTENNA_POSITIONS } from '@/lib/rfEngineStatic';
 import KeyButton from '@/components/KeyButton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
