@@ -16,6 +16,7 @@ const DEFAULT_STATE = {
   alternatorAmps: 130,
   batteryType: 'lead',
   batteryCount: 1,
+  regulatorVoltages: [14.2],
   keyed: false,
 };
 
