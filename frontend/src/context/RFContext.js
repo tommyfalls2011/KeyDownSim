@@ -10,7 +10,7 @@ const BLOW_TEMP = 175; // °C — 2SC2879 max junction temp, thermal runaway poi
 const CRITICAL_TEMP = 150; // °C — case temp danger zone
 const WARN_TEMP = 100; // °C — monitoring zone
 const COOL_RATE = 2; // °C per second — realistic heatsink + fan dissipation
-const HEAT_BASE_RATE = 2.25; // °C per second — 2-pill reference rate (blows in ~67s continuous key-down)
+const HEAT_BASE_RATE = 3; // °C per second — 2-pill at FULL LOAD (load ratio scales this down)
 
 const DEFAULT_STATE = {
   radio: 'cobra-29',
