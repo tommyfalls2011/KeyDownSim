@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useRF } from '@/context/RFContext';
 import { RADIOS, DRIVER_AMPS, FINAL_AMPS, ANTENNAS } from '@/lib/rfEngine';
 import { calculateSignalChain } from '@/lib/rfEngine';
