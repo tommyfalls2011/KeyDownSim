@@ -44,7 +44,7 @@ export default function EquipmentRack() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-panel border-white/10">
-            {Object.entries(RADIOS).map(([key, r]) => (
+            {Object.entries(radios).map(([key, r]) => (
               <SelectItem key={key} value={key} className="font-mono text-xs text-slate-300">
                 {r.name} ({r.deadKey}W)
               </SelectItem>
@@ -52,8 +52,8 @@ export default function EquipmentRack() {
           </SelectContent>
         </Select>
         <div className="flex justify-between mt-2 font-mono text-[10px]">
-          <span className="text-slate-600">DEAD KEY: <span className="text-cyan-400">{Math.round((RADIOS[config.radio]?.deadKey || 1) * (config.driveLevel || 1) * 100) / 100}W</span></span>
-          <span className="text-slate-600">PEAK: <span className="text-cyan-400">{Math.round((RADIOS[config.radio]?.peakKey || 4) * (config.driveLevel || 1) * 100) / 100}W</span></span>
+          <span className="text-slate-600">DEAD KEY: <span className="text-cyan-400">{Math.round((radios[config.radio]?.deadKey || 1) * (config.driveLevel || 1) * 100) / 100}W</span></span>
+          <span className="text-slate-600">PEAK: <span className="text-cyan-400">{Math.round((radios[config.radio]?.peakKey || 4) * (config.driveLevel || 1) * 100) / 100}W</span></span>
         </div>
         <div className="mt-2">
           <div className="flex justify-between font-mono text-[9px] text-slate-600 mb-0.5">
