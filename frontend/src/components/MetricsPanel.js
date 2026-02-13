@@ -73,14 +73,17 @@ export default function MetricsPanel() {
         />
       </div>
 
-      {/* Voltage */}
+      {/* Voltage — shows amp voltage from regulators */}
       <div className="bg-surface flex flex-col items-center justify-center p-2">
-        <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Voltage</div>
-        <div className={`font-mono text-lg led-segment ${metrics.overloaded ? 'text-hot animate-pulse' : 'text-green-400'}`} data-testid="voltage-readout">
-          {keyed ? metrics.voltage.toFixed(1) : '14.2'}
+        <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Amp Volts</div>
+        <div className={`font-mono text-lg led-segment ${metrics.highVoltageWarn ? 'text-red-500 animate-pulse' : metrics.overloaded ? 'text-hot animate-pulse' : 'text-green-400'}`} data-testid="voltage-readout">
+          {metrics.ampVoltage.toFixed(1)}
         </div>
-        <div className="font-mono text-[8px] text-slate-600">VOLTS</div>
-        {metrics.overloaded && keyed && (
+        <div className="font-mono text-[8px] text-slate-600">VDC</div>
+        {metrics.highVoltageWarn && (
+          <div className="font-chakra text-[7px] text-red-500 animate-pulse mt-0.5">HIGH V!</div>
+        )}
+        {metrics.overloaded && keyed && !metrics.highVoltageWarn && (
           <div className="font-chakra text-[7px] text-hot animate-pulse mt-0.5">OVERLOAD</div>
         )}
       </div>
