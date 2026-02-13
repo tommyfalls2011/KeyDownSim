@@ -473,9 +473,20 @@ async def calculate_rf(data: RFCalcRequest):
     effective_dead = dead_key_power * antenna_factor
     effective_peak = peak_power * antenna_factor
 
-    # Voltage drop — battery bank is primary power source, alternator recharges
+    # Voltage — external regulators control alternator output voltage
     demand_current = driver["current_draw"] + final["current_draw"]
-    battery_voltage = 14.2
+    reg_voltages = data.regulator_voltages or [14.2]
+    reg_count = len(reg_voltages)
+    alts_per_reg = math.ceil(data.alternator_count / max(1, reg_count))
+    weighted_voltage = 0
+    total_assigned = 0
+    for i in range(reg_count):
+        alts_this = min(alts_per_reg, data.alternator_count - total_assigned)
+        if alts_this > 0:
+            weighted_voltage += reg_voltages[i] * alts_this
+            total_assigned += alts_this
+    battery_voltage = weighted_voltage / total_assigned if total_assigned > 0 else 14.2
+
     alternator_max = data.alternator_count * data.alternator_amps * 1.08
     wire_resistance = (0.0001 * 12) / max(1, data.alternator_count)
 
