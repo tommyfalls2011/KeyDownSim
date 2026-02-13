@@ -37,6 +37,7 @@ export default function ControlPanel() {
         alternator_amps: config.alternatorAmps,
         battery_type: config.batteryType,
         battery_count: config.batteryCount,
+        regulator_voltages: config.regulatorVoltages,
       }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Config saved');
       setSaveName('');
