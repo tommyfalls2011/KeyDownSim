@@ -60,8 +60,6 @@ export default function ControlPanel() {
           </SelectTrigger>
           <SelectContent className="bg-panel border-white/10">
             {Object.entries(VEHICLES).map(([key, v]) => (
-
-      {/* Antenna Position */}
               <SelectItem key={key} value={key} className="font-mono text-xs text-slate-300">
                 {v.name}
               </SelectItem>
