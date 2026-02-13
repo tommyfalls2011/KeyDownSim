@@ -1,84 +1,58 @@
-# RF Visualizer "Key Down" - PRD
+# Key Down RF Visualizer - PRD
 
-## Problem Statement
-Build a Real-Time RF Visualizer for "Key Down" / "Big Radio" culture. Simulates CB radio signal chains (radio -> driver amp -> 16-pill final amp), vehicle body interaction effects on radiation patterns, and displays real-time canvas-based visualizations of signal lobes, voltage nodes, and take-off angles.
-
-## Architecture
-- **Backend**: FastAPI + MongoDB + JWT Auth + Stripe (emergentintegrations)
-- **Frontend**: React + Canvas 2D + Shadcn UI + Tailwind CSS
-- **Database**: MongoDB (users, configurations, payment_transactions)
-
-## User Personas
-- CB radio enthusiasts / "Big Radio" operators
-- Amateur radio hobbyists
-- Mobile radio installers
+## Original Problem Statement
+Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/pseudo-3D visualization of an antenna's radiation pattern with a complete RF simulation engine.
 
 ## Core Requirements
-- Signal chain calculator (Radio -> Driver Amp -> Final Amp)
-- Canvas-based radiation pattern visualization
-- Vehicle ground plane simulation (Suburban, F-150, Ram, Van, Wagon)
-- Bonding toggle for ground plane quality
-- Voltage drop monitoring with alternator overload warnings
-- Take-off angle meter + visualization
-- Under-driven amplifier warning
-- User auth (register/login with JWT)
-- Save/load configurations
-- Stripe subscription (Monthly $9.99 / Yearly $99.99)
+- Real-time canvas-based radiation pattern visualization
+- Realistic signal chain simulation (radio, driver amp, final amp)
+- Physics modeling: power (watts), current draw (amps), voltage drop, SWR, thermal dynamics
+- Vehicle types, alternator configurations, external voltage regulators, wiring, battery banks
+- Various antenna types with tunable elements affecting SWR
+- Antenna placement on vehicle affects radiation pattern
+- Microphone audio modulates power output (dead key to peak)
+- User authentication (login/register) to save/load configurations
+- Stripe subscription model (monthly/yearly)
+- Admin panel (fallstommy@gmail.com / admin123) — manage users, configs, equipment
+- Dark dashboard theme with neon/LED-style accents, segmented LED bar meters
+- PWA-installable responsive web app
 
-## What's Been Implemented (Feb 2026)
-- [x] Full backend with 20+ API endpoints (auth, configurations, subscription, RF calculation, equipment, admin)
-- [x] Landing page with animated canvas hero, features section, pricing
-- [x] Auth page (login/register with JWT)
-- [x] Dashboard with 3-panel layout (Equipment Rack | Canvas Visualizer | Controls)
-- [x] Equipment selectors (5 radios, 3 driver amps, 4 final amps, 4 antennas, 5 vehicles)
-- [x] Canvas 2D radiation pattern visualization with polar grid
-- [x] Vehicle silhouettes (top-down view for each type)
-- [x] Key Down button (hold-to-transmit, keyboard support: Space/K)
-- [x] Real-time metrics panel (Power, Peak, SWR, Voltage, Take-off Angle, Hold Time)
-- [x] Bonding toggle affecting radiation pattern quality
-- [x] Extra alternator toggle for voltage drop simulation
-- [x] Voltage drop warnings when system is overloaded
-- [x] Under-driven amplifier warning (amber box in Equipment Rack + canvas overlay)
-- [x] Take-off angle side-view visualization (mini diagram in canvas bottom-right)
-- [x] Save/load configurations
-- [x] Configurations page with list and delete
-- [x] Subscription page with Stripe checkout integration
-- [x] Dark "Digital Shack" theme (Black/Cyan/White)
-- [x] "Made with Emergent" badge hidden via CSS
-- [x] Admin Panel at /admin with proper form-based equipment management
-- [x] Admin account seeded: fallstommy@gmail.com / admin123
-- [x] Equipment data stored in MongoDB (seeded from defaults, admin-manageable)
+## Tech Stack
+- Frontend: React (CRA), TailwindCSS, Shadcn UI, Canvas API
+- Backend: FastAPI, Motor (async MongoDB), Pydantic, JWT
+- Database: MongoDB
+- Payments: Stripe (test mode)
+
+## What's Been Implemented
+- Full authentication system (JWT-based)
+- Stripe subscription integration (test mode)
+- Admin panel with equipment management form
+- Complete RF simulation engine (signal chain, voltage, SWR, radiation patterns)
+- Tunable antennas (Predator 10K variants, Fight Stix) with SWR tip adjustment
+- Antenna positioning with directional pattern effects
+- Microphone modulation (live mic input)
+- External voltage regulators (up to 20V)
+- Thermal simulation with blown pill mechanics (FIXED Feb 2026)
+- LED-style meter bars
+- Take-off angle visualization
+- Under-driven amplifier warnings
+- Auto-scaling distance labels on canvas
 
 ## Bug Fixes
-- [x] (Feb 2026) Fixed "Invalid JSON or add failed" error in admin equipment management — replaced raw JSON textarea with proper form fields per category
-
-## Testing Results
-- Backend: 100% pass
-- Frontend: 100% pass
-- Test report: /app/test_reports/iteration_3.json
+- [Feb 2026] Fixed thermal simulation stale closure bug: temps now properly rise/cool across multiple key-down cycles. Root cause: setInterval callback captured stale `keyed`, `driverBlown`, `finalBlown` values. Fix: useRef pattern to always read latest state.
 
 ## Prioritized Backlog
-### P1 (High)
-- Antenna position selector on vehicle (roof, trunk, bumper)
-- SWR sweep graph (frequency vs SWR curve)
+### P0
+- Yagi-Uda Antenna Array Simulation: "Antenna Array" selector for 2, 3, or 5-element arrays with 9-11 dB forward gain and narrow directional beam
 
-### P2 (Medium)
-- Share configurations via link
-- Comparison mode (side-by-side configs)
-- Export radiation pattern as image
-- Audio feedback on Key Down (simulated static/skip)
+### P1
+- Over-drive Thermal Penalty: Over-driving an amp accelerates heat generation, making blown pills more likely
 
-### P3 (Nice to have)
-- Community configs gallery
-- Real-time multiplayer (see others' signals)
-- Weather/propagation overlay
-- 3D visualization upgrade (Three.js)
+### P2
+- Receive Sensitivity Indicator: UI element showing receive sensitivity loss based on antenna position (dBLoss data already exists)
 
-## Refactoring Backlog
-- Split AdminPage.jsx into smaller tab components
-- Clean up RF simulation logic in server.py and rfEngine.js
+### P3
+- Refactor RFContext.js: Decompose into smaller hooks (useThermalSim, useVoltageSim, useMicModulation)
 
-## Next Tasks
-1. Antenna position selection on vehicle
-2. SWR frequency sweep chart
-3. Share configurations via link
+### P4
+- Refactor AdminPage.js: Split into smaller child components per tab
