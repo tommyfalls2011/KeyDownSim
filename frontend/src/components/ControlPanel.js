@@ -38,6 +38,7 @@ export default function ControlPanel() {
         battery_type: config.batteryType,
         battery_count: config.batteryCount,
         regulator_voltages: config.regulatorVoltages,
+        tip_length: config.tipLength,
       }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Config saved');
       setSaveName('');
