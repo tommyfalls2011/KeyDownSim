@@ -22,8 +22,8 @@ export const FINAL_AMPS = {
   '4-pill': { name: '4-Pill Amp', gainDB: 10, transistors: 4, currentDraw: 100, wattsPerPill: 275, combiningStages: 1 },
   '8-pill': { name: '8-Pill Amp', gainDB: 10, transistors: 8, currentDraw: 200, wattsPerPill: 275, combiningStages: 2 },
   '16-pill': { name: '16-Pill Amp', gainDB: 13, transistors: 16, currentDraw: 400, wattsPerPill: 275, combiningStages: 4 },
-  '24-pill': { name: '24-Pill Comp', gainDB: 10, transistors: 24, currentDraw: 600, wattsPerPill: 275, combiningStages: 6 },
-  '32-pill': { name: '32-Pill Comp', gainDB: 11, transistors: 32, currentDraw: 800, wattsPerPill: 275, combiningStages: 8 },
+  '24-pill': { name: '24-Pill Comp', gainDB: 14, transistors: 24, currentDraw: 600, wattsPerPill: 275, combiningStages: 6 },
+  '32-pill': { name: '32-Pill Comp', gainDB: 15, transistors: 32, currentDraw: 800, wattsPerPill: 275, combiningStages: 8 },
 };
 
 const COMBINING_BONUS_PER_STAGE = 1.2;
