@@ -90,27 +90,27 @@ function transformVehicle(d) {
 export function mergeEquipmentFromAPI(apiData) {
   if (apiData.radios) {
     for (const [key, data] of Object.entries(apiData.radios)) {
-      if (!RADIOS[key]) RADIOS[key] = transformRadio(data);
+      RADIOS[key] = transformRadio(data);
     }
   }
   if (apiData.driver_amps) {
     for (const [key, data] of Object.entries(apiData.driver_amps)) {
-      if (!DRIVER_AMPS[key]) DRIVER_AMPS[key] = transformAmp(data);
+      DRIVER_AMPS[key] = transformAmp(data);
     }
   }
   if (apiData.final_amps) {
     for (const [key, data] of Object.entries(apiData.final_amps)) {
-      if (!FINAL_AMPS[key]) FINAL_AMPS[key] = transformAmp(data);
+      FINAL_AMPS[key] = transformAmp(data);
     }
   }
   if (apiData.antennas) {
     for (const [key, data] of Object.entries(apiData.antennas)) {
-      if (!ANTENNAS[key]) ANTENNAS[key] = transformAntenna(data);
+      ANTENNAS[key] = transformAntenna(data);
     }
   }
   if (apiData.vehicles) {
     for (const [key, data] of Object.entries(apiData.vehicles)) {
-      if (!VEHICLES[key]) VEHICLES[key] = transformVehicle(data);
+      VEHICLES[key] = transformVehicle(data);
     }
   }
 }
