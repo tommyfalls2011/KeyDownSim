@@ -30,21 +30,23 @@ function MeterBar({ value, max, segments = 12, colors }) {
 export default function MetricsPanel() {
   const { metrics, keyed, micEnabled } = useRF();
 
-  // Show modulated watts when mic is live and keyed
-  const displayPower = keyed ? Math.round(micEnabled ? metrics.modulatedWatts : metrics.deadKeyWatts) : 0;
-  const powerLabel = keyed && micEnabled && metrics.micLevel > 0.05 ? 'Swing' : 'Power';
+  // Power meter: average watts (dead key carrier + moderate modulation swing)
+  const avgPower = keyed ? Math.round(micEnabled ? metrics.avgWatts : metrics.deadKeyWatts) : 0;
+  // Peak meter: starts at dead key, swings hard toward peak limit during modulation
+  const peakPower = keyed ? Math.round(micEnabled ? metrics.peakSwingWatts : metrics.deadKeyWatts) : 0;
+  const isModulating = keyed && micEnabled && metrics.micLevel > 0.05;
 
   return (
     <div className="h-full grid grid-cols-3 sm:grid-cols-6 gap-px bg-white/5" data-testid="metrics-panel">
-      {/* Power */}
+      {/* Power (Average) */}
       <div className="bg-surface flex flex-col items-center justify-center p-2">
-        <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">{powerLabel}</div>
-        <div className={`font-mono text-lg led-segment ${keyed ? (metrics.micLevel > 0.05 ? 'text-amber-400' : 'text-cyan-400') : 'text-slate-700'}`} data-testid="power-readout">
-          {keyed ? displayPower.toLocaleString() : '---'}
+        <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">{isModulating ? 'Avg' : 'Power'}</div>
+        <div className={`font-mono text-lg led-segment ${keyed ? (isModulating ? 'text-amber-400' : 'text-cyan-400') : 'text-slate-700'}`} data-testid="power-readout">
+          {keyed ? avgPower.toLocaleString() : '---'}
         </div>
         <div className="font-mono text-[8px] text-slate-600">WATTS</div>
         <MeterBar
-          value={keyed ? Math.min(displayPower, 10000) : 0}
+          value={keyed ? Math.min(avgPower, 10000) : 0}
           max={10000}
           colors={['#00FF00', '#00FF00', '#FFFF00', '#FF0000']}
         />
@@ -53,12 +55,12 @@ export default function MetricsPanel() {
       {/* Peak */}
       <div className="bg-surface flex flex-col items-center justify-center p-2">
         <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Peak</div>
-        <div className={`font-mono text-lg led-segment ${keyed ? 'text-cyan-400' : 'text-slate-700'}`} data-testid="peak-readout">
-          {keyed ? Math.round(metrics.peakWatts).toLocaleString() : '---'}
+        <div className={`font-mono text-lg led-segment ${keyed ? (isModulating ? 'text-hot' : 'text-cyan-400') : 'text-slate-700'}`} data-testid="peak-readout">
+          {keyed ? peakPower.toLocaleString() : '---'}
         </div>
         <div className="font-mono text-[8px] text-slate-600">WATTS</div>
         <MeterBar
-          value={keyed ? Math.min(metrics.peakWatts, 10000) : 0}
+          value={keyed ? Math.min(peakPower, 10000) : 0}
           max={10000}
           colors={['#00FF00', '#00FF00', '#FFFF00', '#FF0000']}
         />
