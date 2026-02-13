@@ -14,16 +14,18 @@ export default function DashboardStatic() {
   const antennaPos = ANTENNA_POSITIONS[config.antennaPosition] || ANTENNA_POSITIONS['center'];
 
   return (
-    <div className="h-screen bg-void text-white flex flex-col overflow-hidden">
+    <div className="h-screen flex flex-col bg-void overflow-hidden">
       <Header />
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel - Equipment (scrollable) */}
-        <div className="w-[380px] border-r border-white/5 bg-panel overflow-y-auto flex-shrink-0">
+      
+      {/* 3-Panel Layout */}
+      <div className="flex-1 grid grid-cols-12 overflow-hidden">
+        {/* Left Panel - Equipment */}
+        <div className="col-span-3 border-r border-white/5 bg-panel overflow-y-auto">
           <EquipmentRackStatic />
         </div>
         
-        {/* Center - Visualizer (fixed/sticky) */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Center - Visualizer */}
+        <div className="col-span-6 flex flex-col bg-void relative">
           <div className="flex-1 relative">
             <CanvasVisualizer 
               pattern={pattern} 
@@ -34,11 +36,13 @@ export default function DashboardStatic() {
               takeoff={metrics.takeoffAngle}
             />
           </div>
-          <MetricsPanel />
+          <div className="h-28 border-t border-white/5 bg-surface shrink-0">
+            <MetricsPanel />
+          </div>
         </div>
         
-        {/* Right Panel - Controls (scrollable) */}
-        <div className="w-[380px] border-l border-white/5 bg-panel overflow-y-auto flex-shrink-0">
+        {/* Right Panel - Controls */}
+        <div className="col-span-3 border-l border-white/5 bg-panel overflow-y-auto">
           <ControlPanel />
           
           {/* Key Down Button */}
