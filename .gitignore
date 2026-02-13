@@ -27,8 +27,8 @@ next-env.d.ts
 
 # Production builds
 /build
-dist/
-dist
+# Allow static-build dist folder
+!static-build/dist/
 
 # Environment files (comprehensive coverage)
 
