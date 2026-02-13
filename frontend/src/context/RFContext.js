@@ -193,13 +193,14 @@ export function RFProvider({ children }) {
   const regs = config.regulatorVoltages || [14.2];
   const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
 
-  // Actual current draw — proportional to load, not fixed rated max
-  // When keyed: current = rated × loadRatio (amps only draw what they need)
-  // When not keyed: near zero idle current
+  // Actual current draw — proportional to load, swings with modulation
+  // Dead key = baseline current, mic modulation pushes toward peak current
   const driver = DRIVER_AMPS[config.driverAmp] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[config.finalAmp] || FINAL_AMPS['none'];
-  const driverActualAmps = keyed ? driver.currentDraw * Math.max(0.05, stages.driverLoadRatio) : 0;
-  const finalActualAmps = keyed ? final_.currentDraw * Math.max(0.05, stages.finalLoadRatio) : 0;
+  const driverLoadRatio = stages.driverLoadRatioDK + (stages.driverLoadRatioPK - stages.driverLoadRatioDK) * micLevel;
+  const finalLoadRatio = stages.finalLoadRatioDK + (stages.finalLoadRatioPK - stages.finalLoadRatioDK) * micLevel;
+  const driverActualAmps = keyed ? driver.currentDraw * Math.max(0.05, driverLoadRatio) : 0;
+  const finalActualAmps = keyed ? final_.currentDraw * Math.max(0.05, finalLoadRatio) : 0;
   const actualDemand = driverActualAmps + finalActualAmps;
 
   // Voltage calculation uses actual demand when keyed
