@@ -25,6 +25,7 @@ const DEFAULT_STATE = {
   batteryType: 'lead',
   batteryCount: 1,
   regulatorVoltages: [14.2],
+  tipLength: 48,
   keyed: false,
 };
 
@@ -70,6 +71,7 @@ export function RFProvider({ children }) {
       batteryType: cfg.battery_type || 'lead',
       batteryCount: cfg.battery_count || 1,
       regulatorVoltages: cfg.regulator_voltages || [14.2],
+      tipLength: cfg.tip_length || 48,
       keyed: false,
     });
     // Reset thermal on load
@@ -159,7 +161,7 @@ export function RFProvider({ children }) {
   // Calculate derived values
   const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition);
   const voltage = calculateVoltageDrop(config.driverAmp, config.finalAmp, config.alternatorCount, config.alternatorAmps, config.batteryType, config.batteryCount, config.regulatorVoltages);
-  const swr = calculateSWR(config.antenna, config.vehicle, config.bonding);
+  const swr = calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding);
 
