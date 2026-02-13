@@ -239,6 +239,8 @@ export function RFProvider({ children }) {
     overloaded: voltage.overloaded,
     highVoltageWarn: avgRegV >= 19,
     currentDraw: voltage.currentDraw,
+    driverAmps: Math.round(driverActualAmps * 10) / 10,
+    finalAmps: Math.round(finalActualAmps * 10) / 10,
     alternatorCapacity: voltage.alternatorCapacity,
     bankProvides: voltage.bankProvides,
     altProvides: voltage.altProvides,
