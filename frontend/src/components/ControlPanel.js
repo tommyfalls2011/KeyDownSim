@@ -180,6 +180,64 @@ export default function ControlPanel() {
         )}
       </div>
 
+      {/* External Voltage Regulators */}
+      {config.alternatorCount > 0 && (
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center justify-between">
+            <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600">Ext. Regulators</Label>
+            {(config.regulatorVoltages || []).length > 1 && (
+              <button
+                data-testid="sync-regulators-btn"
+                onClick={() => {
+                  const v = config.regulatorVoltages[0] || 14.2;
+                  updateConfig('regulatorVoltages', config.regulatorVoltages.map(() => v));
+                }}
+                className="font-mono text-[8px] uppercase tracking-wider px-2 py-0.5 border border-cyan-400/30 text-cyan-400 rounded hover:bg-cyan-400/10 transition-colors"
+              >
+                Sync All
+              </button>
+            )}
+          </div>
+          {(config.regulatorVoltages || [14.2]).map((voltage, idx) => {
+            const regNum = idx + 1;
+            const altsPerReg = 3;
+            const startAlt = idx * altsPerReg + 1;
+            const endAlt = Math.min(startAlt + altsPerReg - 1, config.alternatorCount);
+            return (
+              <div key={idx} className="bg-void/50 border border-white/5 rounded p-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-mono text-[8px] text-slate-600">
+                    REG {regNum} <span className="text-slate-700">(Alt {startAlt}{endAlt > startAlt ? `-${endAlt}` : ''})</span>
+                  </span>
+                  <span className="font-mono text-[10px] text-cyan-400" data-testid={`reg-voltage-${idx}`}>
+                    {voltage.toFixed(1)}V
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="13.0"
+                  max="16.5"
+                  step="0.1"
+                  value={voltage}
+                  onChange={e => {
+                    const newV = parseFloat(e.target.value);
+                    const regs = [...(config.regulatorVoltages || [14.2])];
+                    regs[idx] = newV;
+                    updateConfig('regulatorVoltages', regs);
+                  }}
+                  className="w-full h-1 appearance-none bg-slate-800 rounded-full cursor-pointer accent-cyan-400"
+                  data-testid={`reg-slider-${idx}`}
+                />
+                <div className="flex justify-between font-mono text-[7px] text-slate-700 mt-0.5">
+                  <span>13.0V</span>
+                  <span>16.5V</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Separator */}
       <div className="border-t border-white/5 my-4" />
 
