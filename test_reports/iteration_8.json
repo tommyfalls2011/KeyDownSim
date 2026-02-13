@@ -1,0 +1,80 @@
+{
+  "summary": "Drive Level feature testing PASSED. All core functionality verified: slider works (25%-100%), dead key/peak values scale correctly with 4:1 ratio preserved, power output and current draw both reduced at lower drive levels, custom equipment still available.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Signal Chain Summary",
+        "issue": "Signal Chain Summary section does not reflect drive level - shows full power (e.g., '50W') regardless of drive setting. The calculateSignalChain() calls in EquipmentRack.js lines 190 and 199 are missing the driveLevel parameter.",
+        "affected_selectors": [".bg-void.border.border-white\\/5"],
+        "priority": "LOW"
+      }
+    ],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Drive Level slider exists with data-testid='drive-level-slider' - PASS",
+    "Drive Level shows percentage display (100%, 50%, 25%) - PASS",
+    "At 100%: Cobra 29 shows DEAD KEY: 1W, PEAK: 4W (full values) - PASS",
+    "At 50%: Cobra 29 shows DEAD KEY: 0.5W, PEAK: 2W (scaled correctly) - PASS",
+    "4:1 watt ratio preserved at all drive levels - PASS",
+    "At 25%: Shows DEAD KEY: 0.25W, PEAK: 1W (minimum drive) - PASS",
+    "Drive affects signal chain: At 50% drive, 2-pill driver outputs 25W vs 50W at 100% - PASS",
+    "Drive affects current draw: At 50% draw is 2.5A vs 4.6A at 100% - PASS",
+    "Power meter shows correct watts when keyed (50W at 100%, 25W at 50%) - PASS",
+    "Peak meter shows correct watts (matches power in dead key state) - PASS",
+    "Custom equipment 'Cobra 29 Ltd (Modded)' (0.75W) appears in Radio dropdown - PASS",
+    "KEY DOWN button works with mousedown (data-testid='key-down-btn') - PASS"
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "LOW PRIORITY: Update Signal Chain Summary to pass driveLevel to calculateSignalChain() - lines 190 and 199 in EquipmentRack.js should include config.driveLevel parameter"
+  ],
+  "critical_code_review_comments": [
+    "EquipmentRack.js Signal Chain Summary calls calculateSignalChain() without driveLevel parameter - should be: calculateSignalChain(config.radio, config.driverAmp, 'none', config.bonding, config.antennaPosition, config.driveLevel)",
+    "RFContext.js correctly passes driveLevel to all calculation functions in metrics computation",
+    "rfEngine.js calculateSignalChain and calculateStageOutputs correctly use driveLevel parameter when provided",
+    "KeyButton component has proper data-testid='key-down-btn' for testing"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only testing)",
+    "frontend": "95%"
+  },
+  "test_credentials": {
+    "admin_email": "fallstommy@gmail.com",
+    "admin_password": "admin123"
+  },
+  "seed_data_creation": "None (used existing custom equipment)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Drive Level feature fully functional. Slider range is 0.25-1.0 (25%-100%). At 50% drive with Cobra 29 + 2-pill driver: radio outputs 0.5W/2W (not 1W/4W), driver amplifies to 25W (not 50W), current draw is 2.5A (not 4.6A). The ONLY issue is the Signal Chain Summary box at bottom of Equipment Rack doesn't show drive-adjusted values - it always shows full power. This is cosmetic/informational only and doesn't affect actual simulation calculations.",
+  "drive_level_test_results": {
+    "slider_attributes": {
+      "data_testid": "drive-level-slider",
+      "min": "0.25",
+      "max": "1",
+      "step": "0.05",
+      "type": "range"
+    },
+    "cobra_29_at_100_percent": {
+      "dead_key": "1W",
+      "peak": "4W",
+      "with_driver_output": "50W",
+      "current_draw": "4.6A"
+    },
+    "cobra_29_at_50_percent": {
+      "dead_key": "0.5W",
+      "peak": "2W",
+      "with_driver_output": "25W",
+      "current_draw": "2.5A"
+    },
+    "ratio_preserved": true,
+    "power_scales_correctly": true,
+    "current_scales_correctly": true
+  }
+}
