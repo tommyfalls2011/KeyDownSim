@@ -118,11 +118,15 @@ export default function EquipmentRack() {
       </RackUnit>
 
       <RackUnit label="Antenna" slot="4U">
-        <Select value={config.antenna} onValueChange={v => updateConfig('antenna', v)}>
+        <Select value={config.antenna} onValueChange={v => {
+          updateConfig('antenna', v);
+          const ant = ANTENNAS[v];
+          if (ant?.tunable) updateConfig('tipLength', ant.tipDefault || 44);
+        }}>
           <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="antenna-select">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-panel border-white/10">
+          <SelectContent className="bg-panel border-white/10 max-h-60">
             {Object.entries(ANTENNAS).map(([key, a]) => (
               <SelectItem key={key} value={key} className="font-mono text-xs text-slate-300">
                 {a.name} ({a.gainDBI > 0 ? '+' : ''}{a.gainDBI}dBi)
@@ -130,6 +134,32 @@ export default function EquipmentRack() {
             ))}
           </SelectContent>
         </Select>
+        {ANTENNAS[config.antenna]?.tunable && (() => {
+          const ant = ANTENNAS[config.antenna];
+          return (
+            <div className="mt-2 bg-void/50 border border-white/5 rounded p-2">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-mono text-[8px] text-slate-600 uppercase">Tip Length (SWR Tune)</span>
+                <span className="font-mono text-[10px] text-cyan-400" data-testid="tip-length-val">{config.tipLength}"</span>
+              </div>
+              <input
+                type="range"
+                min={ant.tipMin}
+                max={ant.tipMax}
+                step="0.5"
+                value={config.tipLength}
+                onChange={e => updateConfig('tipLength', parseFloat(e.target.value))}
+                className="w-full h-1 appearance-none bg-slate-800 rounded-full cursor-pointer accent-cyan-400"
+                data-testid="tip-slider"
+              />
+              <div className="flex justify-between font-mono text-[7px] text-slate-700 mt-0.5">
+                <span>{ant.tipMin}" (short)</span>
+                <span className="text-cyan-400/40">{ant.tipDefault}" sweet</span>
+                <span>{ant.tipMax}" (long)</span>
+              </div>
+            </div>
+          );
+        })()}
       </RackUnit>
 
       {/* Signal Chain Summary */}
