@@ -541,16 +541,23 @@ async def calculate_rf(data: RFCalcRequest):
     bonding_penalty = 0 if data.bonding else 15
     takeoff_angle = base_takeoff + bonding_penalty
 
-    # SWR calculation — based on antenna type and vehicle surface area
+    # SWR calculation — based on antenna type, vehicle surface area, and tip tuning
     base_swr = 1.0
     if antenna["type"] == "mag-mount":
         base_swr = 1.2
     elif antenna["type"] == "base-load":
-        base_swr = 1.1
+        base_swr = 1.05
     surface_penalty = (1 - vehicle["ground_plane"]) * 2.5
     swr = base_swr + surface_penalty
     if not data.bonding:
         swr += 0.9
+    # Tunable tip adjustment
+    if antenna.get("tunable") and data.tip_length:
+        sweet_spot = antenna.get("tip_default", 44)
+        deviation = abs(data.tip_length - sweet_spot)
+        tip_penalty = deviation * 0.05
+        tip_bonus = max(0, 0.4 - tip_penalty)
+        swr = swr - tip_bonus + max(0, tip_penalty - 0.4) * 0.5
     swr = round(max(1.0, swr), 1)
 
     # Ground plane quality
