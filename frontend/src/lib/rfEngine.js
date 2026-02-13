@@ -138,11 +138,13 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, ant
   };
 }
 
-export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alternatorAmps, batteryType, batteryCount, regulatorVoltages) {
+export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alternatorAmps, batteryType, batteryCount, regulatorVoltages, actualDemandCurrent) {
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
 
-  const demandCurrent = driver.currentDraw + final_.currentDraw;
+  // Use actual demand if provided (keyed state), otherwise rated max
+  const ratedMax = driver.currentDraw + final_.currentDraw;
+  const demandCurrent = actualDemandCurrent !== undefined ? actualDemandCurrent : ratedMax;
 
   // External regulators: each controls up to 3 alts
   // Average the regulator voltages weighted by how many alts each controls
