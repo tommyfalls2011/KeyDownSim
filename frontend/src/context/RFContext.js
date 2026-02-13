@@ -22,6 +22,7 @@ const DEFAULT_STATE = {
 export function RFProvider({ children }) {
   const [config, setConfig] = useState(DEFAULT_STATE);
   const [keyed, setKeyed] = useState(false);
+  const { micEnabled, micLevel, toggleMic } = useMic();
 
   const updateConfig = useCallback((key, value) => {
     setConfig(prev => ({ ...prev, [key]: value }));
