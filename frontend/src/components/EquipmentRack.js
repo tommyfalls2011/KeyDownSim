@@ -25,6 +25,13 @@ function TempBar({ temp, blown }) {
 export default function EquipmentRack() {
   const { config, updateConfig, metrics, resetAmp, keyed, equipmentLoaded } = useRF();
 
+  // Re-snapshot equipment objects when they're updated from API
+  // This forces the component to use fresh values after mergeEquipmentFromAPI runs
+  const radios = useMemo(() => ({ ...RADIOS }), [equipmentLoaded]);
+  const driverAmps = useMemo(() => ({ ...DRIVER_AMPS }), [equipmentLoaded]);
+  const finalAmps = useMemo(() => ({ ...FINAL_AMPS }), [equipmentLoaded]);
+  const antennas = useMemo(() => ({ ...ANTENNAS }), [equipmentLoaded]);
+
   return (
     <div className="p-3 space-y-1">
       <div className="font-chakra text-[10px] uppercase tracking-[0.25em] text-slate-600 px-2 py-3">
