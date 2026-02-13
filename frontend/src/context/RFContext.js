@@ -246,6 +246,10 @@ export function RFProvider({ children }) {
   const metrics = {
     deadKeyWatts: Math.round(effectivePower.deadKey * 10) / 10,
     peakWatts: Math.round(effectivePower.peakKey * 10) / 10,
+    // Average power: dead key carrier + moderate modulation swing (~35% of range)
+    avgWatts: Math.round((effectivePower.deadKey + (effectivePower.peakKey - effectivePower.deadKey) * micLevel * 0.35) * 10) / 10,
+    // Peak swing: starts at dead key, swings hard toward peak limit during modulation
+    peakSwingWatts: Math.round((effectivePower.deadKey + (effectivePower.peakKey - effectivePower.deadKey) * Math.min(1, micLevel * 1.8)) * 10) / 10,
     modulatedWatts: Math.round((effectivePower.deadKey + (effectivePower.peakKey - effectivePower.deadKey) * micLevel) * 10) / 10,
     micLevel: micLevel,
     voltage: voltage.effectiveVoltage,
