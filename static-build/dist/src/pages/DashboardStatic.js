@@ -14,19 +14,19 @@ export default function DashboardStatic() {
   const antennaPos = ANTENNA_POSITIONS[config.antennaPosition] || ANTENNA_POSITIONS['center'];
 
   return (
-    <div className="h-screen flex flex-col bg-void overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-void">
       <Header />
       
       {/* 3-Panel Layout */}
-      <div className="flex-1 grid grid-cols-12 overflow-hidden">
+      <div className="flex-1 grid grid-cols-12">
         {/* Left Panel - Equipment */}
-        <div className="col-span-3 border-r border-white/5 bg-panel overflow-y-auto">
+        <div className="col-span-3 border-r border-white/5 bg-panel overflow-y-auto max-h-[calc(100vh-56px)]">
           <EquipmentRackStatic />
         </div>
         
         {/* Center - Visualizer */}
-        <div className="col-span-6 flex flex-col bg-void relative">
-          <div className="flex-1 relative">
+        <div className="col-span-6 flex flex-col bg-void relative min-h-[calc(100vh-56px)]">
+          <div className="flex-1 relative min-h-[400px]">
             <CanvasVisualizer 
               pattern={pattern} 
               vehicle={vehicle} 
@@ -42,7 +42,7 @@ export default function DashboardStatic() {
         </div>
         
         {/* Right Panel - Controls */}
-        <div className="col-span-3 border-l border-white/5 bg-panel overflow-y-auto">
+        <div className="col-span-3 border-l border-white/5 bg-panel overflow-y-auto max-h-[calc(100vh-56px)]">
           <ControlPanel />
         </div>
       </div>
