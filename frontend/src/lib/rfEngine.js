@@ -24,10 +24,17 @@ export const FINAL_AMPS = {
 const COMBINING_BONUS_PER_STAGE = 1.2;
 
 export const ANTENNAS = {
-  'whip-102': { name: '102" Whip', gainDBI: 0, type: 'vertical' },
-  'center-load': { name: 'Center-Load', gainDBI: -1.5, type: 'vertical' },
-  'wilson-1000': { name: 'Wilson 1000', gainDBI: 3, type: 'mag-mount' },
-  'predator-10k': { name: 'Predator 10K', gainDBI: 5, type: 'base-load' },
+  'whip-102': { name: '102" Stainless Whip', gainDBI: 0, type: 'vertical', tunable: false },
+  'center-load': { name: 'Center-Load', gainDBI: -1.5, type: 'vertical', tunable: false },
+  'wilson-1000': { name: 'Wilson 1000', gainDBI: 3, type: 'mag-mount', tunable: false },
+  'predator-k1-9': { name: 'Predator 10K K-1-9 (9" shaft)', gainDBI: 4, type: 'base-load', tunable: true, tipMin: 30, tipMax: 58, tipDefault: 48 },
+  'predator-k1-12': { name: 'Predator 10K K-1-12 (12" shaft)', gainDBI: 4.5, type: 'base-load', tunable: true, tipMin: 30, tipMax: 58, tipDefault: 46 },
+  'predator-k1-17': { name: 'Predator 10K K-1-17 (17" shaft)', gainDBI: 5, type: 'base-load', tunable: true, tipMin: 30, tipMax: 58, tipDefault: 44 },
+  'predator-k1-22': { name: 'Predator 10K K-1-22 (22" shaft)', gainDBI: 5.5, type: 'base-load', tunable: true, tipMin: 28, tipMax: 56, tipDefault: 42 },
+  'predator-k1-27': { name: 'Predator 10K K-1-27 (27" shaft)', gainDBI: 6, type: 'base-load', tunable: true, tipMin: 28, tipMax: 49, tipDefault: 40 },
+  'predator-k2-9': { name: 'Predator 20K K-2-9 Double Coil', gainDBI: 6.5, type: 'base-load', tunable: true, tipMin: 28, tipMax: 56, tipDefault: 44 },
+  'fight-stix-8': { name: "Fight Stix 8' (6ft shaft + whip)", gainDBI: 5.5, type: 'vertical', tunable: true, tipMin: 36, tipMax: 60, tipDefault: 50 },
+  'fight-stix-10': { name: "Fight Stix 10' (8ft shaft + whip)", gainDBI: 7, type: 'vertical', tunable: true, tipMin: 36, tipMax: 60, tipDefault: 50 },
 };
 
 export const VEHICLES = {
