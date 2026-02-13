@@ -41,6 +41,7 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 ## Bug Fixes
 - [Feb 2026] Fixed thermal simulation stale closure bug: temps now properly rise/cool across multiple key-down cycles. Root cause: setInterval callback captured stale `keyed`, `driverBlown`, `finalBlown` values. Fix: useRef pattern to always read latest state.
 - [Feb 2026] Updated thermal model to realistic 2SC2879 transistor data: BLOW_TEMP=175°C (actual max junction), HEAT_BASE_RATE=3°C/sec for 2-pill reference (was 15°C/sec — way too fast), COOL_RATE=2°C/sec (realistic heatsink). Heat rate scales by sqrt(transistors/2) — more pills = more thermal mass = slower heating. 2-pill blows in ~50s, 4-pill ~70s, 8-pill ~100s, 16-pill ~142s.
+- [Dec 2025] Fixed P0 bug: Admin-edited equipment not appearing in UI dropdowns. Root cause: mergeEquipmentFromAPI mutated RADIOS/DRIVER_AMPS/FINAL_AMPS/ANTENNAS objects but React didn't re-render because EquipmentRack.js imported these at module load time. Fix: Added useMemo hooks in EquipmentRack.js that re-snapshot equipment objects when equipmentLoaded state changes, triggering proper re-renders with database values.
 
 ## Prioritized Backlog
 ### P0
