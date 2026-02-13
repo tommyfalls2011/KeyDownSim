@@ -114,7 +114,7 @@ export default function MetricsPanel() {
         <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Amp Temp</div>
         <div className={`font-mono text-lg led-segment ${
           metrics.driverBlown || metrics.finalBlown ? 'text-red-500 animate-pulse' :
-          Math.max(metrics.driverTemp, metrics.finalTemp) >= 135 ? 'text-red-500' :
+          Math.max(metrics.driverTemp, metrics.finalTemp) >= 150 ? 'text-red-500' :
           Math.max(metrics.driverTemp, metrics.finalTemp) >= 100 ? 'text-amber-400' : 'text-green-400'
         }`} data-testid="temp-readout">
           {Math.max(metrics.driverTemp, metrics.finalTemp)}°
@@ -124,7 +124,7 @@ export default function MetricsPanel() {
         </div>
         <MeterBar
           value={Math.max(metrics.driverTemp, metrics.finalTemp) - 25}
-          max={125}
+          max={150}
           segments={10}
           colors={['#00FF00', '#FFFF00', '#FF6600', '#FF0000']}
         />
