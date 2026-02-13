@@ -195,7 +195,8 @@ export default function EquipmentRack() {
             <span className="text-cyan-400">{Math.round((radios[config.radio]?.deadKey || 1) * (config.driveLevel || 1) * 100) / 100}W</span>
           </div>
           {config.driverAmp !== 'none' && (() => {
-            const afterDriver = calculateSignalChain(config.radio, config.driverAmp, 'none', config.bonding, config.antennaPosition, config.driveLevel);
+            const avgV = (config.regulatorVoltages || [14.2]).reduce((a, b) => a + b, 0) / (config.regulatorVoltages || [14.2]).length;
+            const afterDriver = calculateSignalChain(config.radio, config.driverAmp, 'none', config.bonding, config.antennaPosition, config.driveLevel, avgV);
             return (
               <div className="flex justify-between">
                 <span>+ Driver (+{driverAmps[config.driverAmp]?.gainDB}dB)</span>
@@ -204,7 +205,8 @@ export default function EquipmentRack() {
             );
           })()}
           {config.finalAmp !== 'none' && (() => {
-            const full = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel);
+            const avgV = (config.regulatorVoltages || [14.2]).reduce((a, b) => a + b, 0) / (config.regulatorVoltages || [14.2]).length;
+            const full = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel, avgV);
             return (
               <div className="flex justify-between">
                 <span>+ Final (+{finalAmps[config.finalAmp]?.gainDB}dB)</span>
