@@ -38,8 +38,16 @@ export const ANTENNAS = {
   'predator-k1-22': { name: 'Predator 10K K-1-22 (22" shaft)', gainDBI: 5.5, type: 'base-load', tunable: true, tipMin: 28, tipMax: 56, tipDefault: 42 },
   'predator-k1-27': { name: 'Predator 10K K-1-27 (27" shaft)', gainDBI: 6, type: 'base-load', tunable: true, tipMin: 28, tipMax: 49, tipDefault: 40 },
   'predator-k2-9': { name: 'Predator 20K K-2-9 Double Coil', gainDBI: 6.5, type: 'base-load', tunable: true, tipMin: 28, tipMax: 56, tipDefault: 44 },
+  'predator-k2-12': { name: 'Predator 20K K-2-12 Double Coil (12")', gainDBI: 7, type: 'base-load', tunable: true, tipMin: 28, tipMax: 56, tipDefault: 42 },
+  'predator-k2-17': { name: 'Predator 20K K-2-17 Double Coil (17")', gainDBI: 7.5, type: 'base-load', tunable: true, tipMin: 26, tipMax: 54, tipDefault: 40 },
+  'predator-comp-9': { name: 'Predator Comp 9" Adj', gainDBI: 5, type: 'base-load', tunable: true, tipMin: 26, tipMax: 58, tipDefault: 46 },
+  'predator-comp-12': { name: 'Predator Comp 12" Adj', gainDBI: 5.5, type: 'base-load', tunable: true, tipMin: 26, tipMax: 58, tipDefault: 44 },
+  'predator-comp-17': { name: 'Predator Comp 17" Adj', gainDBI: 6, type: 'base-load', tunable: true, tipMin: 26, tipMax: 56, tipDefault: 42 },
+  'predator-comp-22': { name: 'Predator Comp 22" Adj', gainDBI: 6.5, type: 'base-load', tunable: true, tipMin: 24, tipMax: 54, tipDefault: 40 },
+  'fight-stix-6': { name: "Fight Stix 6' (4ft shaft + whip)", gainDBI: 4.5, type: 'vertical', tunable: true, tipMin: 36, tipMax: 60, tipDefault: 52 },
   'fight-stix-8': { name: "Fight Stix 8' (6ft shaft + whip)", gainDBI: 5.5, type: 'vertical', tunable: true, tipMin: 36, tipMax: 60, tipDefault: 50 },
   'fight-stix-10': { name: "Fight Stix 10' (8ft shaft + whip)", gainDBI: 7, type: 'vertical', tunable: true, tipMin: 36, tipMax: 60, tipDefault: 50 },
+  'fight-stix-12': { name: "Fight Stix 12' (10ft shaft + whip)", gainDBI: 8, type: 'vertical', tunable: true, tipMin: 34, tipMax: 58, tipDefault: 48 },
 };
 
 export const VEHICLES = {
