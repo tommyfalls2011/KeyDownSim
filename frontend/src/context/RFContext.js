@@ -200,11 +200,11 @@ export function RFProvider({ children }) {
   }, [config]);
 
   // Calculate derived values
-  const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition);
-  const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding);
+  const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel);
+  const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
   const swr = calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
-  const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding);
+  const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 
   // Average regulator voltage
   const regs = config.regulatorVoltages || [14.2];
