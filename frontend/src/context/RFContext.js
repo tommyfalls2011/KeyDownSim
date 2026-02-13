@@ -55,6 +55,7 @@ export function RFProvider({ children }) {
       alternatorAmps: cfg.alternator_amps || 130,
       batteryType: cfg.battery_type || 'lead',
       batteryCount: cfg.battery_count || 1,
+      regulatorVoltages: cfg.regulator_voltages || [14.2],
       keyed: false,
     });
   }, []);
