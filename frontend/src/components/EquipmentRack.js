@@ -79,7 +79,7 @@ export default function EquipmentRack() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-panel border-white/10">
-            {Object.entries(DRIVER_AMPS).map(([key, a]) => (
+            {Object.entries(driverAmps).map(([key, a]) => (
               <SelectItem key={key} value={key} className="font-mono text-xs text-slate-300">
                 {a.name} {a.gainDB > 0 ? `(+${a.gainDB}dB)` : ''}
               </SelectItem>
@@ -88,8 +88,8 @@ export default function EquipmentRack() {
         </Select>
         {config.driverAmp !== 'none' && (
           <div className="flex justify-between mt-2 font-mono text-[10px]">
-            <span className="text-slate-600">GAIN: <span className="text-cyan-400">+{DRIVER_AMPS[config.driverAmp]?.gainDB}dB</span></span>
-            <span className="text-slate-600">DRAW: <span className="text-warn">{keyed ? metrics.driverAmps : 0}A</span><span className="text-slate-700">/{DRIVER_AMPS[config.driverAmp]?.currentDraw}A</span></span>
+            <span className="text-slate-600">GAIN: <span className="text-cyan-400">+{driverAmps[config.driverAmp]?.gainDB}dB</span></span>
+            <span className="text-slate-600">DRAW: <span className="text-warn">{keyed ? metrics.driverAmps : 0}A</span><span className="text-slate-700">/{driverAmps[config.driverAmp]?.currentDraw}A</span></span>
           </div>
         )}
         {config.driverAmp !== 'none' && <TempBar temp={metrics.driverTemp} blown={metrics.driverBlown} />}
@@ -109,7 +109,7 @@ export default function EquipmentRack() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-panel border-white/10">
-            {Object.entries(FINAL_AMPS).map(([key, a]) => (
+            {Object.entries(finalAmps).map(([key, a]) => (
               <SelectItem key={key} value={key} className="font-mono text-xs text-slate-300">
                 {a.name} {a.gainDB > 0 ? `(+${a.gainDB}dB)` : ''}
               </SelectItem>
@@ -118,8 +118,8 @@ export default function EquipmentRack() {
         </Select>
         {config.finalAmp !== 'none' && (
           <div className="flex justify-between mt-2 font-mono text-[10px]">
-            <span className="text-slate-600">GAIN: <span className="text-cyan-400">+{FINAL_AMPS[config.finalAmp]?.gainDB}dB</span></span>
-            <span className="text-slate-600">DRAW: <span className="text-hot">{keyed ? metrics.finalAmps : 0}A</span><span className="text-slate-700">/{FINAL_AMPS[config.finalAmp]?.currentDraw}A</span></span>
+            <span className="text-slate-600">GAIN: <span className="text-cyan-400">+{finalAmps[config.finalAmp]?.gainDB}dB</span></span>
+            <span className="text-slate-600">DRAW: <span className="text-hot">{keyed ? metrics.finalAmps : 0}A</span><span className="text-slate-700">/{finalAmps[config.finalAmp]?.currentDraw}A</span></span>
           </div>
         )}
         {metrics.underDriven && config.finalAmp !== 'none' && (
@@ -144,14 +144,14 @@ export default function EquipmentRack() {
       <RackUnit label="Antenna" slot="4U">
         <Select value={config.antenna} onValueChange={v => {
           updateConfig('antenna', v);
-          const ant = ANTENNAS[v];
+          const ant = antennas[v];
           if (ant?.tunable) updateConfig('tipLength', ant.tipDefault || 44);
         }}>
           <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="antenna-select">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-panel border-white/10 max-h-60">
-            {Object.entries(ANTENNAS).map(([key, a]) => (
+            {Object.entries(antennas).map(([key, a]) => (
               <SelectItem key={key} value={key} className="font-mono text-xs text-slate-300">
                 {a.name} ({a.gainDBI > 0 ? '+' : ''}{a.gainDBI}dBi)
               </SelectItem>
