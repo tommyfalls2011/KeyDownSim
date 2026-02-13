@@ -26,7 +26,20 @@ export function RFProvider({ children }) {
   const { micEnabled, micLevel, toggleMic } = useMic();
 
   const updateConfig = useCallback((key, value) => {
-    setConfig(prev => ({ ...prev, [key]: value }));
+    setConfig(prev => {
+      const next = { ...prev, [key]: value };
+      // Auto-resize regulator array when alternator count changes
+      if (key === 'alternatorCount') {
+        const regCount = Math.ceil(value / 3);
+        const oldRegs = prev.regulatorVoltages || [14.2];
+        const newRegs = [];
+        for (let i = 0; i < regCount; i++) {
+          newRegs.push(oldRegs[i] !== undefined ? oldRegs[i] : 14.2);
+        }
+        next.regulatorVoltages = newRegs;
+      }
+      return next;
+    });
   }, []);
 
   const loadConfig = useCallback((cfg) => {
