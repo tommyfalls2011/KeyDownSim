@@ -135,8 +135,11 @@ export function RFProvider({ children }) {
         if (driver.currentDraw <= 0) return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
 
         if (isKeyed) {
+          // 2SC2879 thermal model: more pills = more thermal mass = slower temp rise
+          // 2-pill is reference (thermalMass=1), 4-pill=1.41x mass, 8-pill=2x, 16-pill=2.83x
+          const thermalMass = driver.transistors >= 2 ? Math.sqrt(driver.transistors / 2) : 1;
           const loadFactor = voltageStress * modStress;
-          const heatRate = HEAT_BASE_RATE * loadFactor;
+          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {
             setDriverBlown(true);
@@ -154,8 +157,9 @@ export function RFProvider({ children }) {
         if (final_.currentDraw <= 0) return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
 
         if (isKeyed) {
+          const thermalMass = final_.transistors >= 2 ? Math.sqrt(final_.transistors / 2) : 1;
           const loadFactor = voltageStress * modStress * overDriveStress;
-          const heatRate = HEAT_BASE_RATE * loadFactor;
+          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {
             setFinalBlown(true);
