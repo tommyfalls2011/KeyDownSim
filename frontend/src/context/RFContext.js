@@ -102,41 +102,41 @@ export function RFProvider({ children }) {
     }
   }, []);
 
-  // Thermal simulation tick
+  // Thermal simulation tick — reads keyed/blown/micLevel from refs to avoid stale closures
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      const dt = Math.min((now - lastTickRef.current) / 1000, 0.5); // delta in seconds, cap at 0.5s
+      const dt = Math.min((now - lastTickRef.current) / 1000, 0.5);
       lastTickRef.current = now;
+
+      const isKeyed = keyedRef.current;
+      const isDriverBlown = driverBlownRef.current;
+      const isFinalBlown = finalBlownRef.current;
+      const currentMicLevel = micLevelRef.current;
 
       const driver = DRIVER_AMPS[config.driverAmp] || DRIVER_AMPS['none'];
       const final_ = FINAL_AMPS[config.finalAmp] || FINAL_AMPS['none'];
 
-      // Average regulator voltage for amps
       const regs = config.regulatorVoltages || [14.2];
       const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
 
-      // Voltage stress factor: higher voltage = more heat (exponential above 15V)
       const voltageStress = avgRegV > 15 ? 1 + (avgRegV - 15) * 0.4 : 1.0;
+      const modStress = 1 + currentMicLevel * 0.25;
 
-      // Modulation stress: mic pushes current 25% above rated
-      const modStress = 1 + micLevel * 0.25;
-
-      // Over-drive stress on final: if driver pushes too much
       const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding);
       const overDriveStress = underDriven.driveRatio > 1.2 ? 1 + (underDriven.driveRatio - 1.2) * 0.8 : 1.0;
 
       setDriverTemp(prev => {
-        if (driverBlown) return prev; // Stays hot when blown
+        if (isDriverBlown) return prev;
         if (driver.currentDraw <= 0) return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
 
-        if (keyed) {
-          // Heat = base rate * load factor * voltage stress * modulation
-          const loadFactor = (driver.currentDraw / Math.max(1, driver.currentDraw)) * voltageStress * modStress;
+        if (isKeyed) {
+          const loadFactor = voltageStress * modStress;
           const heatRate = HEAT_BASE_RATE * loadFactor;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {
             setDriverBlown(true);
+            driverBlownRef.current = true;
             return BLOW_TEMP;
           }
           return newTemp;
@@ -146,16 +146,16 @@ export function RFProvider({ children }) {
       });
 
       setFinalTemp(prev => {
-        if (finalBlown) return prev;
+        if (isFinalBlown) return prev;
         if (final_.currentDraw <= 0) return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
 
-        if (keyed) {
-          // Final amp heats faster with over-drive and high voltage
+        if (isKeyed) {
           const loadFactor = voltageStress * modStress * overDriveStress;
           const heatRate = HEAT_BASE_RATE * loadFactor;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {
             setFinalBlown(true);
+            finalBlownRef.current = true;
             return BLOW_TEMP;
           }
           return newTemp;
@@ -163,10 +163,10 @@ export function RFProvider({ children }) {
           return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
         }
       });
-    }, 100); // 10 ticks per second
+    }, 100);
 
     return () => clearInterval(interval);
-  }, [keyed, config, micLevel, driverBlown, finalBlown]);
+  }, [config]);
 
   // Calculate derived values
   const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition);
