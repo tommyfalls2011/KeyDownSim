@@ -65,6 +65,9 @@ export function RFProvider({ children }) {
   const metrics = {
     deadKeyWatts: Math.round(effectivePower.deadKey * 10) / 10,
     peakWatts: Math.round(effectivePower.peakKey * 10) / 10,
+    // Modulated power: dead key is the carrier, mic level swings toward peak
+    modulatedWatts: Math.round((effectivePower.deadKey + (effectivePower.peakKey - effectivePower.deadKey) * micLevel) * 10) / 10,
+    micLevel: micLevel,
     voltage: voltage.effectiveVoltage,
     voltageDrop: voltage.voltageDrop,
     overloaded: voltage.overloaded,
