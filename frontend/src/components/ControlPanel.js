@@ -66,9 +66,11 @@ export default function ControlPanel() {
             ))}
           </SelectContent>
         </Select>
+        <div className="flex justify-between mt-1.5 font-mono text-[9px]">
+          <span className="text-slate-600">Surface: <span className="text-cyan-400">{VEHICLES[config.vehicle]?.surfaceSqFt}sqft</span></span>
+          <span className="text-slate-600">Ground: <span className="text-cyan-400">{Math.round((VEHICLES[config.vehicle]?.groundPlane || 0) * 100)}%</span></span>
+        </div>
       </div>
-
-      {/* Antenna Position */}
       <div className="mb-6">
         <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-2 block">Antenna Position</Label>
         <Select value={config.antennaPosition} onValueChange={v => updateConfig('antennaPosition', v)}>
