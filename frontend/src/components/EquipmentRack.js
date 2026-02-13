@@ -95,7 +95,7 @@ export default function EquipmentRack() {
         {config.finalAmp !== 'none' && (
           <div className="flex justify-between mt-2 font-mono text-[10px]">
             <span className="text-slate-600">GAIN: <span className="text-cyan-400">+{FINAL_AMPS[config.finalAmp]?.gainDB}dB</span></span>
-            <span className="text-slate-600">DRAW: <span className="text-hot">{FINAL_AMPS[config.finalAmp]?.currentDraw}A</span></span>
+            <span className="text-slate-600">DRAW: <span className="text-hot">{keyed ? metrics.finalAmps : 0}A</span><span className="text-slate-700">/{FINAL_AMPS[config.finalAmp]?.currentDraw}A</span></span>
           </div>
         )}
         {metrics.underDriven && config.finalAmp !== 'none' && (
