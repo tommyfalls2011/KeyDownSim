@@ -277,7 +277,7 @@ export function RFProvider({ children }) {
   };
 
   return (
-    <RFContext.Provider value={{ config, keyed, setKeyed, updateConfig, loadConfig, metrics, micEnabled, toggleMic, resetAmp }}>
+    <RFContext.Provider value={{ config, keyed, setKeyed, updateConfig, loadConfig, metrics, micEnabled, toggleMic, resetAmp, equipmentLoaded }}>
       {children}
     </RFContext.Provider>
   );
