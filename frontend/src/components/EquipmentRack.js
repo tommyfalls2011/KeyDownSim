@@ -3,10 +3,26 @@ import { RADIOS, DRIVER_AMPS, FINAL_AMPS, ANTENNAS } from '@/lib/rfEngine';
 import { calculateSignalChain } from '@/lib/rfEngine';
 import RackUnit from '@/components/RackUnit';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Flame, RotateCcw } from 'lucide-react';
+
+function TempBar({ temp, blown }) {
+  const pct = Math.min(100, ((temp - 25) / (150 - 25)) * 100);
+  const color = blown ? 'bg-red-600' : temp >= 135 ? 'bg-red-500' : temp >= 100 ? 'bg-amber-500' : temp >= 60 ? 'bg-amber-400/60' : 'bg-cyan-400/40';
+  return (
+    <div className="flex items-center gap-1.5 mt-1.5">
+      <Flame className={`w-3 h-3 shrink-0 ${blown ? 'text-red-500 animate-pulse' : temp >= 100 ? 'text-amber-400' : 'text-slate-700'}`} />
+      <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
+        <div className={`h-full ${color} transition-all duration-200`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className={`font-mono text-[9px] w-8 text-right ${blown ? 'text-red-500' : temp >= 100 ? 'text-amber-400' : 'text-slate-600'}`}>
+        {Math.round(temp)}°
+      </span>
+    </div>
+  );
+}
 
 export default function EquipmentRack() {
-  const { config, updateConfig, metrics } = useRF();
+  const { config, updateConfig, metrics, resetAmp } = useRF();
 
   return (
     <div className="p-3 space-y-1">
