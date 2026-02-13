@@ -95,9 +95,11 @@ export function RFProvider({ children }) {
   const resetAmp = useCallback((which) => {
     if (which === 'driver') {
       setDriverBlown(false);
+      driverBlownRef.current = false;
       setDriverTemp(AMBIENT_TEMP);
     } else {
       setFinalBlown(false);
+      finalBlownRef.current = false;
       setFinalTemp(AMBIENT_TEMP);
     }
   }, []);
