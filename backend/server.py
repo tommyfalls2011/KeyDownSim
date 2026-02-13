@@ -90,6 +90,7 @@ class ConfigCreate(BaseModel):
     alternator_amps: int = 130
     battery_type: str = "lead"
     battery_count: int = 1
+    regulator_voltages: list = [14.2]
 
 class ConfigResponse(BaseModel):
     id: str
@@ -121,6 +122,7 @@ class RFCalcRequest(BaseModel):
     alternator_amps: int = 130
     battery_type: str = "lead"
     battery_count: int = 1
+    regulator_voltages: list = [14.2]
 
 # ──── RF Equipment Database ────
 
