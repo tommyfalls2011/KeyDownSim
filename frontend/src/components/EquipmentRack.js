@@ -158,8 +158,8 @@ export default function EquipmentRack() {
             ))}
           </SelectContent>
         </Select>
-        {ANTENNAS[config.antenna]?.tunable && (() => {
-          const ant = ANTENNAS[config.antenna];
+        {antennas[config.antenna]?.tunable && (() => {
+          const ant = antennas[config.antenna];
           return (
             <div className="mt-2 bg-void/50 border border-white/5 rounded p-2">
               <div className="flex items-center justify-between mb-1">
@@ -192,13 +192,13 @@ export default function EquipmentRack() {
         <div className="font-mono text-[10px] text-slate-500 space-y-1">
           <div className="flex justify-between">
             <span>Radio</span>
-            <span className="text-cyan-400">{Math.round((RADIOS[config.radio]?.deadKey || 1) * (config.driveLevel || 1) * 100) / 100}W</span>
+            <span className="text-cyan-400">{Math.round((radios[config.radio]?.deadKey || 1) * (config.driveLevel || 1) * 100) / 100}W</span>
           </div>
           {config.driverAmp !== 'none' && (() => {
             const afterDriver = calculateSignalChain(config.radio, config.driverAmp, 'none', config.bonding, config.antennaPosition, config.driveLevel);
             return (
               <div className="flex justify-between">
-                <span>+ Driver (+{DRIVER_AMPS[config.driverAmp]?.gainDB}dB)</span>
+                <span>+ Driver (+{driverAmps[config.driverAmp]?.gainDB}dB)</span>
                 <span className="text-cyan-400">{Math.round(afterDriver.deadKey)}W</span>
               </div>
             );
@@ -207,7 +207,7 @@ export default function EquipmentRack() {
             const full = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel);
             return (
               <div className="flex justify-between">
-                <span>+ Final (+{FINAL_AMPS[config.finalAmp]?.gainDB}dB)</span>
+                <span>+ Final (+{finalAmps[config.finalAmp]?.gainDB}dB)</span>
                 <span className="text-cyan-400">{Math.round(full.deadKey).toLocaleString()}W</span>
               </div>
             );
