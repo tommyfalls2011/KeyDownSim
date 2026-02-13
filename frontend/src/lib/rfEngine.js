@@ -324,15 +324,16 @@ export function calculateTakeoffAngle(vehicleKey, bonding) {
 
 // ─── Under-Driven Detection ───
 
-export function checkUnderDriven(radioKey, driverKey, finalKey, bonding) {
+export function checkUnderDriven(radioKey, driverKey, finalKey, bonding, driveLevel) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
+  const dl = driveLevel ?? 1.0;
 
   if (final_.gainDB <= 0) return { isUnderDriven: false, driveRatio: 1.0, driveWatts: 0, finalCapacity: 0 };
 
   // Calculate what driver stage outputs (power going INTO the final amp)
-  let driveWatts = radio.deadKey;
+  let driveWatts = radio.deadKey * dl;
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
     const stages = driver.combiningStages || 0;
