@@ -33,6 +33,19 @@ export function RFProvider({ children }) {
   const [config, setConfig] = useState(DEFAULT_STATE);
   const [keyed, setKeyed] = useState(false);
   const { micEnabled, micLevel, toggleMic } = useMic();
+  const [equipmentLoaded, setEquipmentLoaded] = useState(0);
+
+  // Fetch admin-added equipment from DB and merge into rfEngine objects
+  useEffect(() => {
+    const API = process.env.REACT_APP_BACKEND_URL;
+    fetch(`${API}/api/equipment`)
+      .then(r => r.json())
+      .then(data => {
+        mergeEquipmentFromAPI(data);
+        setEquipmentLoaded(prev => prev + 1); // trigger re-render so dropdowns update
+      })
+      .catch(() => {}); // silently use hardcoded defaults if API fails
+  }, []);
 
   // Thermal state
   const [driverTemp, setDriverTemp] = useState(AMBIENT_TEMP);
