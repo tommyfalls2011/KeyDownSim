@@ -68,6 +68,15 @@ export default function EquipmentRack() {
             <span className="text-slate-600">DRAW: <span className="text-warn">{DRIVER_AMPS[config.driverAmp]?.currentDraw}A</span></span>
           </div>
         )}
+        {config.driverAmp !== 'none' && <TempBar temp={metrics.driverTemp} blown={metrics.driverBlown} />}
+        {metrics.driverBlown && (
+          <div className="mt-2 flex items-center justify-between bg-red-500/10 border border-red-500/30 rounded px-2 py-1.5" data-testid="driver-blown">
+            <span className="font-mono text-[9px] text-red-400 font-bold">BLOWN PILL</span>
+            <button onClick={() => resetAmp('driver')} className="flex items-center gap-1 font-mono text-[8px] text-slate-400 hover:text-cyan-400 border border-white/10 rounded px-1.5 py-0.5" data-testid="reset-driver-btn">
+              <RotateCcw className="w-2.5 h-2.5" /> RESET
+            </button>
+          </div>
+        )}
       </RackUnit>
 
       <RackUnit label="Final Amplifier" slot="3U" highlight={config.finalAmp === '16-pill'}>
