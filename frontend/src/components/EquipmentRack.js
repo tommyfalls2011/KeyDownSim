@@ -184,10 +184,10 @@ export default function EquipmentRack() {
         <div className="font-mono text-[10px] text-slate-500 space-y-1">
           <div className="flex justify-between">
             <span>Radio</span>
-            <span className="text-cyan-400">{RADIOS[config.radio]?.deadKey}W</span>
+            <span className="text-cyan-400">{Math.round((RADIOS[config.radio]?.deadKey || 1) * (config.driveLevel || 1) * 100) / 100}W</span>
           </div>
           {config.driverAmp !== 'none' && (() => {
-            const afterDriver = calculateSignalChain(config.radio, config.driverAmp, 'none', config.bonding);
+            const afterDriver = calculateSignalChain(config.radio, config.driverAmp, 'none', config.bonding, config.antennaPosition, config.driveLevel);
             return (
               <div className="flex justify-between">
                 <span>+ Driver (+{DRIVER_AMPS[config.driverAmp]?.gainDB}dB)</span>
@@ -196,7 +196,7 @@ export default function EquipmentRack() {
             );
           })()}
           {config.finalAmp !== 'none' && (() => {
-            const full = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding);
+            const full = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel);
             return (
               <div className="flex justify-between">
                 <span>+ Final (+{FINAL_AMPS[config.finalAmp]?.gainDB}dB)</span>
