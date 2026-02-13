@@ -217,7 +217,7 @@ export default function ControlPanel() {
                 <input
                   type="range"
                   min="13.0"
-                  max="16.5"
+                  max="20.0"
                   step="0.1"
                   value={voltage}
                   onChange={e => {
@@ -231,7 +231,7 @@ export default function ControlPanel() {
                 />
                 <div className="flex justify-between font-mono text-[7px] text-slate-700 mt-0.5">
                   <span>13.0V</span>
-                  <span>16.5V</span>
+                  <span>20.0V</span>
                 </div>
               </div>
             );
