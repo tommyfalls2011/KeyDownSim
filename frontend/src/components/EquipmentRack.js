@@ -65,7 +65,7 @@ export default function EquipmentRack() {
         {config.driverAmp !== 'none' && (
           <div className="flex justify-between mt-2 font-mono text-[10px]">
             <span className="text-slate-600">GAIN: <span className="text-cyan-400">+{DRIVER_AMPS[config.driverAmp]?.gainDB}dB</span></span>
-            <span className="text-slate-600">DRAW: <span className="text-warn">{DRIVER_AMPS[config.driverAmp]?.currentDraw}A</span></span>
+            <span className="text-slate-600">DRAW: <span className="text-warn">{keyed ? metrics.driverAmps : 0}A</span><span className="text-slate-700">/{DRIVER_AMPS[config.driverAmp]?.currentDraw}A</span></span>
           </div>
         )}
         {config.driverAmp !== 'none' && <TempBar temp={metrics.driverTemp} blown={metrics.driverBlown} />}
