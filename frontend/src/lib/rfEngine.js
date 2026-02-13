@@ -106,23 +106,28 @@ export function mergeEquipmentFromAPI(apiData) {
 
 // Per-stage output and load ratios — for thermal model and actual current draw
 // Returns both dead key and peak ratios so current swings with modulation
-export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding) {
+export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding, driveLevel) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
   const bondingFactor = bonding ? 1.0 : 0.6;
+  const dl = driveLevel ?? 1.0;
+
+  // Drive level scales radio output — 4:1 ratio preserved
+  const radioDK = radio.deadKey * dl;
+  const radioPK = radio.peakKey * dl;
 
   let driverOutDK = 0, driverOutPK = 0, driverMax = 0;
-  let inputToFinalDK = radio.deadKey;
-  let inputToFinalPK = radio.peakKey;
+  let inputToFinalDK = radioDK;
+  let inputToFinalPK = radioPK;
 
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
     const stages = driver.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
     driverMax = driver.transistors * (driver.wattsPerPill || 275) * combining;
-    driverOutDK = Math.min(radio.deadKey * driverGain, driverMax);
-    driverOutPK = Math.min(radio.peakKey * driverGain, driverMax);
+    driverOutDK = Math.min(radioDK * driverGain, driverMax);
+    driverOutPK = Math.min(radioPK * driverGain, driverMax);
     inputToFinalDK = driverOutDK;
     inputToFinalPK = driverOutPK;
   }
@@ -147,14 +152,15 @@ export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding) {
   };
 }
 
-export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, antennaPosKey) {
+export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, antennaPosKey, driveLevel) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
   const pos = ANTENNA_POSITIONS[antennaPosKey] || ANTENNA_POSITIONS['center'];
+  const dl = driveLevel ?? 1.0;
 
-  let deadKey = radio.deadKey;
-  let peakKey = radio.peakKey;
+  let deadKey = radio.deadKey * dl;
+  let peakKey = radio.peakKey * dl;
 
   // Driver stage: high gain but capped at pills x wpp x compounded combining bonus
   if (driver.gainDB > 0) {
