@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
-// import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Save } from 'lucide-react';
@@ -16,7 +16,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function ControlPanel() {
   const { config, updateConfig } = useRF();
-  // const { token } = useAuth();
+  const { token } = useAuth();
   const [saveName, setSaveName] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -39,7 +39,7 @@ export default function ControlPanel() {
         battery_count: config.batteryCount,
         regulator_voltages: config.regulatorVoltages,
         tip_length: config.tipLength,
-      }, { headers: { // Authorization: `Bearer ${token}` } });
+      }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Config saved');
       setSaveName('');
     } catch (err) {
