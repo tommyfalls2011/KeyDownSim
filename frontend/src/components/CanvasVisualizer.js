@@ -364,13 +364,16 @@ export default function CanvasVisualizer() {
 
       // Power readout overlay
       if (keyed) {
-        ctx.fillStyle = `rgba(0,240,255,${0.7 * intensity})`;
+        const showWatts = Math.round(metrics.modulatedWatts);
+        const isModulating = metrics.micLevel > 0.05;
+        const hueW = showWatts > metrics.deadKeyWatts * 1.2 ? 48 : 186;
+        ctx.fillStyle = `hsla(${hueW},100%,60%,${0.7 * intensity})`;
         ctx.font = 'bold 14px "JetBrains Mono"';
         ctx.textAlign = 'left';
-        ctx.fillText(`${Math.round(metrics.deadKeyWatts)}W`, 12, 24);
+        ctx.fillText(`${showWatts}W`, 12, 24);
         ctx.font = '9px "Chakra Petch"';
         ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        ctx.fillText('DEAD KEY', 12, 36);
+        ctx.fillText(isModulating ? 'MODULATED' : 'DEAD KEY', 12, 36);
       }
     };
     animRef.current = requestAnimationFrame(draw);
