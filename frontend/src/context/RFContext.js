@@ -89,6 +89,8 @@ export function RFProvider({ children }) {
     setFinalTemp(AMBIENT_TEMP);
     setDriverBlown(false);
     setFinalBlown(false);
+    driverBlownRef.current = false;
+    finalBlownRef.current = false;
   }, []);
 
   // Reset blown amp (take out of line, put back)
