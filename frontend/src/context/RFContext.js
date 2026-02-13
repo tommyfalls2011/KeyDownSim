@@ -124,7 +124,7 @@ export function RFProvider({ children }) {
   // Thermal simulation tick — reads keyed/blown/micLevel from refs to avoid stale closures
   useEffect(() => {
     // Pre-calculate stage outputs and load ratios for this config
-    const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding);
+    const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 
     const interval = setInterval(() => {
       const now = Date.now();
