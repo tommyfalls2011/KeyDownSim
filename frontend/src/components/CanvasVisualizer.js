@@ -172,7 +172,8 @@ export default function CanvasVisualizer() {
 
       // Radiation pattern
       if (intensity > 0.01) {
-        const power = keyed ? metrics.deadKeyWatts : 0;
+        // Use modulated power when mic is active, otherwise dead key
+        const power = keyed ? metrics.modulatedWatts : 0;
         const pattern = getRadiationPattern(config.vehicle, config.bonding, power, config.antenna, config.antennaPosition);
         const pulse = 1 + Math.sin(time * 4) * 0.05 * intensity;
 
