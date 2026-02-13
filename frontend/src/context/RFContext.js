@@ -14,6 +14,7 @@ const HEAT_BASE_RATE = 3; // °C per second — 2-pill at FULL LOAD (load ratio 
 
 const DEFAULT_STATE = {
   radio: 'cobra-29',
+  driveLevel: 1.0, // 0.25–1.0, scales dead key & peak (4:1 ratio preserved)
   driverAmp: 'none',
   finalAmp: 'none',
   antenna: 'whip-102',
