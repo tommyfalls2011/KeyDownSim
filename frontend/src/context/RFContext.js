@@ -199,16 +199,16 @@ export function RFProvider({ children }) {
     return () => clearInterval(interval);
   }, [config]);
 
-  // Calculate derived values
-  const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel);
+  // Average regulator voltage (what the amps are actually fed)
+  const regs = config.regulatorVoltages || [14.2];
+  const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
+
+  // Calculate derived values - pass voltage to signal chain so watts scale with volts
+  const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel, avgRegV);
   const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
   const swr = calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
-
-  // Average regulator voltage
-  const regs = config.regulatorVoltages || [14.2];
-  const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
 
   // Actual current draw — proportional to load, swings with modulation
   // Dead key = baseline current, mic modulation pushes toward peak current
