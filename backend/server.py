@@ -290,6 +290,7 @@ async def create_config(data: ConfigCreate, user: dict = Depends(get_current_use
         "alternator_amps": data.alternator_amps,
         "battery_type": data.battery_type,
         "battery_count": data.battery_count,
+        "regulator_voltages": data.regulator_voltages,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.configurations.insert_one(config_doc)
