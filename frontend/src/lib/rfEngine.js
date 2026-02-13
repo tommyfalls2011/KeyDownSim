@@ -93,12 +93,28 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, ant
   };
 }
 
-export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alternatorAmps, batteryType, batteryCount) {
+export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alternatorAmps, batteryType, batteryCount, regulatorVoltages) {
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
 
   const demandCurrent = driver.currentDraw + final_.currentDraw;
-  const batteryVoltage = 14.2;
+
+  // External regulators: each controls up to 3 alts
+  // Average the regulator voltages weighted by how many alts each controls
+  const regs = regulatorVoltages || [14.2];
+  const regCount = regs.length;
+  const altsPerReg = Math.ceil(alternatorCount / Math.max(1, regCount));
+  let weightedVoltage = 0;
+  let totalAltsAssigned = 0;
+  for (let i = 0; i < regCount; i++) {
+    const altsThisReg = Math.min(altsPerReg, alternatorCount - totalAltsAssigned);
+    if (altsThisReg > 0) {
+      weightedVoltage += regs[i] * altsThisReg;
+      totalAltsAssigned += altsThisReg;
+    }
+  }
+  const batteryVoltage = totalAltsAssigned > 0 ? weightedVoltage / totalAltsAssigned : 14.2;
+
   const alternatorMax = alternatorCount * alternatorAmps * 1.08;
 
   // 0 AWG OFC wire
