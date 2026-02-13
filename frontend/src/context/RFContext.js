@@ -6,11 +6,11 @@ const RFContext = createContext(null);
 
 const RADIO_VOLTAGE = 14.8; // Radio always runs factory voltage
 const AMBIENT_TEMP = 25; // °C
-const BLOW_TEMP = 150; // °C — transistor failure point
-const CRITICAL_TEMP = 135;
-const WARN_TEMP = 100;
-const COOL_RATE = 8; // °C per second when not keyed
-const HEAT_BASE_RATE = 15; // °C per second base rate at full rated load
+const BLOW_TEMP = 175; // °C — 2SC2879 max junction temp, thermal runaway point
+const CRITICAL_TEMP = 150; // °C — case temp danger zone
+const WARN_TEMP = 100; // °C — monitoring zone
+const COOL_RATE = 2; // °C per second — realistic heatsink + fan dissipation
+const HEAT_BASE_RATE = 3; // °C per second — 2-pill reference rate (blows in ~50s continuous key-down)
 
 const DEFAULT_STATE = {
   radio: 'cobra-29',
