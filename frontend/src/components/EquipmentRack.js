@@ -6,8 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertTriangle, Flame, RotateCcw } from 'lucide-react';
 
 function TempBar({ temp, blown }) {
-  const pct = Math.min(100, ((temp - 25) / (150 - 25)) * 100);
-  const color = blown ? 'bg-red-600' : temp >= 135 ? 'bg-red-500' : temp >= 100 ? 'bg-amber-500' : temp >= 60 ? 'bg-amber-400/60' : 'bg-cyan-400/40';
+  const pct = Math.min(100, ((temp - 25) / (175 - 25)) * 100);
+  const color = blown ? 'bg-red-600' : temp >= 150 ? 'bg-red-500' : temp >= 100 ? 'bg-amber-500' : temp >= 60 ? 'bg-amber-400/60' : 'bg-cyan-400/40';
   return (
     <div className="flex items-center gap-1.5 mt-1.5">
       <Flame className={`w-3 h-3 shrink-0 ${blown ? 'text-red-500 animate-pulse' : temp >= 100 ? 'text-amber-400' : 'text-slate-700'}`} />
