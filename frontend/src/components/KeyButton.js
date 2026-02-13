@@ -1,13 +1,14 @@
 import { useCallback, useEffect } from 'react';
 import { useRF } from '@/context/RFContext';
+import { Mic, MicOff } from 'lucide-react';
 
 export default function KeyButton() {
-  const { keyed, setKeyed } = useRF();
+  const { keyed, setKeyed, micEnabled, toggleMic, metrics } = useRF();
 
   const handleDown = useCallback(() => setKeyed(true), [setKeyed]);
   const handleUp = useCallback(() => setKeyed(false), [setKeyed]);
 
-  // Keyboard support: Space/Enter to key down
+  // Keyboard support: Space/K to key down
   useEffect(() => {
     const onKey = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -45,6 +46,31 @@ export default function KeyButton() {
           </div>
         </div>
       </button>
+
+      {/* Mic toggle */}
+      <button
+        data-testid="mic-toggle-btn"
+        onClick={toggleMic}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded border font-mono text-[10px] uppercase tracking-wider transition-all ${
+          micEnabled
+            ? 'bg-cyan-400/10 border-cyan-400/40 text-cyan-400'
+            : 'bg-void border-white/10 text-slate-600 hover:text-slate-400 hover:border-white/20'
+        }`}
+      >
+        {micEnabled ? <Mic className="w-3 h-3" /> : <MicOff className="w-3 h-3" />}
+        {micEnabled ? 'MIC LIVE' : 'MIC OFF'}
+      </button>
+
+      {/* Modulation level bar */}
+      {micEnabled && keyed && (
+        <div className="w-16 h-1.5 bg-void border border-white/10 rounded-full overflow-hidden" data-testid="mic-level-bar">
+          <div
+            className="h-full bg-cyan-400 transition-all duration-75"
+            style={{ width: `${Math.round(metrics.micLevel * 100)}%` }}
+          />
+        </div>
+      )}
+
       <div className="font-mono text-[9px] text-slate-700 text-center">
         HOLD TO TRANSMIT
         <br />
