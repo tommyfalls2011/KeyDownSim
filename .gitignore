@@ -65,7 +65,8 @@ chainlit.md
 agenthub/agents/youtube/db
 
 # Archive files and large assets
-**/*.zip
+# Allow static build zip
+!static-build/*.zip
 **/*.tar.gz
 **/*.tar
 **/*.tgz
