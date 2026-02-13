@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import { calculateSignalChain, calculateVoltageDrop, calculateSWR, calculateTakeoffAngle, checkUnderDriven } from '@/lib/rfEngine';
+import { useMic } from '@/lib/useMic';
 
 const RFContext = createContext(null);
 
