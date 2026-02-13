@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useRF } from '@/context/RFContext';
+import { useRF } from '@/context/RFContextStatic';
 import { RADIOS, DRIVER_AMPS, FINAL_AMPS, ANTENNAS } from '@/lib/rfEngine';
 import { calculateSignalChain } from '@/lib/rfEngine';
 import RackUnit from '@/components/RackUnit';
