@@ -180,9 +180,11 @@ export default function CanvasVisualizer() {
         const maxGain = Math.max(...pattern.map(p => p.gain));
         const scaleFactor = maxGain > 0 ? (maxR * 0.9) / maxGain : 1;
 
-        // Distance model: base range in feet proportional to sqrt(power)
-        // ~500W rear mount ≈ 20ft forward / 6ft back per user reference
-        const baseRangeFt = Math.sqrt(Math.max(1, power)) * 0.9;
+        // Distance model: base range in feet, scaled by antenna gain
+        // ~500W with 0dBi rear mount ≈ 20ft forward / 6ft back
+        const antennaObj = ANTENNAS[config.antenna] || ANTENNAS['whip-102'];
+        const antGainLinear = Math.pow(10, antennaObj.gainDBI / 10);
+        const baseRangeFt = Math.sqrt(Math.max(1, power) * antGainLinear) * 0.9;
 
         // Fill
         const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
