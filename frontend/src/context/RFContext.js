@@ -138,12 +138,12 @@ export function RFProvider({ children }) {
         if (driver.currentDraw <= 0) return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
 
         if (isKeyed) {
-          // 2SC2879 thermal: heat proportional to how hard the amp is working
-          // A Cobra 29 (1W) barely loads a 2-pill (550W max) — loadRatio ~0.09
-          // A Ranger RCI-2970 (12W) fully loads it — loadRatio ~1.0
+          // Heat based on actual load — dead key baseline + modulation swing
           const thermalMass = driver.transistors >= 2 ? Math.sqrt(driver.transistors / 2) : 1;
-          const loadRatio = Math.max(0.05, stages.driverLoadRatio); // minimum 5% idle heat
-          const loadFactor = loadRatio * voltageStress * modStress;
+          const dkRatio = stages.driverLoadRatioDK;
+          const pkRatio = stages.driverLoadRatioPK;
+          const loadRatio = Math.max(0.05, dkRatio + (pkRatio - dkRatio) * currentMicLevel);
+          const loadFactor = loadRatio * voltageStress;
           const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {
@@ -163,8 +163,10 @@ export function RFProvider({ children }) {
 
         if (isKeyed) {
           const thermalMass = final_.transistors >= 2 ? Math.sqrt(final_.transistors / 2) : 1;
-          const loadRatio = Math.max(0.05, stages.finalLoadRatio);
-          const loadFactor = loadRatio * voltageStress * modStress * overDriveStress;
+          const dkRatio = stages.finalLoadRatioDK;
+          const pkRatio = stages.finalLoadRatioPK;
+          const loadRatio = Math.max(0.05, dkRatio + (pkRatio - dkRatio) * currentMicLevel);
+          const loadFactor = loadRatio * voltageStress * overDriveStress;
           const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {
