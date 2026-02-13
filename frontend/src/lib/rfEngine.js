@@ -188,24 +188,37 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
   };
 }
 
-export function calculateSWR(antennaKey, vehicleKey, bonding) {
+export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength) {
   const antenna = ANTENNAS[antennaKey] || ANTENNAS['whip-102'];
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
 
   // Base SWR — a perfect antenna on a perfect ground plane
   let baseSWR = 1.0;
   if (antenna.type === 'mag-mount') baseSWR = 1.2;
-  else if (antenna.type === 'base-load') baseSWR = 1.1;
+  else if (antenna.type === 'base-load') baseSWR = 1.05;
 
   // Vehicle surface area penalty — less metal = worse SWR
   const surfacePenalty = (1 - vehicle.groundPlane) * 2.5;
   let swr = baseSWR + surfacePenalty;
 
-  // Poor bonding — panels not connected, ground plane is fragmented
+  // Bonding — all panels grounded together dramatically lowers SWR
   if (!bonding) {
     swr += 0.9;
   }
 
+  // Tunable tip — when set to the sweet spot, SWR drops to near 1.0
+  // The "sweet spot" is the antenna's default tip length for resonance
+  if (antenna.tunable && tipLength !== undefined) {
+    const sweetSpot = antenna.tipDefault || 44;
+    const deviation = Math.abs(tipLength - sweetSpot);
+    // Every inch off the sweet spot adds ~0.05 SWR
+    const tipPenalty = deviation * 0.05;
+    // But when tuned right, the tip can subtract up to 0.4 SWR
+    const tipBonus = Math.max(0, 0.4 - tipPenalty);
+    swr = swr - tipBonus + Math.max(0, tipPenalty - 0.4) * 0.5;
+  }
+
+  // With perfect tuning + bonding + good ground plane, SWR can hit 1.0
   return Math.round(Math.max(1.0, swr) * 10) / 10;
 }
 
