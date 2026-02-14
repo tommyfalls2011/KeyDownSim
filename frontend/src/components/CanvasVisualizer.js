@@ -355,7 +355,11 @@ export default function CanvasVisualizer() {
 
         // Auto-scale: find max pattern gain and scale to fit within 90% of maxR
         const maxGain = Math.max(...pattern.map(p => p.gain));
-        const scaleFactor = maxGain > 0 ? (maxR * 0.9) / maxGain : 1;
+        const targetScale = maxGain > 0 ? (maxR * 0.9) / maxGain : 1;
+        // Smooth scale factor to prevent jittery resizing at high power
+        if (smoothScaleRef.current === 0) smoothScaleRef.current = targetScale;
+        smoothScaleRef.current += (targetScale - smoothScaleRef.current) * 0.12;
+        const scaleFactor = smoothScaleRef.current;
 
         // Distance model: base range in feet, scaled by antenna gain
         // ~500W with 0dBi rear mount ≈ 20ft forward / 6ft back
