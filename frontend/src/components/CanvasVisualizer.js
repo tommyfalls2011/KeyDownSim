@@ -6,6 +6,8 @@ export default function CanvasVisualizer() {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const intensityRef = useRef(0);
+  const smoothScaleRef = useRef(0);
+  const smoothPowerRef = useRef(0);
   const { config, keyed, metrics } = useRF();
 
   const drawVehicle = useCallback((ctx, cx, cy, vehicleKey, scale, antennaPosKey) => {
