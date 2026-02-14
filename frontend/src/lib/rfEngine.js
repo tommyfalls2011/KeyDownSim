@@ -129,8 +129,8 @@ export const YAGI_ARRAY_CONFIG = {
     { id: 'ant1', name: 'ANT1 (Reflector)', position: 0, heightOffset: 0, tunable: true, defaultHeight: 96 },      // rear, base height
     { id: 'ant2', name: 'ANT2 (Driven)', position: 72, heightOffset: 0, tunable: true, defaultHeight: 96 },        // 72" forward
     { id: 'dir1', name: 'DIR1', position: 72 + 42, heightOffset: -12, tunable: true, defaultHeight: 84 },          // 3.5' forward, 1' shorter
-    { id: 'dir2', name: 'DIR2', position: 72 + 42 + 96, heightOffset: 15, tunable: false, defaultHeight: 111 },    // 8' forward, 15" taller
-    { id: 'dir3', name: 'DIR3', position: 72 + 42 + 96 + 96, heightOffset: 15, tunable: false, defaultHeight: 111 }, // 8' forward, same as DIR2
+    { id: 'dir2', name: 'DIR2', position: 72 + 42 + 96, heightOffset: 15, tunable: true, defaultHeight: 111 },    // 8' forward, 15" taller
+    { id: 'dir3', name: 'DIR3', position: 72 + 42 + 96 + 96, heightOffset: 15, tunable: true, defaultHeight: 111 }, // 8' forward, same as DIR2
   ],
   // Fighting sticks options for the array
   stickOptions: [
