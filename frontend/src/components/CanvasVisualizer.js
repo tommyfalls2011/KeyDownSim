@@ -83,22 +83,22 @@ export default function CanvasVisualizer() {
   const drawYagiArray = useCallback((ctx, cx, cy, scale, yagiConfig, keyed) => {
     const heights = yagiConfig?.elementHeights || {};
     const stickType = yagiConfig?.stickType || 'fight-8';
+    const dir1OnTruck = yagiConfig?.dir1OnTruck !== false;
     const baseHeight = stickType === 'fight-10' ? 120 : 96;
     
     const s = scale * 0.5;
     
-    // Positions relative to truck center (negative = behind, positive = in front)
-    // ANT1: 72" behind truck
-    // ANT2: on truck (0)
-    // DIR1: 42" in front (3.5')
-    // DIR2: 42 + 96 = 138" in front (8' from DIR1)
-    // DIR3: 138 + 96 = 234" in front (8' from DIR2)
+    // DIR1 position depends on toggle:
+    // On truck: 42" in front of truck center (mounted on cab/roof)
+    // Front beam: 96" in front (mounted on the front beam extension)
+    const dir1Pos = dir1OnTruck ? 42 : 96;
+    
     const elements = [
       { id: 'ant1', name: 'ANT1', pos: -72, height: heights.ant1 || 96, color: '#00F0FF', label: 'REFLECTOR' },
       { id: 'ant2', name: 'ANT2', pos: 0, height: heights.ant2 || 96, color: '#00F0FF', label: 'DRIVEN' },
-      { id: 'dir1', name: 'DIR1', pos: 42, height: heights.dir1 || 84, color: '#FFD700', label: '' },
-      { id: 'dir2', name: 'DIR2', pos: 138, height: heights.dir2 || 111, color: '#FF6B35', label: '' },
-      { id: 'dir3', name: 'DIR3', pos: 234, height: heights.dir3 || 111, color: '#FF6B35', label: '' },
+      { id: 'dir1', name: 'DIR1', pos: dir1Pos, height: heights.dir1 || 84, color: '#FFD700', label: dir1OnTruck ? 'ON TRUCK' : 'FRONT BEAM' },
+      { id: 'dir2', name: 'DIR2', pos: dir1Pos + 96, height: heights.dir2 || 111, color: '#FF6B35', label: '' },
+      { id: 'dir3', name: 'DIR3', pos: dir1Pos + 192, height: heights.dir3 || 111, color: '#FF6B35', label: '' },
     ];
     
     // Scale: 12 inches = 8 pixels at scale 1
