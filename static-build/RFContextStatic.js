@@ -47,6 +47,7 @@ const DEFAULT_STATE = {
   // Yagi Array Mode
   yagiMode: false,
   yagiStickType: 'fight-8',
+  yagiDir1OnTruck: true,
   yagiElementHeights: {
     ant1: 96,
     ant2: 96,
