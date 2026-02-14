@@ -36,6 +36,7 @@ const DEFAULT_STATE = {
   antenna: 'whip-102',
   antennaPosition: 'center',
   vehicle: 'suburban',
+  rideHeightOffset: 0,
   bonding: true,
   alternatorCount: 1,
   alternatorAmps: 130,
@@ -310,6 +311,7 @@ export function RFProvider({ children }) {
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding, {
     antennaPosition: config.antennaPosition,
     yagiMode: config.yagiMode,
+    rideHeightOffset: config.rideHeightOffset,
   });
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 
