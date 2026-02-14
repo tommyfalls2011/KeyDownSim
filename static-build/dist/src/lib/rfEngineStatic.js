@@ -55,13 +55,30 @@ export const ANTENNAS = {
 };
 
 export const VEHICLES = {
-  'suburban': { name: 'Suburban/SUV', groundPlane: 0.88, surfaceSqFt: 42, directional: 0.12, takeoff: 22, shape: 'suv' },
-  'f150': { name: 'Ford F-150', groundPlane: 0.62, surfaceSqFt: 28, directional: 0.48, takeoff: 35, shape: 'truck' },
-  'ram': { name: 'Dodge Ram', groundPlane: 0.68, surfaceSqFt: 31, directional: 0.42, takeoff: 32, shape: 'truck' },
-  'van': { name: 'Cargo Van', groundPlane: 0.92, surfaceSqFt: 52, directional: 0.08, takeoff: 18, shape: 'van' },
-  'wagon': { name: 'Station Wagon', groundPlane: 0.80, surfaceSqFt: 36, directional: 0.20, takeoff: 26, shape: 'wagon' },
-  'semi': { name: 'Semi Truck', groundPlane: 0.95, surfaceSqFt: 65, directional: 0.05, takeoff: 15, shape: 'semi' },
-  'jeep': { name: 'Jeep Wrangler', groundPlane: 0.55, surfaceSqFt: 22, directional: 0.55, takeoff: 40, shape: 'jeep' },
+  'suburban': { name: 'Suburban/SUV', groundPlane: 0.88, surfaceSqFt: 42, directional: 0.12, takeoff: 22, shape: 'suv', groundHeight: 5.5 },
+  'f150': { name: 'Ford F-150', groundPlane: 0.62, surfaceSqFt: 28, directional: 0.48, takeoff: 35, shape: 'truck', groundHeight: 5.0 },
+  'ram': { name: 'Dodge Ram', groundPlane: 0.68, surfaceSqFt: 31, directional: 0.42, takeoff: 32, shape: 'truck', groundHeight: 5.2 },
+  'van': { name: 'Cargo Van', groundPlane: 0.92, surfaceSqFt: 52, directional: 0.08, takeoff: 18, shape: 'van', groundHeight: 7.0 },
+  'wagon': { name: 'Station Wagon', groundPlane: 0.80, surfaceSqFt: 36, directional: 0.20, takeoff: 26, shape: 'wagon', groundHeight: 4.5 },
+  'semi': { name: 'Semi Truck', groundPlane: 0.95, surfaceSqFt: 65, directional: 0.05, takeoff: 15, shape: 'semi', groundHeight: 8.5 },
+  'jeep': { name: 'Jeep Wrangler', groundPlane: 0.55, surfaceSqFt: 22, directional: 0.55, takeoff: 40, shape: 'jeep', groundHeight: 4.0 },
+};
+
+// Yagi Array Element Positions (distances in inches from rear antenna)
+export const YAGI_ARRAY_CONFIG = {
+  elements: [
+    { id: 'ant1', name: 'ANT1 (Reflector)', position: 0, heightOffset: 0, tunable: true, defaultHeight: 96 },
+    { id: 'ant2', name: 'ANT2 (Driven)', position: 72, heightOffset: 0, tunable: true, defaultHeight: 96 },
+    { id: 'dir1', name: 'DIR1', position: 72 + 42, heightOffset: -12, tunable: true, defaultHeight: 84 },
+    { id: 'dir2', name: 'DIR2', position: 72 + 42 + 96, heightOffset: 15, tunable: false, defaultHeight: 111 },
+    { id: 'dir3', name: 'DIR3', position: 72 + 42 + 96 + 96, heightOffset: 15, tunable: false, defaultHeight: 111 },
+  ],
+  stickOptions: [
+    { id: 'fight-8', name: "8' Fighting Sticks", baseHeight: 96, gainDBI: 5.5 },
+    { id: 'fight-10', name: "10' Fighting Sticks", baseHeight: 120, gainDBI: 7 },
+  ],
+  baseGainDB: 9.5,
+  beamWidth: 45,
 };
 
 export const ANTENNA_POSITIONS = {
@@ -299,6 +316,90 @@ export function checkUnderDriven(radioKey, driverKey, finalKey, bonding, driveLe
     finalCapacity: Math.round(finalCapacity),
     idealDrive: Math.round(idealDrive),
   };
+}
+
+// ─── Yagi Array SWR Calculation ───
+export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
+  const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
+  const heights = yagiConfig?.elementHeights || {};
+  const stickType = yagiConfig?.stickType || 'fight-8';
+  
+  let baseSWR = 1.0;
+  const surfacePenalty = (1 - vehicle.groundPlane) * 1.5;
+  baseSWR += surfacePenalty;
+  
+  if (!bonding) {
+    baseSWR += 0.8;
+  }
+  
+  const optimalHeights = stickType === 'fight-10' ? {
+    ant1: 120, ant2: 120, dir1: 108, dir2: 135, dir3: 135,
+  } : {
+    ant1: 96, ant2: 96, dir1: 84, dir2: 111, dir3: 111,
+  };
+  
+  const ant1Dev = Math.abs((heights.ant1 || optimalHeights.ant1) - optimalHeights.ant1);
+  const ant2Dev = Math.abs((heights.ant2 || optimalHeights.ant2) - optimalHeights.ant2);
+  const dir1Dev = Math.abs((heights.dir1 || optimalHeights.dir1) - optimalHeights.dir1);
+  
+  const ant1Penalty = ant1Dev * 0.03;
+  const ant2Penalty = ant2Dev * 0.06;
+  const dir1Penalty = dir1Dev * 0.04;
+  
+  let swr = baseSWR + ant1Penalty + ant2Penalty + dir1Penalty;
+  
+  const totalDev = ant1Dev + ant2Dev + dir1Dev;
+  if (totalDev <= 6) {
+    swr -= 0.3 * (1 - totalDev / 6);
+  }
+  
+  return Math.round(Math.max(1.0, Math.min(5.0, swr)) * 10) / 10;
+}
+
+// ─── Yagi Array Radiation Pattern ───
+export function getYagiRadiationPattern(vehicleKey, bonding, power, yagiConfig) {
+  const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
+  const points = [];
+  const gp = vehicle.groundPlane * (bonding ? 1.0 : 0.5);
+  
+  const yagiGainDB = YAGI_ARRAY_CONFIG.baseGainDB + (yagiConfig?.stickType === 'fight-10' ? 1.5 : 0);
+  const yagiGain = Math.pow(10, yagiGainDB / 10);
+  const beamWidth = YAGI_ARRAY_CONFIG.beamWidth;
+  const beamWidthRad = (beamWidth * Math.PI) / 180;
+  
+  const groundHeightFactor = Math.min(1.2, (vehicle.groundHeight || 5) / 5);
+  const tuningEfficiency = yagiConfig?.swrTuned ? 1.0 : 0.85;
+  
+  const forwardAngle = 270;
+  const forwardRad = (forwardAngle * Math.PI) / 180;
+
+  for (let angle = 0; angle < 360; angle += 2) {
+    const rad = (angle * Math.PI) / 180;
+    const angleDiff = rad - forwardRad;
+    
+    const mainLobe = Math.exp(-Math.pow(angleDiff, 2) / (2 * Math.pow(beamWidthRad / 2.35, 2)));
+    
+    const sideLobeAngle1 = Math.abs(angleDiff - Math.PI / 2);
+    const sideLobeAngle2 = Math.abs(angleDiff + Math.PI / 2);
+    const sideLobe = 0.15 * (Math.exp(-Math.pow(sideLobeAngle1, 2) / 0.3) + Math.exp(-Math.pow(sideLobeAngle2, 2) / 0.3));
+    
+    const backLobeAngle = Math.abs(Math.abs(angleDiff) - Math.PI);
+    const backLobe = 0.08 * Math.exp(-Math.pow(backLobeAngle, 2) / 0.2);
+    
+    let gain = mainLobe + sideLobe + backLobe;
+    gain *= yagiGain;
+    gain *= (0.6 + gp * 0.4);
+    gain *= groundHeightFactor;
+    gain *= tuningEfficiency;
+    
+    if (!bonding) {
+      gain += (Math.sin(angle * 5) * 0.1);
+    }
+    
+    const scaledGain = Math.max(0.05, gain) * Math.log10(Math.max(1, power) + 1) / 4;
+    points.push({ angle, gain: scaledGain });
+  }
+  return points;
 }
 
 export function getRadiationPattern(vehicleKey, bonding, power, antennaKey, antennaPosKey) {

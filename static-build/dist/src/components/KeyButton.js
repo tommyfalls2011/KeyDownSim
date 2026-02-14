@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { useRF } from '@/context/RFContext';
+import { useRF } from '@/context/RFContextStatic';
 import { Mic, MicOff } from 'lucide-react';
 
 export default function KeyButton() {

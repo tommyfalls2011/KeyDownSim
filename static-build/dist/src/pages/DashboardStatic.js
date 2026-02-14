@@ -1,5 +1,5 @@
 import { useRF } from '@/context/RFContextStatic';
-import { getRadiationPattern, VEHICLES, ANTENNA_POSITIONS } from '@/lib/rfEngineStatic';
+import { getRadiationPattern, getYagiRadiationPattern, VEHICLES, ANTENNA_POSITIONS } from '@/lib/rfEngineStatic';
 import Header from '@/components/HeaderStatic';
 import EquipmentRackStatic from '@/components/EquipmentRackStatic';
 import ControlPanel from '@/components/ControlPanel';

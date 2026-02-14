@@ -5,14 +5,16 @@ import { createContext, useContext, useState, useCallback, useRef, useEffect } f
 import { 
   calculateSignalChain, 
   calculateVoltageDrop, 
-  calculateSWR, 
+  calculateSWR,
+  calculateYagiSWR,
   calculateTakeoffAngle, 
   checkUnderDriven, 
   calculateStageOutputs, 
   DRIVER_AMPS, 
   FINAL_AMPS,
   RADIOS,
-  ANTENNAS
+  ANTENNAS,
+  YAGI_ARRAY_CONFIG
 } from '@/lib/rfEngineStatic';
 import { useMic } from '@/lib/useMic';
 
@@ -42,6 +44,16 @@ const DEFAULT_STATE = {
   regulatorVoltages: [14.2],
   tipLength: 48,
   keyed: false,
+  // Yagi Array Mode
+  yagiMode: false,
+  yagiStickType: 'fight-8',
+  yagiElementHeights: {
+    ant1: 96,
+    ant2: 96,
+    dir1: 84,
+    dir2: 111,
+    dir3: 111,
+  },
 };
 
 export function RFProvider({ children }) {
@@ -274,7 +286,15 @@ export function RFProvider({ children }) {
   // Calculate derived values
   const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel, avgRegV);
   const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
-  const swr = calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
+  
+  // SWR calculation - use Yagi SWR when in Yagi mode
+  const swr = config.yagiMode 
+    ? calculateYagiSWR(config.vehicle, config.bonding, {
+        stickType: config.yagiStickType,
+        elementHeights: config.yagiElementHeights,
+      })
+    : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
+  
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 
