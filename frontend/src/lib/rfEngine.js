@@ -445,7 +445,8 @@ function gammaToSWR(g) {
 
 function applyFeedlineLoss(gamma, coaxType, lengthFt) {
   // Cable absorbs reflected power on round trip — makes SWR look better at radio
-  const lossPerFt = (COAX_LOSS[coaxType] || COAX_LOSS['rg58']) / 100;
+  const coax = COAX_TYPES[coaxType] || COAX_TYPES[DEFAULT_COAX];
+  const lossPerFt = coax.lossPerHundredFt / 100;
   const roundTripDB = 2 * lossPerFt * lengthFt;
   return gamma * Math.pow(10, -roundTripDB / 20);
 }
