@@ -166,6 +166,10 @@ export function RFProvider({ children }) {
       setDriverBlown(false);
       driverBlownRef.current = false;
       setDriverTemp(AMBIENT_TEMP);
+    } else if (which === 'midDriver') {
+      setMidDriverBlown(false);
+      midDriverBlownRef.current = false;
+      setMidDriverTemp(AMBIENT_TEMP);
     } else {
       setFinalBlown(false);
       finalBlownRef.current = false;
