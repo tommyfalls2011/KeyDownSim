@@ -333,6 +333,7 @@ export default function CanvasVisualizer() {
           ? getYagiRadiationPattern(config.vehicle, config.bonding, power, {
               stickType: config.yagiStickType,
               swrTuned: true,
+              elementPositions: config.yagiElementPositions,
             })
           : getRadiationPattern(config.vehicle, config.bonding, power, config.antenna, config.antennaPosition);
         
