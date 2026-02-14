@@ -146,20 +146,27 @@ export function RFProvider({ children }) {
 
   // Thermal preview simulation — calculates what happens over a given duration without changing state
   const runThermalPreview = useCallback((durationSec = 30) => {
-    const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
-    const driver = DRIVER_AMPS[config.driverAmp] || DRIVER_AMPS['none'];
-    const final_ = FINAL_AMPS[config.finalAmp] || FINAL_AMPS['none'];
+    const driverSpecs = getAmpSpecs(config.driverTransistor, config.driverBoxSize, config.driverHeatsink);
+    const finalSpecs = getAmpSpecs(config.finalTransistor, config.finalBoxSize, config.finalHeatsink);
+    const stages = calculateStageOutputs(config.radio, driverSpecs, finalSpecs, config.bonding, config.driveLevel);
     const regs = config.regulatorVoltages || [14.2];
     const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
     const voltageStress = avgRegV > 15 ? 1 + (avgRegV - 15) * 0.4 : 1.0;
-    const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
+    const underDriven = checkUnderDriven(config.radio, driverSpecs, finalSpecs, config.bonding, config.driveLevel);
     const overDriveExcess = Math.max(0, underDriven.driveRatio - 1.0);
     const overDriveStress = overDriveExcess > 0 ? 1 + overDriveExcess * 2.5 + Math.pow(overDriveExcess, 2) * 3.0 : 1.0;
 
-    // Simulate with moderate modulation (50% mic level average)
     const simMicLevel = 0.5;
-    const dt = 0.1; // 100ms ticks
+    const dt = 0.1;
     const steps = Math.floor(durationSec / dt);
+
+    // Efficiency-based heat factor: less efficient pills waste more heat
+    const drvEffFactor = driverSpecs ? (1 - driverSpecs.efficiency) / (1 - 0.35) : 1;
+    const finEffFactor = finalSpecs ? (1 - finalSpecs.efficiency) / (1 - 0.35) : 1;
+    const drvCoolRate = driverSpecs?.coolRate ?? 2;
+    const finCoolRate = finalSpecs?.coolRate ?? 2;
+    const drvBlowTemp = driverSpecs?.tjMax ?? 175;
+    const finBlowTemp = finalSpecs?.tjMax ?? 175;
 
     let drvTemp = driverTemp;
     let finTemp = finalTemp;
@@ -171,52 +178,45 @@ export function RFProvider({ children }) {
     for (let i = 0; i < steps; i++) {
       const t = i * dt;
 
-      // Driver heating
-      if (driver.currentDraw > 0 && drvBlowTime === null) {
-        const thermalMass = driver.transistors >= 2 ? Math.sqrt(driver.transistors / 2) : 1;
+      if (driverSpecs && driverSpecs.transistors > 0 && drvBlowTime === null) {
+        const thermalMass = driverSpecs.transistors >= 2 ? Math.sqrt(driverSpecs.transistors / 2) : 1;
         const loadRatio = Math.max(0.05, stages.driverLoadRatioDK + (stages.driverLoadRatioPK - stages.driverLoadRatioDK) * simMicLevel);
         const loadFactor = loadRatio * voltageStress;
-        const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
-        drvTemp += heatRate * dt;
+        const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor * drvEffFactor;
+        const coolDissipated = (drvTemp - AMBIENT_TEMP) * (drvCoolRate / 50) * dt;
+        drvTemp += heatRate * dt - coolDissipated;
         if (drvTemp > drvPeakTemp) drvPeakTemp = drvTemp;
-        if (drvTemp >= BLOW_TEMP) {
-          drvBlowTime = t;
-          drvTemp = BLOW_TEMP;
-        }
+        if (drvTemp >= drvBlowTemp) { drvBlowTime = t; drvTemp = drvBlowTemp; }
       }
 
-      // Final heating
-      if (final_.currentDraw > 0 && finBlowTime === null) {
-        const thermalMass = final_.transistors >= 2 ? Math.sqrt(final_.transistors / 2) : 1;
+      if (finalSpecs && finalSpecs.transistors > 0 && finBlowTime === null) {
+        const thermalMass = finalSpecs.transistors >= 2 ? Math.sqrt(finalSpecs.transistors / 2) : 1;
         const loadRatio = Math.max(0.05, stages.finalLoadRatioDK + (stages.finalLoadRatioPK - stages.finalLoadRatioDK) * simMicLevel);
         const loadFactor = loadRatio * voltageStress * overDriveStress;
-        const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
-        finTemp += heatRate * dt;
+        const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor * finEffFactor;
+        const coolDissipated = (finTemp - AMBIENT_TEMP) * (finCoolRate / 50) * dt;
+        finTemp += heatRate * dt - coolDissipated;
         if (finTemp > finPeakTemp) finPeakTemp = finTemp;
-        if (finTemp >= BLOW_TEMP) {
-          finBlowTime = t;
-          finTemp = BLOW_TEMP;
-        }
+        if (finTemp >= finBlowTemp) { finBlowTime = t; finTemp = finBlowTemp; }
       }
     }
 
-    // Calculate time to blow from current temp (extended projection)
-    const calcTimeToBlowFrom = (currentTemp, transistors, loadRatioDK, loadRatioPK, extraStress = 1) => {
-      if (transistors <= 0) return null;
-      const thermalMass = transistors >= 2 ? Math.sqrt(transistors / 2) : 1;
+    const calcTimeToBlowFrom = (currentTemp, specs, loadRatioDK, loadRatioPK, effFactor, coolRate, extraStress = 1) => {
+      if (!specs || specs.transistors <= 0) return null;
+      const thermalMass = specs.transistors >= 2 ? Math.sqrt(specs.transistors / 2) : 1;
       const loadRatio = Math.max(0.05, loadRatioDK + (loadRatioPK - loadRatioDK) * simMicLevel);
       const loadFactor = loadRatio * voltageStress * extraStress;
-      const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
+      const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor * effFactor;
       if (heatRate <= 0) return null;
-      const degreesToBlow = BLOW_TEMP - currentTemp;
+      const degreesToBlow = (specs.tjMax ?? 175) - currentTemp;
       return degreesToBlow / heatRate;
     };
 
-    const drvTimeToBlowFromNow = driver.currentDraw > 0 
-      ? calcTimeToBlowFrom(driverTemp, driver.transistors, stages.driverLoadRatioDK, stages.driverLoadRatioPK)
+    const drvTimeToBlowFromNow = driverSpecs
+      ? calcTimeToBlowFrom(driverTemp, driverSpecs, stages.driverLoadRatioDK, stages.driverLoadRatioPK, drvEffFactor, drvCoolRate)
       : null;
-    const finTimeToBlowFromNow = final_.currentDraw > 0
-      ? calcTimeToBlowFrom(finalTemp, final_.transistors, stages.finalLoadRatioDK, stages.finalLoadRatioPK, overDriveStress)
+    const finTimeToBlowFromNow = finalSpecs
+      ? calcTimeToBlowFrom(finalTemp, finalSpecs, stages.finalLoadRatioDK, stages.finalLoadRatioPK, finEffFactor, finCoolRate, overDriveStress)
       : null;
 
     return {
@@ -228,7 +228,7 @@ export function RFProvider({ children }) {
         willBlow: drvBlowTime !== null,
         blowTime: drvBlowTime ? Math.round(drvBlowTime) : null,
         timeToBlowFromNow: drvTimeToBlowFromNow ? Math.round(drvTimeToBlowFromNow) : null,
-        isActive: driver.currentDraw > 0,
+        isActive: !!driverSpecs,
       },
       final: {
         startTemp: Math.round(finalTemp),
@@ -237,7 +237,7 @@ export function RFProvider({ children }) {
         willBlow: finBlowTime !== null,
         blowTime: finBlowTime ? Math.round(finBlowTime) : null,
         timeToBlowFromNow: finTimeToBlowFromNow ? Math.round(finTimeToBlowFromNow) : null,
-        isActive: final_.currentDraw > 0,
+        isActive: !!finalSpecs,
       },
       warnings: {
         highVoltage: avgRegV >= 18,
