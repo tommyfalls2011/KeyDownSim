@@ -201,6 +201,22 @@ export default function ControlPanel() {
             </div>
           </div>
 
+          {/* DIR1 Position Toggle */}
+          <div className="flex items-center justify-between pt-2 border-t border-white/5">
+            <Label className="font-mono text-[9px] text-cyan-400 flex items-center gap-1">
+              DIR1 Position
+            </Label>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[8px] text-slate-600">{config.yagiDir1OnTruck ? 'On Truck' : 'Front Beam'}</span>
+              <Switch
+                data-testid="yagi-dir1-position-toggle"
+                checked={!config.yagiDir1OnTruck}
+                onCheckedChange={v => updateConfig('yagiDir1OnTruck', !v)}
+                className="data-[state=checked]:bg-cyan-400 scale-75"
+              />
+            </div>
+          </div>
+
           {/* Yagi Info */}
           <div className="font-mono text-[8px] text-slate-600 pt-2 border-t border-white/5 space-y-0.5">
             <div>Forward Gain: <span className="text-amber-400">+{YAGI_ARRAY_CONFIG.baseGainDB + (config.yagiStickType === 'fight-10' ? 1.5 : 0)}dB</span></div>
