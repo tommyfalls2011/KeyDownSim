@@ -470,6 +470,7 @@ export function RFProvider({ children }) {
     holdTimeSec: voltage.holdTimeSec || 0,
     bankAh: voltage.bankAh || 0,
     swr: swr || 1.5,
+    swrAtAntenna: swrAtAntenna || 1.5,
     takeoffAngle: takeoff || 22,
     underDriven: underDriven.isUnderDriven,
     driveRatio: underDriven.driveRatio,
