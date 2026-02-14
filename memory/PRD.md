@@ -80,16 +80,24 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - Static build layout fix + Yagi toggle fix
 - VPS deployment to IONOS (simulator.sma-antenna.org)
 - Yagi element position adjustments (±12" per element, SWR-reactive)
+- Equipment DB sync fix: All 52 items (radios, amps, antennas, vehicles) now upserted on startup
 
 ### Future Tasks
-- P3: Refactor RFContext.jsx into smaller hooks
-- P4: Refactor AdminPage.jsx into smaller child components
-- P5: Move build-static.sh inline components to dedicated files
+- P1: Refactor RFContext.jsx into smaller hooks
+- P2: Refactor AdminPage.jsx into smaller child components
+- P3: Move build-static.sh inline components to dedicated files
 
 ## 3rd Party Integrations
 - **Stripe** — Payment/subscription (test mode)
 
 ## Session Log
+### Feb 14, 2026 (Session 2)
+- Fixed P0 bug: Combo amps (2x4, 2x6) and other new equipment missing from Admin Panel
+  - Root cause: startup seed_data only inserted when equipment collection was empty
+  - Fix: Changed to upsert pattern — syncs all 52 default items on every startup
+  - Also updated all backend equipment specs to match frontend rfEngine.js exactly
+  - All tests passing (iteration_13: 100% — 10/10 backend, frontend verified)
+
 ### Feb 17, 2026
 - Added Yagi element position adjustment (±12" per element, all 5 elements)
 - Improved SWR physics model with realistic mutual coupling:
