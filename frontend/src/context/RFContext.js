@@ -343,11 +343,12 @@ export function RFProvider({ children }) {
       })
     : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
   
-  const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding, {
+  const takeoffRaw = calculateTakeoffAngle(config.vehicle, config.bonding, {
     antennaPosition: config.antennaPosition,
     yagiMode: config.yagiMode,
     rideHeightOffset: config.rideHeightOffset,
-  }) || 22;
+  });
+  const takeoff = isNaN(takeoffRaw) ? 22 : takeoffRaw;
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 
   // Actual current draw — proportional to load, swings with modulation
