@@ -148,3 +148,12 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - Deployed full app to IONOS VPS (simulator.sma-antenna.org)
 - Rebuilt static site with all changes
 - All tests passing (iteration_10: 19/19, iteration_11: 13/13)
+
+
+### Feb 20, 2026
+- **SWR Dual Readout Feature**: MetricsPanel now shows both "SWR Radio" and "SWR Ant"
+  - calculateSWR and calculateYagiSWR return `{atRadio, atAntenna}` objects
+  - SWR at Antenna ≥ SWR at Radio (coax absorbs reflected power on round trip)
+  - 7-column metrics grid: Power, Peak, SWR Radio, SWR Ant, Amp Volts, Take-Off, Amp Temp
+  - Physics-based impedance model: Z_load → Γ → SWR with feedline loss ("liar factor")
+- All tests passing (iteration_17: 100% backend, 100% frontend)
