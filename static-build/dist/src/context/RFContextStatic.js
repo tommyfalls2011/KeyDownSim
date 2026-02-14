@@ -56,6 +56,11 @@ export function RFProvider({ children }) {
   const [finalBlown, setFinalBlown] = useState(false);
   const lastTickRef = useRef(Date.now());
 
+  // Smoothed amp display values (update slower for readability)
+  const [smoothDriverAmps, setSmoothDriverAmps] = useState(0);
+  const [smoothFinalAmps, setSmoothFinalAmps] = useState(0);
+  const smoothingFactor = 0.15; // Lower = smoother/slower updates
+
   // Refs to avoid stale closures
   const keyedRef = useRef(keyed);
   const driverBlownRef = useRef(driverBlown);
