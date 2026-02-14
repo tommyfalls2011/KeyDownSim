@@ -14,11 +14,11 @@ const DEFAULT_STATE = {
   // Driver stage: transistor type + box size + heatsink
   driverTransistor: 'none',
   driverBoxSize: 0,
-  driverHeatsink: 'medium',
+  driverHeatsink: 'small',
   // Final stage: transistor type + box size + heatsink
   finalTransistor: 'none',
   finalBoxSize: 0,
-  finalHeatsink: 'medium',
+  finalHeatsink: 'small',
   antenna: 'whip-102',
   antennaPosition: 'center',
   vehicle: 'suburban',
