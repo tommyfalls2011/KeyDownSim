@@ -80,8 +80,12 @@ class UserResponse(BaseModel):
 class ConfigCreate(BaseModel):
     name: str
     radio: str
-    driver_amp: str
-    final_amp: str
+    driver_transistor: str = "none"
+    driver_box_size: int = 0
+    driver_heatsink: str = "medium"
+    final_transistor: str = "none"
+    final_box_size: int = 0
+    final_heatsink: str = "medium"
     antenna: str
     antenna_position: str = "center"
     vehicle: str
@@ -98,14 +102,17 @@ class ConfigResponse(BaseModel):
     user_id: str
     name: str
     radio: str
-    driver_amp: str
-    final_amp: str
+    driver_transistor: str = "none"
+    driver_box_size: int = 0
+    driver_heatsink: str = "medium"
+    final_transistor: str = "none"
+    final_box_size: int = 0
+    final_heatsink: str = "medium"
     antenna: str
-    antenna_position: str
+    antenna_position: str = "center"
     vehicle: str
-    bonding: bool
-    extra_alternators: bool
-    created_at: str
+    bonding: bool = True
+    created_at: str = ""
 
 class SubscribeRequest(BaseModel):
     plan: str
@@ -113,8 +120,12 @@ class SubscribeRequest(BaseModel):
 
 class RFCalcRequest(BaseModel):
     radio: str
-    driver_amp: str
-    final_amp: str
+    driver_transistor: str = "none"
+    driver_box_size: int = 0
+    driver_heatsink: str = "medium"
+    final_transistor: str = "none"
+    final_box_size: int = 0
+    final_heatsink: str = "medium"
     antenna: str
     antenna_position: str = "center"
     vehicle: str
