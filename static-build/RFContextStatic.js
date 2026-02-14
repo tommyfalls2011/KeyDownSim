@@ -116,7 +116,8 @@ export function RFProvider({ children }) {
     const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
     const voltageStress = avgRegV > 15 ? 1 + (avgRegV - 15) * 0.4 : 1.0;
     const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
-    const overDriveStress = underDriven.driveRatio > 1.2 ? 1 + (underDriven.driveRatio - 1.2) * 0.8 : 1.0;
+    const overDriveExcess = Math.max(0, underDriven.driveRatio - 1.0);
+    const overDriveStress = overDriveExcess > 0 ? 1 + overDriveExcess * 2.5 + Math.pow(overDriveExcess, 2) * 3.0 : 1.0;
 
     const simMicLevel = 0.5;
     const dt = 0.1;
