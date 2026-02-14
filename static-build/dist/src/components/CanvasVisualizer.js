@@ -6,6 +6,8 @@ export default function CanvasVisualizer() {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const intensityRef = useRef(0);
+  const smoothScaleRef = useRef(0);
+  const smoothPowerRef = useRef(0);
   const { config, keyed, metrics } = useRF();
 
   const drawVehicle = useCallback((ctx, cx, cy, vehicleKey, scale, antennaPosKey) => {
@@ -330,8 +332,9 @@ export default function CanvasVisualizer() {
 
       // Radiation pattern
       if (intensity > 0.01) {
-        // Use modulated power when mic is active, otherwise dead key
-        const power = keyed ? metrics.modulatedWatts : 0;
+        const rawPower = keyed ? metrics.modulatedWatts : 0;
+        smoothPowerRef.current += (rawPower - smoothPowerRef.current) * 0.15;
+        const power = smoothPowerRef.current;
         
         // Choose pattern based on Yagi mode
         const pattern = config.yagiMode 
@@ -347,7 +350,10 @@ export default function CanvasVisualizer() {
 
         // Auto-scale: find max pattern gain and scale to fit within 90% of maxR
         const maxGain = Math.max(...pattern.map(p => p.gain));
-        const scaleFactor = maxGain > 0 ? (maxR * 0.9) / maxGain : 1;
+        const targetScale = maxGain > 0 ? (maxR * 0.9) / maxGain : 1;
+        if (smoothScaleRef.current === 0) smoothScaleRef.current = targetScale;
+        smoothScaleRef.current += (targetScale - smoothScaleRef.current) * 0.12;
+        const scaleFactor = smoothScaleRef.current;
 
         // Distance model: base range in feet, scaled by antenna gain
         // ~500W with 0dBi rear mount ≈ 20ft forward / 6ft back
