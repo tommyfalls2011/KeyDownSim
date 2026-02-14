@@ -20,6 +20,7 @@ const DEFAULT_STATE = {
   antenna: 'whip-102',
   antennaPosition: 'center',
   vehicle: 'suburban',
+  rideHeightOffset: 0, // inches from stock: -6 (slammed) to +6 (lifted)
   bonding: true,
   alternatorCount: 1,
   alternatorAmps: 130,
