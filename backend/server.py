@@ -128,24 +128,31 @@ class RFCalcRequest(BaseModel):
 # ──── RF Equipment Database ────
 
 RADIOS = {
-    "cobra-29": {"name": "Cobra 29 LTD", "dead_key": 1.0, "peak_key": 4.0, "impedance": 50},
-    "galaxy-959": {"name": "Galaxy DX 959", "dead_key": 5.0, "peak_key": 15.0, "impedance": 50},
-    "stryker-955": {"name": "Stryker SR-955HPC", "dead_key": 8.0, "peak_key": 25.0, "impedance": 50},
-    "connex-4300": {"name": "Connex 4300HP", "dead_key": 10.0, "peak_key": 30.0, "impedance": 50},
-    "ranger-rci2970": {"name": "Ranger RCI-2970N2", "dead_key": 12.0, "peak_key": 40.0, "impedance": 50},
+    "cobra-29": {"name": "Cobra 29 LTD", "dead_key": 0.75, "peak_key": 25, "type": "AM", "impedance": 50},
+    "galaxy-959": {"name": "Galaxy DX 959", "dead_key": 2, "peak_key": 40, "type": "AM/SSB", "impedance": 50},
+    "stryker-955": {"name": "Stryker SR-955HPC", "dead_key": 3, "peak_key": 125, "type": "AM/SSB", "impedance": 50},
+    "connex-4300": {"name": "Connex 4300HP", "dead_key": 3.5, "peak_key": 160, "type": "AM/SSB", "impedance": 50},
+    "ranger-rci2970": {"name": "Ranger RCI-2970N2", "dead_key": 4, "peak_key": 225, "type": "AM/SSB", "impedance": 50},
 }
 
 DRIVER_AMPS = {
     "none": {"name": "No Driver", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 275, "combining_stages": 0},
+    "1-pill": {"name": "1-Pill Driver", "gain_db": 13, "transistors": 1, "current_draw": 15, "watts_per_pill": 275, "combining_stages": 0},
     "2-pill": {"name": "2-Pill Driver", "gain_db": 17, "transistors": 2, "current_draw": 50, "watts_per_pill": 275, "combining_stages": 0},
+    "3-pill": {"name": "3-Pill (1->2)", "gain_db": 13, "transistors": 3, "current_draw": 65, "watts_per_pill": 185, "combining_stages": 0},
     "4-pill": {"name": "4-Pill Driver", "gain_db": 20, "transistors": 4, "current_draw": 100, "watts_per_pill": 275, "combining_stages": 1},
+    "2x4": {"name": "2x4 Combo (2->4)", "gain_db": 20, "transistors": 6, "current_draw": 130, "watts_per_pill": 275, "combining_stages": 1},
+    "2x6": {"name": "2x6 Combo (2->6)", "gain_db": 21, "transistors": 8, "current_draw": 180, "watts_per_pill": 275, "combining_stages": 1},
 }
 
 FINAL_AMPS = {
     "none": {"name": "No Final", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 275, "combining_stages": 0},
+    "2-pill": {"name": "2-Pill Comp", "gain_db": 10, "transistors": 2, "current_draw": 50, "watts_per_pill": 275, "combining_stages": 0},
     "4-pill": {"name": "4-Pill Amp", "gain_db": 10, "transistors": 4, "current_draw": 100, "watts_per_pill": 275, "combining_stages": 1},
     "8-pill": {"name": "8-Pill Amp", "gain_db": 10, "transistors": 8, "current_draw": 200, "watts_per_pill": 275, "combining_stages": 2},
     "16-pill": {"name": "16-Pill Amp", "gain_db": 13, "transistors": 16, "current_draw": 400, "watts_per_pill": 275, "combining_stages": 4},
+    "24-pill": {"name": "24-Pill Comp", "gain_db": 14, "transistors": 24, "current_draw": 600, "watts_per_pill": 275, "combining_stages": 6},
+    "32-pill": {"name": "32-Pill Comp", "gain_db": 15, "transistors": 32, "current_draw": 800, "watts_per_pill": 275, "combining_stages": 8},
 }
 
 COMBINING_BONUS_PER_STAGE = 1.2
@@ -154,22 +161,38 @@ ANTENNAS = {
     "whip-102": {"name": "102\" Stainless Whip", "gain_dbi": 0, "type": "vertical", "tunable": False},
     "center-load": {"name": "Center-Load", "gain_dbi": -1.5, "type": "vertical", "tunable": False},
     "wilson-1000": {"name": "Wilson 1000", "gain_dbi": 3.0, "type": "mag-mount", "tunable": False},
-    "predator-k1-9": {"name": "Predator 10K K-1-9", "gain_dbi": 4.0, "type": "base-load", "tunable": True, "tip_default": 48},
-    "predator-k1-12": {"name": "Predator 10K K-1-12", "gain_dbi": 4.5, "type": "base-load", "tunable": True, "tip_default": 46},
-    "predator-k1-17": {"name": "Predator 10K K-1-17", "gain_dbi": 5.0, "type": "base-load", "tunable": True, "tip_default": 44},
-    "predator-k1-22": {"name": "Predator 10K K-1-22", "gain_dbi": 5.5, "type": "base-load", "tunable": True, "tip_default": 42},
-    "predator-k1-27": {"name": "Predator 10K K-1-27", "gain_dbi": 6.0, "type": "base-load", "tunable": True, "tip_default": 40},
-    "predator-k2-9": {"name": "Predator 20K K-2-9", "gain_dbi": 6.5, "type": "base-load", "tunable": True, "tip_default": 44},
-    "fight-stix-8": {"name": "Fight Stix 8'", "gain_dbi": 5.5, "type": "vertical", "tunable": True, "tip_default": 50},
-    "fight-stix-10": {"name": "Fight Stix 10'", "gain_dbi": 7.0, "type": "vertical", "tunable": True, "tip_default": 50},
+    "predator-k1-9": {"name": "Predator 10K K-1-9 (9\" shaft)", "gain_dbi": 4.0, "type": "base-load", "tunable": True, "tip_min": 30, "tip_max": 58, "tip_default": 48},
+    "predator-k1-12": {"name": "Predator 10K K-1-12 (12\" shaft)", "gain_dbi": 4.5, "type": "base-load", "tunable": True, "tip_min": 30, "tip_max": 58, "tip_default": 46},
+    "predator-k1-17": {"name": "Predator 10K K-1-17 (17\" shaft)", "gain_dbi": 5.0, "type": "base-load", "tunable": True, "tip_min": 30, "tip_max": 58, "tip_default": 44},
+    "predator-k1-22": {"name": "Predator 10K K-1-22 (22\" shaft)", "gain_dbi": 5.5, "type": "base-load", "tunable": True, "tip_min": 28, "tip_max": 56, "tip_default": 42},
+    "predator-k1-27": {"name": "Predator 10K K-1-27 (27\" shaft)", "gain_dbi": 6.0, "type": "base-load", "tunable": True, "tip_min": 28, "tip_max": 49, "tip_default": 40},
+    "predator-k2-9": {"name": "Predator 20K K-2-9 Double Coil", "gain_dbi": 6.5, "type": "base-load", "tunable": True, "tip_min": 28, "tip_max": 56, "tip_default": 44},
+    "predator-k2-12": {"name": "Predator 20K K-2-12 Double Coil (12\")", "gain_dbi": 7.0, "type": "base-load", "tunable": True, "tip_min": 28, "tip_max": 56, "tip_default": 42},
+    "predator-k2-17": {"name": "Predator 20K K-2-17 Double Coil (17\")", "gain_dbi": 7.5, "type": "base-load", "tunable": True, "tip_min": 26, "tip_max": 54, "tip_default": 40},
+    "predator-comp-9": {"name": "Predator Comp 9\" Adj", "gain_dbi": 5.0, "type": "base-load", "tunable": True, "tip_min": 26, "tip_max": 58, "tip_default": 46},
+    "predator-comp-12": {"name": "Predator Comp 12\" Adj", "gain_dbi": 5.5, "type": "base-load", "tunable": True, "tip_min": 26, "tip_max": 58, "tip_default": 44},
+    "predator-comp-17": {"name": "Predator Comp 17\" Adj", "gain_dbi": 6.0, "type": "base-load", "tunable": True, "tip_min": 26, "tip_max": 56, "tip_default": 42},
+    "predator-comp-22": {"name": "Predator Comp 22\" Adj", "gain_dbi": 6.5, "type": "base-load", "tunable": True, "tip_min": 24, "tip_max": 54, "tip_default": 40},
+    "fight-stix-6": {"name": "Fight Stix 6' (4ft shaft + whip)", "gain_dbi": 4.5, "type": "vertical", "tunable": True, "tip_min": 36, "tip_max": 60, "tip_default": 52},
+    "fight-stix-8": {"name": "Fight Stix 8' (6ft shaft + whip)", "gain_dbi": 5.5, "type": "vertical", "tunable": True, "tip_min": 36, "tip_max": 60, "tip_default": 50},
+    "fight-stix-10": {"name": "Fight Stix 10' (8ft shaft + whip)", "gain_dbi": 7.0, "type": "vertical", "tunable": True, "tip_min": 36, "tip_max": 60, "tip_default": 50},
+    "fight-stix-12": {"name": "Fight Stix 12' (10ft shaft + whip)", "gain_dbi": 8.0, "type": "vertical", "tunable": True, "tip_min": 34, "tip_max": 58, "tip_default": 48},
 }
 
 VEHICLES = {
-    "suburban": {"name": "Suburban/SUV", "ground_plane": 0.88, "surface_sqft": 42, "directional": 0.12, "takeoff": 22},
-    "f150": {"name": "Ford F-150", "ground_plane": 0.62, "surface_sqft": 28, "directional": 0.48, "takeoff": 35},
-    "ram": {"name": "Dodge Ram", "ground_plane": 0.68, "surface_sqft": 31, "directional": 0.42, "takeoff": 32},
-    "van": {"name": "Cargo Van", "ground_plane": 0.92, "surface_sqft": 52, "directional": 0.08, "takeoff": 18},
-    "wagon": {"name": "Station Wagon", "ground_plane": 0.80, "surface_sqft": 36, "directional": 0.20, "takeoff": 26},
+    "suburban": {"name": "Suburban/SUV", "ground_plane": 0.88, "surface_sqft": 42, "directional": 0.12, "takeoff": 22, "shape": "suv", "ground_height": 5.5},
+    "wagon": {"name": "Station Wagon", "ground_plane": 0.80, "surface_sqft": 36, "directional": 0.20, "takeoff": 26, "shape": "wagon", "ground_height": 4.5},
+    "jeep": {"name": "Jeep Wrangler", "ground_plane": 0.55, "surface_sqft": 22, "directional": 0.55, "takeoff": 40, "shape": "jeep", "ground_height": 4.0},
+    "shootout": {"name": "Shootout Truck (Built)", "ground_plane": 0.92, "surface_sqft": 38, "directional": 0.12, "takeoff": 18, "shape": "truck", "ground_height": 4.2},
+    "silverado-rcsb": {"name": "Silverado 1500 RCSB", "ground_plane": 0.70, "surface_sqft": 34, "directional": 0.35, "takeoff": 28, "shape": "truck", "ground_height": 5.8},
+    "c10": {"name": "Chevy C10 ('67-'72)", "ground_plane": 0.65, "surface_sqft": 28, "directional": 0.40, "takeoff": 32, "shape": "truck", "ground_height": 4.8},
+    "silverado-3500": {"name": "Silverado 3500HD Crew/Long", "ground_plane": 0.82, "surface_sqft": 46, "directional": 0.18, "takeoff": 20, "shape": "truck", "ground_height": 6.5},
+    "f150": {"name": "Ford F-150", "ground_plane": 0.68, "surface_sqft": 32, "directional": 0.38, "takeoff": 30, "shape": "truck", "ground_height": 5.5},
+    "f350": {"name": "Ford F-350 Super Duty", "ground_plane": 0.80, "surface_sqft": 48, "directional": 0.20, "takeoff": 22, "shape": "truck", "ground_height": 6.8},
+    "ram": {"name": "Ram 1500", "ground_plane": 0.68, "surface_sqft": 31, "directional": 0.42, "takeoff": 32, "shape": "truck", "ground_height": 5.2},
+    "ram-3500": {"name": "Ram 3500 Crew Cab", "ground_plane": 0.78, "surface_sqft": 45, "directional": 0.22, "takeoff": 23, "shape": "truck", "ground_height": 6.5},
+    "van": {"name": "Cargo Van", "ground_plane": 0.92, "surface_sqft": 52, "directional": 0.08, "takeoff": 18, "shape": "van", "ground_height": 7.0},
+    "semi": {"name": "Semi Truck", "ground_plane": 0.95, "surface_sqft": 65, "directional": 0.05, "takeoff": 15, "shape": "semi", "ground_height": 8.5},
 }
 
 ANTENNA_POSITIONS = {
