@@ -179,15 +179,13 @@ export function mergeEquipmentFromAPI(apiData) {
 // ─── Calculation Functions ───
 
 // Per-stage output and load ratios — for thermal model and actual current draw
-// Returns both dead key and peak ratios so current swings with modulation
-export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding, driveLevel) {
+export function calculateStageOutputs(radioKey, driverSpecs, finalSpecs, bonding, driveLevel) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
-  const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
-  const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
+  const driver = driverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0, efficiency: 0.35 };
+  const final_ = finalSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0, efficiency: 0.35 };
   const bondingFactor = bonding ? 1.0 : 0.6;
   const dl = driveLevel ?? 1.0;
 
-  // Drive level scales radio output — 4:1 ratio preserved
   const radioDK = radio.deadKey * dl;
   const radioPK = radio.peakKey * dl;
 
@@ -199,7 +197,7 @@ export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding, dr
     const driverGain = Math.pow(10, driver.gainDB / 10);
     const stages = driver.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    driverMax = driver.transistors * (driver.wattsPerPill || 275) * combining;
+    driverMax = driver.transistors * (driver.wattsPerPill || 100) * combining;
     driverOutDK = Math.min(radioDK * driverGain, driverMax);
     driverOutPK = Math.min(radioPK * driverGain, driverMax);
     inputToFinalDK = driverOutDK;
@@ -211,7 +209,7 @@ export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding, dr
     const finalGain = Math.pow(10, final_.gainDB / 10);
     const stages = final_.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    finalMax = final_.transistors * (final_.wattsPerPill || 275) * combining;
+    finalMax = final_.transistors * (final_.wattsPerPill || 100) * combining;
     finalOutDK = Math.min(inputToFinalDK * finalGain, finalMax);
     finalOutPK = Math.min(inputToFinalPK * finalGain, finalMax);
   }
@@ -226,50 +224,37 @@ export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding, dr
   };
 }
 
-export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, antennaPosKey, driveLevel, ampVoltage) {
+export function calculateSignalChain(radioKey, driverSpecs, finalSpecs, bonding, antennaPosKey, driveLevel, ampVoltage) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
-  const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
-  const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
-  const pos = ANTENNA_POSITIONS[antennaPosKey] || ANTENNA_POSITIONS['center'];
+  const driver = driverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0 };
+  const final_ = finalSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0 };
   const dl = driveLevel ?? 1.0;
 
-  // Voltage scaling: amps are rated at ~13.8V nominal
-  // Power scales roughly with V² — but we use a gentler curve for realism
-  // At 14.2V (typical running) = baseline, at 18V = significant boost
   const nominalVoltage = 13.8;
   const voltage = ampVoltage ?? 14.2;
-  // Gentler scaling: sqrt of V²/Vnom² = V/Vnom, then blend 50/50 with linear
   const vRatio = voltage / nominalVoltage;
-  const voltageBoost = (vRatio + vRatio * vRatio) / 2; // Blend linear + squared
+  const voltageBoost = (vRatio + vRatio * vRatio) / 2;
 
   let deadKey = radio.deadKey * dl;
   let peakKey = radio.peakKey * dl;
 
-  // Driver stage: high gain but capped at pills x wpp x compounded combining bonus
-  // Voltage boost applies to amp output, not radio
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
     const stages = driver.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    // Max output scales with voltage
-    const driverMax = driver.transistors * (driver.wattsPerPill || 275) * combining * voltageBoost;
+    const driverMax = driver.transistors * (driver.wattsPerPill || 100) * combining * voltageBoost;
     deadKey = Math.min(deadKey * driverGain * voltageBoost, driverMax);
     peakKey = Math.min(peakKey * driverGain * voltageBoost, driverMax);
   }
 
-  // Final stage: lower gain but capped at pills x wpp x compounded combining bonus
   if (final_.gainDB > 0) {
     const finalGain = Math.pow(10, final_.gainDB / 10);
     const stages = final_.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    // Max output scales with voltage
-    const finalMax = final_.transistors * (final_.wattsPerPill || 275) * combining * voltageBoost;
+    const finalMax = final_.transistors * (final_.wattsPerPill || 100) * combining * voltageBoost;
     deadKey = Math.min(deadKey * finalGain * voltageBoost, finalMax);
     peakKey = Math.min(peakKey * finalGain * voltageBoost, finalMax);
   }
-
-  // Antenna position affects pattern shape (directional), NOT total power output
-  // The amp puts out the same watts — the ground plane redirects it
 
   const bondingFactor = bonding ? 1.0 : 0.6;
   return {
@@ -278,12 +263,11 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, ant
   };
 }
 
-export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alternatorAmps, batteryType, batteryCount, regulatorVoltages, actualDemandCurrent) {
-  const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
-  const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
+export function calculateVoltageDrop(driverSpecs, finalSpecs, alternatorCount, alternatorAmps, batteryType, batteryCount, regulatorVoltages, actualDemandCurrent) {
+  const driver = driverSpecs || { currentDraw: 0 };
+  const final_ = finalSpecs || { currentDraw: 0 };
 
-  // Use actual demand if provided (keyed state), otherwise rated max
-  const ratedMax = driver.currentDraw + final_.currentDraw;
+  const ratedMax = (driver.currentDraw || 0) + (final_.currentDraw || 0);
   const demandCurrent = actualDemandCurrent !== undefined ? actualDemandCurrent : ratedMax;
 
   // External regulators: each controls up to 3 alts
