@@ -82,23 +82,21 @@ export default function CanvasVisualizer() {
   // DIR1, DIR2, DIR3 = in front on forward beam
   const drawYagiArray = useCallback((ctx, cx, cy, scale, yagiConfig, keyed) => {
     const heights = yagiConfig?.elementHeights || {};
+    const posOffsets = yagiConfig?.elementPositions || {};
     const stickType = yagiConfig?.stickType || 'fight-8';
     const dir1OnTruck = yagiConfig?.dir1OnTruck !== false;
     const baseHeight = stickType === 'fight-10' ? 120 : 96;
     
     const s = scale * 0.5;
     
-    // DIR1 position depends on toggle:
-    // On truck: 42" in front of truck center (mounted on cab/roof)
-    // Front beam: 96" in front (mounted on the front beam extension)
     const dir1Pos = dir1OnTruck ? 42 : 96;
     
     const elements = [
-      { id: 'ant1', name: 'ANT1', pos: -72, height: heights.ant1 || 96, color: '#00F0FF', label: 'REFLECTOR' },
-      { id: 'ant2', name: 'ANT2', pos: 0, height: heights.ant2 || 96, color: '#00F0FF', label: 'DRIVEN' },
-      { id: 'dir1', name: 'DIR1', pos: dir1Pos, height: heights.dir1 || 84, color: '#FFD700', label: dir1OnTruck ? 'ON TRUCK' : 'FRONT BEAM' },
-      { id: 'dir2', name: 'DIR2', pos: dir1Pos + 96, height: heights.dir2 || 111, color: '#FF6B35', label: '' },
-      { id: 'dir3', name: 'DIR3', pos: dir1Pos + 192, height: heights.dir3 || 111, color: '#FF6B35', label: '' },
+      { id: 'ant1', name: 'ANT1', pos: -72 + (posOffsets.ant1 || 0), height: heights.ant1 || 96, color: '#00F0FF', label: 'REFLECTOR', offset: posOffsets.ant1 || 0 },
+      { id: 'ant2', name: 'ANT2', pos: 0 + (posOffsets.ant2 || 0), height: heights.ant2 || 96, color: '#00F0FF', label: 'DRIVEN', offset: posOffsets.ant2 || 0 },
+      { id: 'dir1', name: 'DIR1', pos: dir1Pos + (posOffsets.dir1 || 0), height: heights.dir1 || 84, color: '#FFD700', label: dir1OnTruck ? 'ON TRUCK' : 'FRONT BEAM', offset: posOffsets.dir1 || 0 },
+      { id: 'dir2', name: 'DIR2', pos: dir1Pos + 96 + (posOffsets.dir2 || 0), height: heights.dir2 || 111, color: '#FF6B35', label: '', offset: posOffsets.dir2 || 0 },
+      { id: 'dir3', name: 'DIR3', pos: dir1Pos + 192 + (posOffsets.dir3 || 0), height: heights.dir3 || 111, color: '#FF6B35', label: '', offset: posOffsets.dir3 || 0 },
     ];
     
     // Scale: 12 inches = 8 pixels at scale 1
