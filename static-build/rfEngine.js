@@ -571,7 +571,7 @@ export function checkUnderDriven(radioKey, driverKey, finalKey, bonding, driveLe
   const driveRatio = driveWatts / idealDrive;
 
   return {
-    isUnderDriven: driveRatio < 0.6,
+    isUnderDriven: driveRatio < 0.35,
     driveRatio: Math.round(driveRatio * 100) / 100,
     driveWatts: Math.round(driveWatts),
     finalCapacity: Math.round(finalCapacity),
