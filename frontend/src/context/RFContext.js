@@ -249,8 +249,17 @@ export function RFProvider({ children }) {
 
   // Thermal simulation tick — reads keyed/blown/micLevel from refs to avoid stale closures
   useEffect(() => {
-    // Pre-calculate stage outputs and load ratios for this config
-    const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
+    const driverSpecs = getAmpSpecs(config.driverTransistor, config.driverBoxSize, config.driverHeatsink);
+    const finalSpecs = getAmpSpecs(config.finalTransistor, config.finalBoxSize, config.finalHeatsink);
+    const stages = calculateStageOutputs(config.radio, driverSpecs, finalSpecs, config.bonding, config.driveLevel);
+
+    // Efficiency-based heat factor
+    const drvEffFactor = driverSpecs ? (1 - driverSpecs.efficiency) / (1 - 0.35) : 1;
+    const finEffFactor = finalSpecs ? (1 - finalSpecs.efficiency) / (1 - 0.35) : 1;
+    const drvCoolRate = driverSpecs?.coolRate ?? 2;
+    const finCoolRate = finalSpecs?.coolRate ?? 2;
+    const drvBlowTemp = driverSpecs?.tjMax ?? 175;
+    const finBlowTemp = finalSpecs?.tjMax ?? 175;
 
     const interval = setInterval(() => {
       const now = Date.now();
@@ -262,65 +271,60 @@ export function RFProvider({ children }) {
       const isFinalBlown = finalBlownRef.current;
       const currentMicLevel = micLevelRef.current;
 
-      const driver = DRIVER_AMPS[config.driverAmp] || DRIVER_AMPS['none'];
-      const final_ = FINAL_AMPS[config.finalAmp] || FINAL_AMPS['none'];
-
       const regs = config.regulatorVoltages || [14.2];
       const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
-
       const voltageStress = avgRegV > 15 ? 1 + (avgRegV - 15) * 0.4 : 1.0;
-      const modStress = 1 + currentMicLevel * 0.25;
 
-      const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding);
+      const underDriven = checkUnderDriven(config.radio, driverSpecs, finalSpecs, config.bonding);
       const overDriveExcess = Math.max(0, underDriven.driveRatio - 1.0);
       const overDriveStress = overDriveExcess > 0 ? 1 + overDriveExcess * 2.5 + Math.pow(overDriveExcess, 2) * 3.0 : 1.0;
 
       setDriverTemp(prev => {
         if (isDriverBlown) return prev;
-        if (driver.currentDraw <= 0) return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
+        if (!driverSpecs || driverSpecs.transistors <= 0) return Math.max(AMBIENT_TEMP, prev - drvCoolRate * dt);
 
         if (isKeyed) {
-          // Heat based on actual load — dead key baseline + modulation swing
-          const thermalMass = driver.transistors >= 2 ? Math.sqrt(driver.transistors / 2) : 1;
+          const thermalMass = driverSpecs.transistors >= 2 ? Math.sqrt(driverSpecs.transistors / 2) : 1;
           const dkRatio = stages.driverLoadRatioDK;
           const pkRatio = stages.driverLoadRatioPK;
           const loadRatio = Math.max(0.05, dkRatio + (pkRatio - dkRatio) * currentMicLevel);
-          // Driver over-drive: if driver load ratio > 0.85, it's running hot
           const driverStress = dkRatio > 0.85 ? 1 + (dkRatio - 0.85) * 4.0 : 1.0;
           const loadFactor = loadRatio * voltageStress * driverStress;
-          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
-          const newTemp = prev + heatRate * dt;
-          if (newTemp >= BLOW_TEMP) {
+          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor * drvEffFactor;
+          const coolDissipated = (prev - AMBIENT_TEMP) * (drvCoolRate / 50) * dt;
+          const newTemp = prev + heatRate * dt - coolDissipated;
+          if (newTemp >= drvBlowTemp) {
             setDriverBlown(true);
             driverBlownRef.current = true;
-            return BLOW_TEMP;
+            return drvBlowTemp;
           }
           return newTemp;
         } else {
-          return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
+          return Math.max(AMBIENT_TEMP, prev - drvCoolRate * dt);
         }
       });
 
       setFinalTemp(prev => {
         if (isFinalBlown) return prev;
-        if (final_.currentDraw <= 0) return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
+        if (!finalSpecs || finalSpecs.transistors <= 0) return Math.max(AMBIENT_TEMP, prev - finCoolRate * dt);
 
         if (isKeyed) {
-          const thermalMass = final_.transistors >= 2 ? Math.sqrt(final_.transistors / 2) : 1;
+          const thermalMass = finalSpecs.transistors >= 2 ? Math.sqrt(finalSpecs.transistors / 2) : 1;
           const dkRatio = stages.finalLoadRatioDK;
           const pkRatio = stages.finalLoadRatioPK;
           const loadRatio = Math.max(0.05, dkRatio + (pkRatio - dkRatio) * currentMicLevel);
           const loadFactor = loadRatio * voltageStress * overDriveStress;
-          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
-          const newTemp = prev + heatRate * dt;
-          if (newTemp >= BLOW_TEMP) {
+          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor * finEffFactor;
+          const coolDissipated = (prev - AMBIENT_TEMP) * (finCoolRate / 50) * dt;
+          const newTemp = prev + heatRate * dt - coolDissipated;
+          if (newTemp >= finBlowTemp) {
             setFinalBlown(true);
             finalBlownRef.current = true;
-            return BLOW_TEMP;
+            return finBlowTemp;
           }
           return newTemp;
         } else {
-          return Math.max(AMBIENT_TEMP, prev - COOL_RATE * dt);
+          return Math.max(AMBIENT_TEMP, prev - finCoolRate * dt);
         }
       });
     }, 100);
@@ -328,13 +332,17 @@ export function RFProvider({ children }) {
     return () => clearInterval(interval);
   }, [config]);
 
+  // Build amp specs for calculations
+  const driverSpecs = useMemo(() => getAmpSpecs(config.driverTransistor, config.driverBoxSize, config.driverHeatsink), [config.driverTransistor, config.driverBoxSize, config.driverHeatsink]);
+  const finalSpecs = useMemo(() => getAmpSpecs(config.finalTransistor, config.finalBoxSize, config.finalHeatsink), [config.finalTransistor, config.finalBoxSize, config.finalHeatsink]);
+
   // Average regulator voltage (what the amps are actually fed)
   const regs = config.regulatorVoltages || [14.2];
   const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
 
   // Calculate derived values - pass voltage to signal chain so watts scale with volts
-  const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel, avgRegV);
-  const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
+  const chain = calculateSignalChain(config.radio, driverSpecs, finalSpecs, config.bonding, config.antennaPosition, config.driveLevel, avgRegV);
+  const stages = calculateStageOutputs(config.radio, driverSpecs, finalSpecs, config.bonding, config.driveLevel);
   
   // SWR calculation - use Yagi SWR when in Yagi mode
   const swr = config.yagiMode 
