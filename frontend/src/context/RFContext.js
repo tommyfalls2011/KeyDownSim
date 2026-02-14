@@ -409,7 +409,7 @@ export function RFProvider({ children }) {
 
   // Actual current draw — proportional to load, swings with modulation
   const driverLoadRatio = stages.driverLoadRatioDK + (stages.driverLoadRatioPK - stages.driverLoadRatioDK) * micLevel;
-  const midDriverLoadRatio = stages.midDriverLoadRatioDK + (stages.midDriverLoadRatioPK - stages.midDriverLoadRatioPK) * micLevel;
+  const midDriverLoadRatio = stages.midDriverLoadRatioDK + (stages.midDriverLoadRatioPK - stages.midDriverLoadRatioDK) * micLevel;
   const finalLoadRatio = stages.finalLoadRatioDK + (stages.finalLoadRatioPK - stages.finalLoadRatioDK) * micLevel;
   const driverCurrentDraw = driverSpecs?.currentDraw ?? 0;
   const midDriverCurrentDraw = midDriverSpecs?.currentDraw ?? 0;
