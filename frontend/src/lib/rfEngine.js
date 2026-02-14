@@ -506,7 +506,7 @@ export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength, antenna
   const swrAtAntenna = gammaToSWR(gammaAnt);
 
   // Apply feedline loss (the "liar factor" — coax absorbs reflected power)
-  const gammaRadio = applyFeedlineLoss(gammaAnt, DEFAULT_COAX, DEFAULT_COAX_FT);
+  const gammaRadio = applyFeedlineLoss(gammaAnt, coaxType || DEFAULT_COAX, coaxLengthFt ?? DEFAULT_COAX_FT);
   const swrAtRadio = gammaToSWR(gammaRadio);
 
   return {
