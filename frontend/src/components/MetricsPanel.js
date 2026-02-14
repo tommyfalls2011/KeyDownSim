@@ -52,7 +52,7 @@ export default function MetricsPanel() {
         />
       </div>
 
-      {/* Peak */}
+      {/* Peak Bird (PEP) */}
       <div className="bg-surface flex flex-col items-center justify-center p-2">
         <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">Peak</div>
         <div className={`font-mono text-lg led-segment ${keyed ? (isModulating ? 'text-hot' : 'text-cyan-400') : 'text-slate-700'}`} data-testid="peak-readout">
