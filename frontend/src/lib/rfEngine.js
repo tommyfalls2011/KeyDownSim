@@ -55,6 +55,7 @@ export const ANTENNAS = {
 // Vehicle ground heights in feet (bed/roof height from ground)
 export const VEHICLES = {
   'suburban': { name: 'Suburban/SUV', groundPlane: 0.88, surfaceSqFt: 42, directional: 0.12, takeoff: 22, shape: 'suv', groundHeight: 5.5 },
+  'shootout': { name: 'Shootout Truck', groundPlane: 0.90, surfaceSqFt: 38, directional: 0.15, takeoff: 18, shape: 'truck', groundHeight: 4.2 },
   'f150': { name: 'Ford F-150', groundPlane: 0.62, surfaceSqFt: 28, directional: 0.48, takeoff: 35, shape: 'truck', groundHeight: 5.0 },
   'ram': { name: 'Dodge Ram', groundPlane: 0.68, surfaceSqFt: 31, directional: 0.42, takeoff: 32, shape: 'truck', groundHeight: 5.2 },
   'van': { name: 'Cargo Van', groundPlane: 0.92, surfaceSqFt: 52, directional: 0.08, takeoff: 18, shape: 'van', groundHeight: 7.0 },
