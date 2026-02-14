@@ -195,6 +195,13 @@ export default function CanvasVisualizer() {
       ctx.fillStyle = el.color;
       ctx.font = `${7 * s}px "JetBrains Mono"`;
       ctx.fillText(`${el.height}"`, elX + 8 * s, elY - heightScale + 3);
+      
+      // Position offset label (show if non-zero)
+      if (el.offset !== 0) {
+        ctx.fillStyle = el.offset > 0 ? 'rgba(0,255,150,0.7)' : 'rgba(255,100,100,0.7)';
+        ctx.font = `${6 * s}px "JetBrains Mono"`;
+        ctx.fillText(`${el.offset > 0 ? '+' : ''}${el.offset}"`, elX + 8 * s, elY + 10 * s);
+      }
     });
     
     // "YAGI ARRAY" label at the front
