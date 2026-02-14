@@ -66,15 +66,30 @@ export default function MetricsPanel() {
         />
       </div>
 
-      {/* SWR */}
+      {/* SWR at Radio */}
       <div className="bg-surface flex flex-col items-center justify-center p-2">
-        <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">SWR</div>
-        <div className={`font-mono text-lg led-segment ${metrics.swr > 2.5 ? 'text-hot' : metrics.swr > 1.8 ? 'text-warn' : 'text-green-400'}`} data-testid="swr-readout">
+        <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">SWR Radio</div>
+        <div className={`font-mono text-lg led-segment ${metrics.swr > 2.5 ? 'text-hot' : metrics.swr > 1.8 ? 'text-warn' : 'text-green-400'}`} data-testid="swr-radio-readout">
           {metrics.swr.toFixed(1)}
         </div>
         <div className="font-mono text-[8px] text-slate-600">RATIO</div>
         <MeterBar
           value={Math.max(0, metrics.swr - 1)}
+          max={4}
+          segments={8}
+          colors={['#00FF00', '#00FF00', '#FFFF00', '#FF0000']}
+        />
+      </div>
+
+      {/* SWR at Antenna */}
+      <div className="bg-surface flex flex-col items-center justify-center p-2">
+        <div className="font-chakra text-[8px] uppercase tracking-[0.2em] text-slate-600 mb-1">SWR Ant</div>
+        <div className={`font-mono text-lg led-segment ${metrics.swrAtAntenna > 2.5 ? 'text-hot' : metrics.swrAtAntenna > 1.8 ? 'text-warn' : 'text-green-400'}`} data-testid="swr-antenna-readout">
+          {metrics.swrAtAntenna.toFixed(1)}
+        </div>
+        <div className="font-mono text-[8px] text-slate-600">RATIO</div>
+        <MeterBar
+          value={Math.max(0, metrics.swrAtAntenna - 1)}
           max={4}
           segments={8}
           colors={['#00FF00', '#00FF00', '#FFFF00', '#FF0000']}
