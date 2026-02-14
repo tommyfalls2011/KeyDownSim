@@ -336,7 +336,10 @@ export default function CanvasVisualizer() {
       // Radiation pattern
       if (intensity > 0.01) {
         // Use modulated power when mic is active, otherwise dead key
-        const power = keyed ? metrics.modulatedWatts : 0;
+        const rawPower = keyed ? metrics.modulatedWatts : 0;
+        // Smooth the power to prevent frame-to-frame jitter at high wattage
+        smoothPowerRef.current += (rawPower - smoothPowerRef.current) * 0.15;
+        const power = smoothPowerRef.current;
         
         // Choose pattern based on Yagi mode
         const pattern = config.yagiMode 
