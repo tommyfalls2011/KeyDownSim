@@ -46,6 +46,8 @@ export default function ControlPanel() {
         battery_count: config.batteryCount,
         regulator_voltages: config.regulatorVoltages,
         tip_length: config.tipLength,
+        coax_type: config.coaxType,
+        coax_length_ft: config.coaxLengthFt,
       }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Config saved');
       setSaveName('');
