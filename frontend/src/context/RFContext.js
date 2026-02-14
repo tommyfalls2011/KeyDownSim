@@ -1,16 +1,12 @@
-import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import { calculateSignalChain, calculateVoltageDrop, calculateSWR, calculateYagiSWR, calculateTakeoffAngle, checkUnderDriven, calculateStageOutputs, mergeEquipmentFromAPI, DRIVER_AMPS, FINAL_AMPS, YAGI_ARRAY_CONFIG } from '@/lib/rfEngine';
+import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { calculateSignalChain, calculateVoltageDrop, calculateSWR, calculateYagiSWR, calculateTakeoffAngle, checkUnderDriven, calculateStageOutputs, mergeEquipmentFromAPI, getAmpSpecs, TRANSISTORS, YAGI_ARRAY_CONFIG } from '@/lib/rfEngine';
 import { useMic } from '@/lib/useMic';
 
 const RFContext = createContext(null);
 
-const RADIO_VOLTAGE = 14.8; // Radio always runs factory voltage
-const AMBIENT_TEMP = 25; // °C
-const BLOW_TEMP = 175; // °C — 2SC2879 max junction temp, thermal runaway point
-const CRITICAL_TEMP = 150; // °C — case temp danger zone
-const WARN_TEMP = 100; // °C — monitoring zone
-const COOL_RATE = 2; // °C per second — realistic heatsink + fan dissipation
-const HEAT_BASE_RATE = 3; // °C per second — 2-pill at FULL LOAD (load ratio scales this down)
+const RADIO_VOLTAGE = 14.8;
+const AMBIENT_TEMP = 25;
+const HEAT_BASE_RATE = 3; // °C per second base rate (calibrated for 35% efficiency baseline)
 
 const DEFAULT_STATE = {
   radio: 'cobra-29',
