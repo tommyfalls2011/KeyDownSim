@@ -124,6 +124,44 @@ export default function ControlPanel() {
         )}
       </div>
 
+      {/* Coax / Feedline */}
+      <div className="space-y-3 mb-6">
+        <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 block">Feedline</Label>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Label className="font-mono text-[8px] text-slate-700 mb-1 block">COAX TYPE</Label>
+            <Select value={config.coaxType} onValueChange={v => updateConfig('coaxType', v)}>
+              <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="coax-type-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-panel border-white/10">
+                {Object.entries(COAX_TYPES).map(([key, c]) => (
+                  <SelectItem key={key} value={key} className="font-mono text-xs text-slate-300">
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-20">
+            <Label className="font-mono text-[8px] text-slate-700 mb-1 block">LENGTH</Label>
+            <Select value={String(config.coaxLengthFt)} onValueChange={v => updateConfig('coaxLengthFt', parseInt(v))}>
+              <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="coax-length-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-panel border-white/10">
+                {[6, 9, 12, 18, 25, 35, 50, 75, 100].map(ft => (
+                  <SelectItem key={ft} value={String(ft)} className="font-mono text-xs text-slate-300">{ft}ft</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="font-mono text-[9px] text-slate-600">
+          {COAX_TYPES[config.coaxType]?.desc} — <span className="text-cyan-400">{COAX_TYPES[config.coaxType]?.lossPerHundredFt}dB/100ft</span>
+        </div>
+      </div>
+
       {/* Toggles */}
       <div className="space-y-4 mb-6">
         <div className="flex items-center justify-between">
