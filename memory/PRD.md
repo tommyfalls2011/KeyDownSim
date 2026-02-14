@@ -45,6 +45,7 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - **DIR1 Position Toggle**: Switch DIR1 between "On Truck" and "Front Beam"
 - **Over-drive Thermal Penalty**: Exponential heat scaling when amps are over-driven (driver + final)
 - **Receive Sensitivity Indicator**: Shows dB loss based on antenna position
+- **Yagi Element Position Adjust**: ±12" forward/backward sliders per element with SWR and beam pattern impact
 - **Voltage-to-Watts Scaling**: Realistic power output scaling with voltage
 - **Thermal Preview**: "Test Config" to predict thermal stress/component failure
 - **Amplifier Math**: Correct power output for 16/24/32-pill amplifiers
@@ -78,6 +79,7 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - Receive sensitivity indicator
 - Static build layout fix + Yagi toggle fix
 - VPS deployment to IONOS (simulator.sma-antenna.org)
+- Yagi element position adjustments (±12" per element, SWR-reactive)
 
 ### Future Tasks
 - P3: Refactor RFContext.jsx into smaller hooks
@@ -88,6 +90,15 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - **Stripe** — Payment/subscription (test mode)
 
 ## Session Log
+### Feb 17, 2026
+- Added Yagi element position adjustment (±12" per element, all 5 elements)
+- Position offsets affect SWR calculation (spacing between adjacent elements)
+- Position offsets affect radiation pattern (beam width, side lobes, gain)
+- Canvas visualizer shows position offset labels on moved elements
+- Color-coded offset display (green=forward, red=backward, neutral=center)
+- Updated static build with all position adjustment features
+- All tests passing (iteration_12: 100% frontend pass rate)
+
 ### Feb 14, 2026
 - Fixed DashboardStatic layout (center view regression)
 - Fixed RFContextStatic metrics naming (deadKey → deadKeyWatts)
