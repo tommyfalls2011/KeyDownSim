@@ -62,18 +62,22 @@ export function RFProvider({ children }) {
 
   // Thermal state
   const [driverTemp, setDriverTemp] = useState(AMBIENT_TEMP);
+  const [midDriverTemp, setMidDriverTemp] = useState(AMBIENT_TEMP);
   const [finalTemp, setFinalTemp] = useState(AMBIENT_TEMP);
   const [driverBlown, setDriverBlown] = useState(false);
+  const [midDriverBlown, setMidDriverBlown] = useState(false);
   const [finalBlown, setFinalBlown] = useState(false);
   const lastTickRef = useRef(Date.now());
 
   // Refs to avoid stale closures in setInterval thermal tick
   const keyedRef = useRef(keyed);
   const driverBlownRef = useRef(driverBlown);
+  const midDriverBlownRef = useRef(midDriverBlown);
   const finalBlownRef = useRef(finalBlown);
   const micLevelRef = useRef(micLevel);
   keyedRef.current = keyed;
   driverBlownRef.current = driverBlown;
+  midDriverBlownRef.current = midDriverBlown;
   finalBlownRef.current = finalBlown;
   micLevelRef.current = micLevel;
 
