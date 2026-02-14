@@ -128,6 +128,15 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - Fixed DashboardStatic layout (center view regression)
 - Fixed RFContextStatic metrics naming (deadKey → deadKeyWatts)
 - Added combo driver amps: 3-Pill (1→2), 2x4 (2→4), 2x6 (2→6)
+
+### Feb 19, 2026
+- Upgraded heatsink system from 3 tiers to 5 tiers based on user's real-world specifications:
+  - Small (1-2 pills), Medium (3-4), Large (6-8), XL (12-16), Extreme (24-32)
+  - Each tier has calibrated thermalResistance and coolRate values
+- Added auto-select: changing box size auto-picks the recommended heatsink
+- Added undersized heatsink warning with recommendation
+- Updated backend, frontend, and thermal model
+- All tests passing (iteration_15: 100% backend + frontend)
 - Added Yagi DIR1 Position Toggle (On Truck / Front Beam)
 - Enhanced over-drive thermal penalty with exponential scaling
 - Added Receive Sensitivity Loss indicator
