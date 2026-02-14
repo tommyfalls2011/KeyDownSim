@@ -725,7 +725,7 @@ async def admin_list_equipment(admin: dict = Depends(get_admin_user)):
 
 @api_router.post("/admin/equipment")
 async def admin_add_equipment(item: EquipmentItem, admin: dict = Depends(get_admin_user)):
-    if item.category not in ("radios", "driver_amps", "final_amps", "antennas", "vehicles"):
+    if item.category not in ("radios", "transistors", "heatsinks", "antennas", "vehicles"):
         raise HTTPException(status_code=400, detail="Invalid category")
     existing = await db.equipment.find_one({"key": item.key, "category": item.category}, {"_id": 0})
     if existing:
