@@ -406,158 +406,201 @@ export function calculateVoltageDrop(driverSpecs, midDriverSpecs, finalSpecs, al
   };
 }
 
+// ─── Impedance-Based SWR Model ───
+// Uses real RF physics: Z_load → reflection coefficient (Γ) → SWR
+// SWR = (1 + |Γ|) / (1 - |Γ|)   where Γ = |Z_load - Z0| / |Z_load + Z0|
+const Z0 = 50; // Characteristic impedance (Ω) — standard coax
+
+// Feedline loss at 27MHz (dB per 100 feet)
+const COAX_LOSS = { 'rg58': 1.3, 'rg8x': 0.9, 'rg213': 0.5 };
+const DEFAULT_COAX = 'rg58';
+const DEFAULT_COAX_FT = 18;
+
+// Base impedance per antenna type (R + jX on a perfect infinite ground plane)
+// Quarter-wave vertical (~108" at 27MHz) = 36Ω pure resistive
+// Shorter = lower R, capacitive X. Base-loaded = coil compensates length, adds slight R.
+// Mag-mount = coupling through magnet adds R.
+const ANTENNA_Z = {
+  'vertical':   { R: 36, X: 0 },    // full-size vertical, near quarter-wave
+  'base-load':  { R: 32, X: 3 },    // loading coil compensates length, slight reactive
+  'mag-mount':  { R: 38, X: 5 },    // magnet coupling adds R and slight X
+};
+
+function calcGamma(R, X) {
+  // |Γ| = |Z_load - Z0| / |Z_load + Z0|  for complex impedance
+  const diffR = R - Z0;
+  const sumR = R + Z0;
+  return Math.sqrt(diffR * diffR + X * X) / Math.sqrt(sumR * sumR + X * X);
+}
+
+function gammaToSWR(g) {
+  if (g >= 0.99) return 99.9;
+  return (1 + g) / (1 - g);
+}
+
+function applyFeedlineLoss(gamma, coaxType, lengthFt) {
+  // Cable absorbs reflected power on round trip — makes SWR look better at radio
+  const lossPerFt = (COAX_LOSS[coaxType] || COAX_LOSS['rg58']) / 100;
+  const roundTripDB = 2 * lossPerFt * lengthFt;
+  return gamma * Math.pow(10, -roundTripDB / 20);
+}
+
 export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength) {
   const antenna = ANTENNAS[antennaKey] || ANTENNAS['whip-102'];
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
+  const baseZ = ANTENNA_Z[antenna.type] || ANTENNA_Z['vertical'];
 
-  // Base SWR — a perfect antenna on a perfect ground plane
-  let baseSWR = 1.0;
-  if (antenna.type === 'mag-mount') baseSWR = 1.2;
-  else if (antenna.type === 'base-load') baseSWR = 1.05;
+  // Start with antenna's base impedance
+  let R = baseZ.R;
+  let X = baseZ.X;
 
-  // Vehicle surface area penalty — less metal = worse SWR
-  const surfacePenalty = (1 - vehicle.groundPlane) * 2.5;
-  let swr = baseSWR + surfacePenalty;
+  // ── Ground plane effect ──
+  // Reduced ground plane → radiation resistance rises (current image weakens)
+  // and asymmetric counterpoise adds reactance
+  const gp = Math.max(0.3, vehicle.groundPlane);
+  R = R / gp;
+  X += baseZ.R * (1 - gp) * 0.8;
 
-  // Bonding — all panels grounded together dramatically lowers SWR
+  // ── Bonding ──
+  // Poor bonding → common-mode current on coax shield → stray RF paths
+  // Adds resistance (lossy ground return) and reactance (random RF paths)
   if (!bonding) {
-    swr += 0.9;
+    R += 5;
+    X += 20;
   }
 
-  // Tunable tip — when set to the sweet spot, SWR drops to near 1.0
-  // The "sweet spot" is the antenna's default tip length for resonance
+  // ── Tip tuning (resonance adjustment) ──
+  // At resonance: X ≈ 0. Each inch off resonance ≈ ±2.5Ω reactance
+  // Too long = inductive (+X), too short = capacitive (-X)
   if (antenna.tunable && tipLength !== undefined) {
     const sweetSpot = antenna.tipDefault || 44;
-    const deviation = Math.abs(tipLength - sweetSpot);
-    // Every inch off the sweet spot adds ~0.05 SWR
-    const tipPenalty = deviation * 0.05;
-    // But when tuned right, the tip can subtract up to 0.4 SWR
-    const tipBonus = Math.max(0, 0.4 - tipPenalty);
-    swr = swr - tipBonus + Math.max(0, tipPenalty - 0.4) * 0.5;
+    const deviation = tipLength - sweetSpot;
+    X += deviation * 2.5;
   }
 
-  // With perfect tuning + bonding + good ground plane, SWR can hit 1.0
-  return Math.round(Math.max(1.0, swr) * 10) / 10;
+  // ── Calculate SWR ──
+  const gammaAnt = calcGamma(R, X);
+  const swrAtAntenna = gammaToSWR(gammaAnt);
+
+  // Apply feedline loss (the "liar factor" — coax absorbs reflected power)
+  const gammaRadio = applyFeedlineLoss(gammaAnt, DEFAULT_COAX, DEFAULT_COAX_FT);
+  const swrAtRadio = gammaToSWR(gammaRadio);
+
+  return Math.round(Math.max(1.0, swrAtRadio) * 10) / 10;
 }
 
-// ─── Yagi Array SWR Calculation ───
-// SWR depends on element height tuning AND element spacing — both affect impedance matching
-// Physics: mutual coupling between elements changes feed-point impedance
-// - Closer spacing → capacitive coupling increases exponentially → impedance mismatch → SWR spikes
-// - Further spacing → coupling drops, Yagi phasing weakens → SWR rises gently
-// - Absolute position shift → ground plane asymmetry on vehicle roof → SWR rises
-// At 27MHz: λ ≈ 432", ¼λ ≈ 108". Optimal Yagi spacings are 0.1–0.25λ.
+// ─── Yagi Array SWR — Impedance Model ───
+// A 5-element Yagi's driven element feed impedance is ~25Ω when all elements
+// are at optimal height/spacing. Mutual coupling from reflector + directors
+// pulls the driven element impedance down from its free-space ~36Ω.
+// Detuning elements or changing spacing shifts R and adds reactance.
 export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const heights = yagiConfig?.elementHeights || {};
   const posOffsets = yagiConfig?.elementPositions || {};
   const stickType = yagiConfig?.stickType || 'fight-8';
-  
-  // Base SWR depends on ground plane and bonding
-  let baseSWR = 1.0;
-  const surfacePenalty = (1 - vehicle.groundPlane) * 1.5;
-  baseSWR += surfacePenalty;
-  
+
+  // Driven element base impedance in a properly tuned 5-element Yagi
+  let R = 25;
+  let X = 0;
+
+  // ── Ground plane ──
+  const gp = Math.max(0.3, vehicle.groundPlane);
+  R = R / gp;
+  X += 25 * (1 - gp) * 0.6;
+
+  // ── Bonding ──
   if (!bonding) {
-    baseSWR += 0.8;
+    R += 5;
+    X += 18;
   }
-  
-  // ─── Height Tuning ───
+
+  // ── Element height deviations → detuning → reactance ──
+  // Driven element (ANT2) has most impact on feed impedance
+  // Other elements affect it through mutual coupling
   const optimalHeights = stickType === 'fight-10' ? {
     ant1: 120, ant2: 120, dir1: 108, dir2: 135, dir3: 135,
   } : {
     ant1: 96, ant2: 96, dir1: 84, dir2: 111, dir3: 111,
   };
-  
+
   const ant1Dev = Math.abs((heights.ant1 || optimalHeights.ant1) - optimalHeights.ant1);
   const ant2Dev = Math.abs((heights.ant2 || optimalHeights.ant2) - optimalHeights.ant2);
   const dir1Dev = Math.abs((heights.dir1 || optimalHeights.dir1) - optimalHeights.dir1);
   const dir2Dev = Math.abs((heights.dir2 || optimalHeights.dir2) - optimalHeights.dir2);
   const dir3Dev = Math.abs((heights.dir3 || optimalHeights.dir3) - optimalHeights.dir3);
-  
-  const ant1Penalty = ant1Dev * 0.03;
-  const ant2Penalty = ant2Dev * 0.06;
-  const dir1Penalty = dir1Dev * 0.04;
-  const dir2Penalty = dir2Dev * 0.025;  // directors further out have less SWR impact
-  const dir3Penalty = dir3Dev * 0.015;
-  
-  // ─── Element Spacing — Mutual Coupling Model ───
-  // Default optimal spacings between adjacent elements (inches)
+
+  // Reactance added by detuning (Ω per inch of height deviation)
+  X += ant2Dev * 3.0;   // Driven element — direct feed-point reactance
+  X += ant1Dev * 1.5;   // Reflector — through mutual coupling
+  X += dir1Dev * 2.0;   // DIR1 — strong coupling to driven
+  X += dir2Dev * 1.0;   // DIR2 — moderate coupling
+  X += dir3Dev * 0.5;   // DIR3 — weakest coupling
+
+  // ── Element spacing → mutual coupling changes ──
   const dir1OnTruck = yagiConfig?.dir1OnTruck !== false;
   const dir1BasePos = dir1OnTruck ? 42 : 96;
   const optimalSpacings = [
-    { name: 'ANT1↔ANT2', optimal: 72, weight: 1.0 },              // reflector↔driven: MOST critical
-    { name: 'ANT2↔DIR1', optimal: dir1BasePos, weight: 0.8 },     // driven↔dir1: high impact
-    { name: 'DIR1↔DIR2', optimal: 96, weight: 0.4 },              // dir1↔dir2: moderate
-    { name: 'DIR2↔DIR3', optimal: 96, weight: 0.2 },              // dir2↔dir3: lower impact
+    { optimal: 72,          weight: 1.0 },   // ANT1↔ANT2 (reflector↔driven)
+    { optimal: dir1BasePos, weight: 0.8 },   // ANT2↔DIR1
+    { optimal: 96,          weight: 0.4 },   // DIR1↔DIR2
+    { optimal: 96,          weight: 0.2 },   // DIR2↔DIR3
   ];
-  
-  // Actual positions with offsets applied
   const positions = [
-    0 + (posOffsets.ant1 || 0),                                     // ANT1
-    72 + (posOffsets.ant2 || 0),                                    // ANT2
-    72 + dir1BasePos + (posOffsets.dir1 || 0),                      // DIR1
-    72 + dir1BasePos + 96 + (posOffsets.dir2 || 0),                 // DIR2
-    72 + dir1BasePos + 192 + (posOffsets.dir3 || 0),                // DIR3
+    0 + (posOffsets.ant1 || 0),
+    72 + (posOffsets.ant2 || 0),
+    72 + dir1BasePos + (posOffsets.dir1 || 0),
+    72 + dir1BasePos + 96 + (posOffsets.dir2 || 0),
+    72 + dir1BasePos + 192 + (posOffsets.dir3 || 0),
   ];
-  
-  let spacingPenalty = 0;
+
   for (let i = 0; i < optimalSpacings.length; i++) {
-    const actualSpacing = positions[i + 1] - positions[i];
+    const actual = positions[i + 1] - positions[i];
     const optimal = optimalSpacings[i].optimal;
-    const weight = optimalSpacings[i].weight;
-    const deviation = actualSpacing - optimal;
-    
-    if (deviation < 0) {
-      // CLOSER than optimal — capacitive coupling increases exponentially
-      // Coupling is proportional to ~1/distance², so halving the spacing = 4x coupling
-      // Going closer makes it much worse — impedance drops away from 50Ω fast
-      // At 27MHz, elements under 36" apart are in deep coupling territory
-      const closerInches = Math.abs(deviation);
-      const closerRatio = closerInches / optimal; // fraction of optimal spacing lost
-      // Steep exponential: small moves = mild, but as you lose significant fraction = severe
-      spacingPenalty += weight * (0.03 * closerInches + 0.015 * Math.pow(closerInches, 1.6) + closerRatio * 0.5);
-    } else {
-      // FURTHER than optimal — Yagi phasing weakens, but coupling reduces (isolation)
-      // This is gentler — the antenna just becomes less efficient as a Yagi
-      // Past ~0.4λ spacing (~170") the Yagi effect breaks down entirely
-      const furtherInches = deviation;
-      spacingPenalty += weight * (0.015 * furtherInches);
+    const w = optimalSpacings[i].weight;
+    const dev = actual - optimal;
+
+    if (dev < 0) {
+      // CLOSER → coupling increases ~ 1/d² → impedance drops, reactance spikes
+      const closer = Math.abs(dev);
+      const ratio = closer / Math.max(1, optimal);
+      R -= w * closer * 0.15;              // coupling pulls R down
+      X += w * (closer * 1.5 + Math.pow(closer, 1.4) * 0.8);  // steep reactance rise
+    } else if (dev > 0) {
+      // FURTHER → coupling weakens → R rises toward free-space, mild X
+      R += w * dev * 0.1;
+      X += w * dev * 0.4;
     }
   }
-  
-  // ─── Ground Plane / Edge Effect ───
-  // On a vehicle roof, all antennas share the same ground plane (metal roof)
-  // Shifting the entire array forward or backward changes where elements sit
-  // relative to the roof edges — elements near edges see asymmetric ground plane
-  // This is an absolute-position effect, not just relative spacing
-  const avgOffset = ((posOffsets.ant1 || 0) + (posOffsets.ant2 || 0) + 
-    (posOffsets.dir1 || 0) + (posOffsets.dir2 || 0) + (posOffsets.dir3 || 0)) / 5;
-  // Individual elements that deviate far from center of array shift toward roof edge
-  const edgePenalty = [
-    posOffsets.ant1 || 0, posOffsets.ant2 || 0, posOffsets.dir1 || 0,
-    posOffsets.dir2 || 0, posOffsets.dir3 || 0
-  ].reduce((sum, offset) => {
-    // Elements pushed toward either edge of the vehicle get worse ground plane
-    const distFromArrayCenter = Math.abs(offset - avgOffset);
-    return sum + distFromArrayCenter * 0.01;
-  }, 0);
-  // Whole-array shift: if the entire lineup moves, the front/rear elements
-  // get closer to roof edges → asymmetric image → SWR drift
-  const arrayShiftPenalty = Math.abs(avgOffset) * 0.015;
-  
-  // ─── Total SWR ───
-  let swr = baseSWR + ant1Penalty + ant2Penalty + dir1Penalty + dir2Penalty + dir3Penalty + spacingPenalty + edgePenalty + arrayShiftPenalty;
-  
-  // When all elements are well-tuned (heights AND positions near optimal), bonus
-  const totalHeightDev = ant1Dev + ant2Dev + dir1Dev;
-  const totalPosDev = Math.abs(posOffsets.ant1 || 0) + Math.abs(posOffsets.ant2 || 0) + 
+
+  // Clamp R to positive (can't have negative radiation resistance)
+  R = Math.max(3, R);
+
+  // ── Edge / shift effects ──
+  // Elements near roof edge see asymmetric ground plane → adds reactance
+  const avgOff = ((posOffsets.ant1 || 0) + (posOffsets.ant2 || 0) + (posOffsets.dir1 || 0) +
+    (posOffsets.dir2 || 0) + (posOffsets.dir3 || 0)) / 5;
+  X += Math.abs(avgOff) * 0.5;
+
+  // ── Calculate SWR ──
+  const gammaAnt = calcGamma(R, X);
+  const swrAtAntenna = gammaToSWR(gammaAnt);
+
+  // Apply feedline loss
+  const gammaRadio = applyFeedlineLoss(gammaAnt, DEFAULT_COAX, DEFAULT_COAX_FT);
+  const swrAtRadio = gammaToSWR(gammaRadio);
+
+  // Tuning bonus: if everything is within 6" of optimal, the system resonates cleanly
+  const totalDev = ant1Dev + ant2Dev + dir1Dev + dir2Dev + dir3Dev;
+  const totalPosDev = Math.abs(posOffsets.ant1 || 0) + Math.abs(posOffsets.ant2 || 0) +
     Math.abs(posOffsets.dir1 || 0) + Math.abs(posOffsets.dir2 || 0) + Math.abs(posOffsets.dir3 || 0);
-  if (totalHeightDev <= 6 && totalPosDev <= 6) {
-    swr -= 0.3 * (1 - Math.max(totalHeightDev, totalPosDev) / 6);
+  let bonus = 0;
+  if (totalDev <= 6 && totalPosDev <= 6) {
+    bonus = 0.15 * (1 - Math.max(totalDev, totalPosDev) / 6);
   }
-  
-  return Math.round(Math.max(1.0, Math.min(5.0, swr)) * 10) / 10;
+
+  const finalSWR = Math.max(1.0, swrAtRadio - bonus);
+  return Math.round(Math.min(9.9, finalSWR) * 10) / 10;
 }
 
 // ─── Take-off Angle Calculation ───
