@@ -342,6 +342,7 @@ export default function CanvasVisualizer() {
               stickType: config.yagiStickType,
               swrTuned: true,
               elementPositions: config.yagiElementPositions,
+              dir1OnTruck: config.yagiDir1OnTruck,
             })
           : getRadiationPattern(config.vehicle, config.bonding, power, config.antenna, config.antennaPosition);
         
