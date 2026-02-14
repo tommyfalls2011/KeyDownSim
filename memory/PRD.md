@@ -23,6 +23,96 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - Database: MongoDB
 - Payments: Stripe (test mode)
 
+---
+
+## STATIC BUILD FOR sma-antenna.org
+
+### What is the Static Build?
+A standalone version of the RF Visualizer that runs WITHOUT any backend. No login, no saving configs, no admin panel — just the full simulation with all equipment hardcoded.
+
+**Live URL:** https://simulator.sma-antenna.org
+
+### Static Build Files Location
+```
+/app/static-build/
+├── keydown-rf-static.zip     ← DOWNLOAD THIS
+├── dist/
+│   ├── build/                ← Built static files
+│   │   ├── index.html
+│   │   ├── manifest.json
+│   │   ├── asset-manifest.json
+│   │   └── static/
+│   │       ├── css/main.xxx.css
+│   │       └── js/main.xxx.js
+│   └── src/                  ← Source files for static version
+├── rfEngine.js               ← Hardcoded equipment
+├── RFContextStatic.js        ← Context without API calls
+└── App.js                    ← Static app entry
+```
+
+### How to Deploy Static Build Updates
+
+**Step 1: Build (if source changed)**
+```bash
+cd /app/static-build/dist
+yarn build
+```
+
+**Step 2: Create zip**
+```bash
+rm -f /app/static-build/keydown-rf-static.zip
+cd /app/static-build/dist
+zip -r /app/static-build/keydown-rf-static.zip build/
+```
+
+**Step 3: Save to GitHub**
+Click "Save to GitHub" in Emergent chat
+
+**Step 4: User downloads from GitHub**
+- Go to GitHub repo → `static-build/keydown-rf-static.zip`
+- Click to download
+
+**Step 5: User uploads to their server**
+1. Unzip `keydown-rf-static.zip` on local computer
+2. Inside is a `build/` folder
+3. Upload THE CONTENTS of `build/` (NOT the folder itself) to `/public_html/simulator/`
+
+**CORRECT structure on server:**
+```
+/public_html/simulator/
+├── index.html          ← directly here
+├── manifest.json
+├── asset-manifest.json
+└── static/
+    ├── css/
+    │   └── main.xxx.css
+    └── js/
+        └── main.xxx.js
+```
+
+**WRONG (common mistake):**
+```
+/public_html/simulator/build/index.html   ← WRONG! Extra folder
+```
+
+### Static Build Key Differences from Emergent Version
+- No authentication (no login/register)
+- No config saving/loading
+- No admin panel
+- No backend API calls
+- All equipment hardcoded in `rfEngineStatic.js`
+- Uses `RFContextStatic.js` instead of `RFContext.js`
+- Uses static components: `HeaderStatic.js`, `EquipmentRackStatic.js`, `ThermalPreviewStatic.js`, `DashboardStatic.js`
+
+### Static Build Recent Fixes (Dec 2025)
+- Fixed imports to use static versions (RFContextStatic, rfEngineStatic)
+- Removed auth dependencies from ControlPanel
+- Fixed layout so center visualizer doesn't scroll when side panels scroll
+- Fixed pattern not being cut off when it grows larger
+- Added smoothed amp draw display (updates every 150ms with interpolation for readability)
+
+---
+
 ## What's Been Implemented
 - Full authentication system (JWT-based)
 - Stripe subscription integration (test mode)
@@ -39,6 +129,7 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - Auto-scaling distance labels on canvas
 - Voltage-to-watts scaling (more volts = more watts, like real amps)
 - **Thermal Preview** - "Test Config" button simulates key-down to predict thermal behavior before going live
+- **Static Build** - Standalone version for sma-antenna.org (no backend required)
 
 ## Bug Fixes
 - [Feb 2026] Fixed thermal simulation stale closure bug: temps now properly rise/cool across multiple key-down cycles. Root cause: setInterval callback captured stale `keyed`, `driverBlown`, `finalBlown` values. Fix: useRef pattern to always read latest state.
