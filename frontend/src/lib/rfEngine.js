@@ -547,7 +547,7 @@ export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
   const arrayShiftPenalty = Math.abs(avgOffset) * 0.015;
   
   // ─── Total SWR ───
-  let swr = baseSWR + ant1Penalty + ant2Penalty + dir1Penalty + spacingPenalty + edgePenalty + arrayShiftPenalty;
+  let swr = baseSWR + ant1Penalty + ant2Penalty + dir1Penalty + dir2Penalty + dir3Penalty + spacingPenalty + edgePenalty + arrayShiftPenalty;
   
   // When all elements are well-tuned (heights AND positions near optimal), bonus
   const totalHeightDev = ant1Dev + ant2Dev + dir1Dev;
