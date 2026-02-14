@@ -64,11 +64,14 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 ## Prioritized Backlog
 
 ### P0 (Done)
-- ~~Yagi Array Simulation~~ — Complete (main + static)
-- ~~Static Build Yagi Port~~ — Complete
-- ~~Admin Equipment Bug Fix~~ — Complete
-- ~~Amplifier Math Fix~~ — Complete
-- ~~Select Dropdown Click Fix~~ — Complete (cursor-pointer + pointer-events fix)
+- Yagi Array Simulation — Complete (main + static)
+- Static Build Yagi Port — Complete
+- Admin Equipment Bug Fix — Complete
+- Amplifier Math Fix — Complete
+- Select Dropdown Click Fix — Complete (cursor-pointer + pointer-events fix)
+- Static Build Layout Fix — Complete (center view h-screen + flex-1 relative wrapper)
+- Static Build Metrics Fix — Complete (deadKey -> deadKeyWatts)
+- Static Build Yagi Toggle Fix — Complete (verified in rebuilt static bundle)
 
 ### P0 (Next)
 - Yagi DIR1 Position Toggle: Switch DIR1 between "on the truck" vs "on the front beam" (main app + static build)
@@ -85,14 +88,15 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 ### P4
 - Refactor AdminPage.jsx into smaller child components per tab
 
+### P5
+- Refactor build-static.sh: Move inline React components into dedicated .js files
+
 ## 3rd Party Integrations
 - **Stripe** — Payment/subscription (test mode)
 
-## Session Log (Dec 2025 — Current Fork)
-- Ported 5-Element Yagi Array to static build (rfEngine.js, RFContextStatic.js, ControlPanelStatic.js)
-- Fixed duplicate Key Down + Mic controls in DashboardStatic
-- Removed "Save Configuration" from static ControlPanel
-- Added Yagi-aware radiation pattern to DashboardStatic
-- Fixed SelectTrigger click area (cursor-pointer, pointer-events-none on chevron)
-- Automated build-static.sh: full pipeline with install, build, zip
-- Regenerated keydown-rf-static.zip
+## Session Log
+### Feb 14, 2026 (Current Fork)
+- Fixed DashboardStatic layout: changed from min-h-screen + plain flex to h-screen flex-col overflow-hidden with proper flex-1 relative canvas wrapper
+- Fixed RFContextStatic metrics: renamed deadKey to deadKeyWatts to match MetricsPanel expectations
+- Rebuilt static site with all fixes (keydown-rf-static.zip regenerated)
+- All 19 frontend tests passed (100% success rate) - Yagi toggle, layout, dropdowns, metrics verified
