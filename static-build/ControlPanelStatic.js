@@ -30,6 +30,30 @@ export default function ControlPanel() {
           <span className="text-slate-600">Surface: <span className="text-cyan-400">{VEHICLES[config.vehicle]?.surfaceSqFt}sqft</span></span>
           <span className="text-slate-600">Ground: <span className="text-cyan-400">{Math.round((VEHICLES[config.vehicle]?.groundPlane || 0) * 100)}%</span></span>
         </div>
+        {/* Ride Height Adjustment */}
+        <div className="mt-3 space-y-1">
+          <div className="flex justify-between">
+            <Label className="font-mono text-[8px] text-slate-600">RIDE HEIGHT</Label>
+            <span className={`font-mono text-[9px] ${config.rideHeightOffset === 0 ? 'text-slate-600' : config.rideHeightOffset < 0 ? 'text-cyan-400' : 'text-amber-400'}`}>
+              {config.rideHeightOffset === 0 ? 'STOCK' : config.rideHeightOffset < 0 ? `${config.rideHeightOffset}" LOWERED` : `+${config.rideHeightOffset}" LIFTED`}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="-6"
+            max="6"
+            step="1"
+            value={config.rideHeightOffset || 0}
+            onChange={e => updateConfig('rideHeightOffset', parseInt(e.target.value))}
+            className="w-full h-1 accent-cyan-400 bg-slate-800 rounded cursor-pointer"
+            data-testid="ride-height-slider"
+          />
+          <div className="flex justify-between font-mono text-[7px] text-slate-700">
+            <span>SLAMMED</span>
+            <span>STOCK</span>
+            <span>LIFTED</span>
+          </div>
+        </div>
       </div>
       <div className="mb-6">
         <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-2 block">Antenna Position</Label>
