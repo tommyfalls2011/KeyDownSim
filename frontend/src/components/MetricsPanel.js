@@ -74,8 +74,8 @@ export default function MetricsPanel() {
         </div>
         <div className="font-mono text-[8px] text-slate-600">RATIO</div>
         <MeterBar
-          value={metrics.swr}
-          max={5}
+          value={Math.max(0, metrics.swr - 1)}
+          max={4}
           segments={8}
           colors={['#00FF00', '#00FF00', '#FFFF00', '#FF0000']}
         />
