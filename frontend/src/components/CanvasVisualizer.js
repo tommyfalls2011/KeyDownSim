@@ -461,7 +461,7 @@ export default function CanvasVisualizer() {
       }
 
       // Under-driven amplifier warning
-      if (metrics.underDriven && config.finalAmp !== 'none') {
+      if (metrics.underDriven && config.finalTransistor !== 'none') {
         const flash = Math.sin(time * 4) > -0.3;
         if (flash) {
           ctx.save();
