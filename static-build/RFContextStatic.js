@@ -311,6 +311,7 @@ export function RFProvider({ children }) {
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding, {
     antennaPosition: config.antennaPosition,
     yagiMode: config.yagiMode,
+    rideHeightOffset: config.rideHeightOffset,
   });
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 
