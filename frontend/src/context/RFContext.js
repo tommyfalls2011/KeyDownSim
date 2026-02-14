@@ -31,6 +31,7 @@ const DEFAULT_STATE = {
   // Yagi Array Mode
   yagiMode: false,
   yagiStickType: 'fight-8', // 'fight-8' or 'fight-10'
+  yagiDir1OnTruck: true, // true = on the truck roof, false = on the front beam
   yagiElementHeights: {
     ant1: 96,   // inches - base height
     ant2: 96,   // same as ant1
@@ -258,7 +259,8 @@ export function RFProvider({ children }) {
       const modStress = 1 + currentMicLevel * 0.25;
 
       const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding);
-      const overDriveStress = underDriven.driveRatio > 1.2 ? 1 + (underDriven.driveRatio - 1.2) * 0.8 : 1.0;
+      const overDriveExcess = Math.max(0, underDriven.driveRatio - 1.0);
+      const overDriveStress = overDriveExcess > 0 ? 1 + overDriveExcess * 2.5 + Math.pow(overDriveExcess, 2) * 3.0 : 1.0;
 
       setDriverTemp(prev => {
         if (isDriverBlown) return prev;
@@ -270,8 +272,9 @@ export function RFProvider({ children }) {
           const dkRatio = stages.driverLoadRatioDK;
           const pkRatio = stages.driverLoadRatioPK;
           const loadRatio = Math.max(0.05, dkRatio + (pkRatio - dkRatio) * currentMicLevel);
-          const loadFactor = loadRatio * voltageStress;
-          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
+          // Driver over-drive: if driver load ratio > 0.85, it's running hot
+          const driverStress = dkRatio > 0.85 ? 1 + (dkRatio - 0.85) * 4.0 : 1.0;
+          const loadFactor = loadRatio * voltageStress * driverStress;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {
             setDriverBlown(true);
