@@ -148,6 +148,8 @@ export function RFProvider({ children }) {
       batteryCount: cfg.battery_count || 1,
       regulatorVoltages: cfg.regulator_voltages || [14.2],
       tipLength: cfg.tip_length || 48,
+      coaxType: cfg.coax_type || cfg.coaxType || 'rg213',
+      coaxLengthFt: cfg.coax_length_ft ?? cfg.coaxLengthFt ?? 18,
       keyed: false,
     });
     // Reset thermal on load
