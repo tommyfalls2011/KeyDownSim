@@ -10,13 +10,19 @@ const HEAT_BASE_RATE = 3; // °C per second base rate (calibrated for 35% effici
 
 const DEFAULT_STATE = {
   radio: 'cobra-29',
-  driveLevel: 1.0, // 0.25–1.0, scales dead key & peak (4:1 ratio preserved)
-  driverAmp: 'none',
-  finalAmp: 'none',
+  driveLevel: 1.0,
+  // Driver stage: transistor type + box size + heatsink
+  driverTransistor: 'none',
+  driverBoxSize: 0,
+  driverHeatsink: 'medium',
+  // Final stage: transistor type + box size + heatsink
+  finalTransistor: 'none',
+  finalBoxSize: 0,
+  finalHeatsink: 'medium',
   antenna: 'whip-102',
   antennaPosition: 'center',
   vehicle: 'suburban',
-  rideHeightOffset: 0, // inches from stock: -6 (slammed) to +6 (lifted)
+  rideHeightOffset: 0,
   bonding: true,
   alternatorCount: 1,
   alternatorAmps: 130,
@@ -25,25 +31,11 @@ const DEFAULT_STATE = {
   regulatorVoltages: [14.2],
   tipLength: 48,
   keyed: false,
-  // Yagi Array Mode
   yagiMode: false,
-  yagiStickType: 'fight-8', // 'fight-8' or 'fight-10'
-  yagiDir1OnTruck: true, // true = on the truck roof, false = on the front beam
-  yagiElementHeights: {
-    ant1: 96,   // inches - base height
-    ant2: 96,   // same as ant1
-    dir1: 84,   // ~1' shorter, tunable
-    dir2: 111,  // 15" taller (fixed relative)
-    dir3: 111,  // same as dir2
-  },
-  // Per-element position offsets in inches (-12 to +12, 0 = default spacing)
-  yagiElementPositions: {
-    ant1: 0,
-    ant2: 0,
-    dir1: 0,
-    dir2: 0,
-    dir3: 0,
-  },
+  yagiStickType: 'fight-8',
+  yagiDir1OnTruck: true,
+  yagiElementHeights: { ant1: 96, ant2: 96, dir1: 84, dir2: 111, dir3: 111 },
+  yagiElementPositions: { ant1: 0, ant2: 0, dir1: 0, dir2: 0, dir3: 0 },
 };
 
 export function RFProvider({ children }) {
