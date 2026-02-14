@@ -391,7 +391,8 @@ export function RFProvider({ children }) {
   const stages = calculateStageOutputs(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel);
   
   // SWR calculation - use Yagi SWR when in Yagi mode
-  const swr = config.yagiMode 
+  // Returns { atRadio, atAntenna } — feedline loss makes radio read lower
+  const swrResult = config.yagiMode 
     ? calculateYagiSWR(config.vehicle, config.bonding, {
         stickType: config.yagiStickType,
         elementHeights: config.yagiElementHeights,
@@ -399,6 +400,8 @@ export function RFProvider({ children }) {
         dir1OnTruck: config.yagiDir1OnTruck,
       })
     : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
+  const swr = swrResult.atRadio;
+  const swrAtAntenna = swrResult.atAntenna;
   
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding, {
     antennaPosition: config.antennaPosition,
