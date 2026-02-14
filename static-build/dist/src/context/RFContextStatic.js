@@ -55,6 +55,13 @@ const DEFAULT_STATE = {
     dir2: 111,
     dir3: 111,
   },
+  yagiElementPositions: {
+    ant1: 0,
+    ant2: 0,
+    dir1: 0,
+    dir2: 0,
+    dir3: 0,
+  },
 };
 
 export function RFProvider({ children }) {
@@ -295,6 +302,7 @@ export function RFProvider({ children }) {
     ? calculateYagiSWR(config.vehicle, config.bonding, {
         stickType: config.yagiStickType,
         elementHeights: config.yagiElementHeights,
+        elementPositions: config.yagiElementPositions,
       })
     : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
   
