@@ -347,7 +347,7 @@ export function RFProvider({ children }) {
     antennaPosition: config.antennaPosition,
     yagiMode: config.yagiMode,
     rideHeightOffset: config.rideHeightOffset,
-  });
+  }) || 22;
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 
   // Actual current draw — proportional to load, swings with modulation
