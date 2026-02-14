@@ -400,8 +400,10 @@ export function RFProvider({ children }) {
         elementHeights: config.yagiElementHeights,
         elementPositions: config.yagiElementPositions,
         dir1OnTruck: config.yagiDir1OnTruck,
+        coaxType: config.coaxType,
+        coaxLengthFt: config.coaxLengthFt,
       })
-    : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength, config.antennaPosition);
+    : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength, config.antennaPosition, config.coaxType, config.coaxLengthFt);
   const swr = swrResult.atRadio;
   const swrAtAntenna = swrResult.atAntenna;
   
