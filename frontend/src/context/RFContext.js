@@ -318,7 +318,15 @@ export function RFProvider({ children }) {
   // Calculate derived values - pass voltage to signal chain so watts scale with volts
   const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel, avgRegV);
   const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
-  const swr = calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
+  
+  // SWR calculation - use Yagi SWR when in Yagi mode
+  const swr = config.yagiMode 
+    ? calculateYagiSWR(config.vehicle, config.bonding, {
+        stickType: config.yagiStickType,
+        elementHeights: config.yagiElementHeights,
+      })
+    : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
+  
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 
