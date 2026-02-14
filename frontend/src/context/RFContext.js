@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import { calculateSignalChain, calculateVoltageDrop, calculateSWR, calculateTakeoffAngle, checkUnderDriven, calculateStageOutputs, mergeEquipmentFromAPI, DRIVER_AMPS, FINAL_AMPS } from '@/lib/rfEngine';
+import { calculateSignalChain, calculateVoltageDrop, calculateSWR, calculateTakeoffAngle, checkUnderDriven, calculateStageOutputs, mergeEquipmentFromAPI, DRIVER_AMPS, FINAL_AMPS, YAGI_ARRAY_CONFIG } from '@/lib/rfEngine';
 import { useMic } from '@/lib/useMic';
 
 const RFContext = createContext(null);
