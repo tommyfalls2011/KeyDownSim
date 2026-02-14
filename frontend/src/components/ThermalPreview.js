@@ -126,6 +126,48 @@ export default function ThermalPreview() {
             </div>
           )}
 
+          {/* Mid Driver Preview */}
+          {preview.midDriver.isActive && (
+            <div className="bg-panel/50 border border-white/5 rounded p-2">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-mono text-[9px] text-slate-500 uppercase">Mid Driver</span>
+                {preview.midDriver.willBlow ? (
+                  <span className="font-mono text-[9px] text-red-400 font-bold flex items-center gap-1">
+                    <Zap className="w-2.5 h-2.5" /> BLOWS @ {preview.midDriver.blowTime}s
+                  </span>
+                ) : (
+                  <span className="font-mono text-[9px] text-green-400">SAFE</span>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <div className="font-mono text-[8px] text-slate-600">START</div>
+                  <div className="font-mono text-[11px] text-slate-400">{preview.midDriver.startTemp}°</div>
+                </div>
+                <div>
+                  <div className="font-mono text-[8px] text-slate-600">PEAK</div>
+                  <div className={`font-mono text-[11px] ${preview.midDriver.peakTemp >= 150 ? 'text-red-400' : preview.midDriver.peakTemp >= 100 ? 'text-amber-400' : 'text-cyan-400'}`}>
+                    {preview.midDriver.peakTemp}°
+                  </div>
+                </div>
+                <div>
+                  <div className="font-mono text-[8px] text-slate-600">END</div>
+                  <div className={`font-mono text-[11px] ${preview.midDriver.endTemp >= 150 ? 'text-red-400' : preview.midDriver.endTemp >= 100 ? 'text-amber-400' : 'text-slate-400'}`}>
+                    {preview.midDriver.endTemp}°
+                  </div>
+                </div>
+              </div>
+              {preview.midDriver.timeToBlowFromNow && (
+                <div className="mt-1.5 flex items-center gap-1 justify-center">
+                  <Clock className="w-2.5 h-2.5 text-slate-600" />
+                  <span className="font-mono text-[8px] text-slate-500">
+                    Est. blow in {preview.midDriver.timeToBlowFromNow}s from current temp
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Final Preview */}
           {preview.final.isActive && (
             <div className="bg-panel/50 border border-white/5 rounded p-2">
