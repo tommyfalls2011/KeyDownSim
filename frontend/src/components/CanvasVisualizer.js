@@ -271,6 +271,14 @@ export default function CanvasVisualizer() {
       // Draw vehicle
       drawVehicle(ctx, cx, cy, config.vehicle, 1.2, config.antennaPosition);
 
+      // Draw Yagi Array if enabled
+      if (config.yagiMode) {
+        drawYagiArray(ctx, cx, cy, 1.2, {
+          stickType: config.yagiStickType,
+          elementHeights: config.yagiElementHeights,
+        }, keyed);
+      }
+
       // Radiation pattern
       if (intensity > 0.01) {
         // Use modulated power when mic is active, otherwise dead key
