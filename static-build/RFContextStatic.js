@@ -201,7 +201,7 @@ export function RFProvider({ children }) {
       },
       warnings: {
         highVoltage: avgRegV >= 18,
-        overDriven: underDriven.driveRatio > 1.2,
+        overDriven: underDriven.driveRatio > 1.0,
         underDriven: underDriven.isUnderDriven,
       }
     };
