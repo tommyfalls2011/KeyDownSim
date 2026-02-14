@@ -472,10 +472,14 @@ export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
   const ant1Dev = Math.abs((heights.ant1 || optimalHeights.ant1) - optimalHeights.ant1);
   const ant2Dev = Math.abs((heights.ant2 || optimalHeights.ant2) - optimalHeights.ant2);
   const dir1Dev = Math.abs((heights.dir1 || optimalHeights.dir1) - optimalHeights.dir1);
+  const dir2Dev = Math.abs((heights.dir2 || optimalHeights.dir2) - optimalHeights.dir2);
+  const dir3Dev = Math.abs((heights.dir3 || optimalHeights.dir3) - optimalHeights.dir3);
   
   const ant1Penalty = ant1Dev * 0.03;
   const ant2Penalty = ant2Dev * 0.06;
   const dir1Penalty = dir1Dev * 0.04;
+  const dir2Penalty = dir2Dev * 0.025;  // directors further out have less SWR impact
+  const dir3Penalty = dir3Dev * 0.015;
   
   // ─── Element Spacing — Mutual Coupling Model ───
   // Default optimal spacings between adjacent elements (inches)
