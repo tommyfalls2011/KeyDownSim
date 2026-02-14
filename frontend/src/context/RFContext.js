@@ -99,6 +99,17 @@ export function RFProvider({ children }) {
       }
       return next;
     });
+    // Reset thermal state when swapping amps out of the chain
+    if (key === 'driverAmp') {
+      setDriverTemp(AMBIENT_TEMP);
+      setDriverBlown(false);
+      driverBlownRef.current = false;
+    }
+    if (key === 'finalAmp') {
+      setFinalTemp(AMBIENT_TEMP);
+      setFinalBlown(false);
+      finalBlownRef.current = false;
+    }
   }, []);
 
   const loadConfig = useCallback((cfg) => {
