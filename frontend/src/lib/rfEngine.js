@@ -447,3 +447,71 @@ export function getRadiationPattern(vehicleKey, bonding, power, antennaKey, ante
   }
   return points;
 }
+
+// ─── Yagi Array Radiation Pattern ───
+// Creates a highly directional forward beam pattern
+export function getYagiRadiationPattern(vehicleKey, bonding, power, yagiConfig) {
+  const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
+  const points = [];
+  const gp = vehicle.groundPlane * (bonding ? 1.0 : 0.5);
+  
+  // Yagi parameters
+  const yagiGainDB = YAGI_ARRAY_CONFIG.baseGainDB + (yagiConfig?.stickType === 'fight-10' ? 1.5 : 0);
+  const yagiGain = Math.pow(10, yagiGainDB / 10);
+  const beamWidth = YAGI_ARRAY_CONFIG.beamWidth; // degrees
+  const beamWidthRad = (beamWidth * Math.PI) / 180;
+  
+  // Vehicle ground height affects vertical angle efficiency
+  const groundHeightFactor = Math.min(1.2, (vehicle.groundHeight || 5) / 5);
+  
+  // Element height tuning affects SWR/efficiency
+  // If elements are well-tuned, better efficiency
+  const tuningEfficiency = yagiConfig?.swrTuned ? 1.0 : 0.85;
+  
+  // Forward direction is 270 degrees (up/north on canvas = front of vehicle)
+  const forwardAngle = 270;
+  const forwardRad = (forwardAngle * Math.PI) / 180;
+
+  for (let angle = 0; angle < 360; angle += 2) {
+    const rad = (angle * Math.PI) / 180;
+    const angleDiff = rad - forwardRad;
+    
+    // Yagi pattern: strong forward lobe, smaller side lobes, rear null
+    // Main lobe - Gaussian-like forward beam
+    const mainLobe = Math.exp(-Math.pow(angleDiff, 2) / (2 * Math.pow(beamWidthRad / 2.35, 2)));
+    
+    // Side lobes (smaller peaks ~60-90 degrees off-axis)
+    const sideLobeAngle1 = Math.abs(angleDiff - Math.PI / 2);
+    const sideLobeAngle2 = Math.abs(angleDiff + Math.PI / 2);
+    const sideLobe = 0.15 * (Math.exp(-Math.pow(sideLobeAngle1, 2) / 0.3) + Math.exp(-Math.pow(sideLobeAngle2, 2) / 0.3));
+    
+    // Back lobe (very small, ~180 degrees)
+    const backLobeAngle = Math.abs(Math.abs(angleDiff) - Math.PI);
+    const backLobe = 0.08 * Math.exp(-Math.pow(backLobeAngle, 2) / 0.2);
+    
+    // Combine lobes
+    let gain = mainLobe + sideLobe + backLobe;
+    
+    // Apply yagi gain
+    gain *= yagiGain;
+    
+    // Ground plane and bonding effects
+    gain *= (0.6 + gp * 0.4);
+    
+    // Vehicle height factor
+    gain *= groundHeightFactor;
+    
+    // Tuning efficiency
+    gain *= tuningEfficiency;
+    
+    // Add slight noise if bonding is poor
+    if (!bonding) {
+      gain += (Math.sin(angle * 5) * 0.1);
+    }
+    
+    // Scale by power
+    const scaledGain = Math.max(0.05, gain) * Math.log10(Math.max(1, power) + 1) / 4;
+    points.push({ angle, gain: scaledGain });
+  }
+  return points;
+}
