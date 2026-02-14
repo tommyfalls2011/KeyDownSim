@@ -87,13 +87,13 @@ export function RFProvider({ children }) {
       }
       return next;
     });
-    // Reset thermal state when swapping amps out of the chain
-    if (key === 'driverAmp') {
+    // Reset thermal state when swapping amp components
+    if (key === 'driverTransistor' || key === 'driverBoxSize' || key === 'driverHeatsink') {
       setDriverTemp(AMBIENT_TEMP);
       setDriverBlown(false);
       driverBlownRef.current = false;
     }
-    if (key === 'finalAmp') {
+    if (key === 'finalTransistor' || key === 'finalBoxSize' || key === 'finalHeatsink') {
       setFinalTemp(AMBIENT_TEMP);
       setFinalBlown(false);
       finalBlownRef.current = false;
@@ -104,8 +104,12 @@ export function RFProvider({ children }) {
     setConfig({
       radio: cfg.radio || 'cobra-29',
       driveLevel: cfg.drive_level ?? cfg.driveLevel ?? 1.0,
-      driverAmp: cfg.driver_amp || 'none',
-      finalAmp: cfg.final_amp || 'none',
+      driverTransistor: cfg.driver_transistor ?? cfg.driverTransistor ?? 'none',
+      driverBoxSize: cfg.driver_box_size ?? cfg.driverBoxSize ?? 0,
+      driverHeatsink: cfg.driver_heatsink ?? cfg.driverHeatsink ?? 'medium',
+      finalTransistor: cfg.final_transistor ?? cfg.finalTransistor ?? 'none',
+      finalBoxSize: cfg.final_box_size ?? cfg.finalBoxSize ?? 0,
+      finalHeatsink: cfg.final_heatsink ?? cfg.finalHeatsink ?? 'medium',
       antenna: cfg.antenna || 'whip-102',
       antennaPosition: cfg.antenna_position || 'center',
       vehicle: cfg.vehicle || 'suburban',
