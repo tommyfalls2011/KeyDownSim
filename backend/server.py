@@ -83,6 +83,9 @@ class ConfigCreate(BaseModel):
     driver_transistor: str = "none"
     driver_box_size: int = 0
     driver_heatsink: str = "medium"
+    mid_driver_transistor: str = "none"
+    mid_driver_box_size: int = 0
+    mid_driver_heatsink: str = "medium"
     final_transistor: str = "none"
     final_box_size: int = 0
     final_heatsink: str = "medium"
@@ -105,6 +108,9 @@ class ConfigResponse(BaseModel):
     driver_transistor: str = "none"
     driver_box_size: int = 0
     driver_heatsink: str = "medium"
+    mid_driver_transistor: str = "none"
+    mid_driver_box_size: int = 0
+    mid_driver_heatsink: str = "medium"
     final_transistor: str = "none"
     final_box_size: int = 0
     final_heatsink: str = "medium"
@@ -123,6 +129,9 @@ class RFCalcRequest(BaseModel):
     driver_transistor: str = "none"
     driver_box_size: int = 0
     driver_heatsink: str = "medium"
+    mid_driver_transistor: str = "none"
+    mid_driver_box_size: int = 0
+    mid_driver_heatsink: str = "medium"
     final_transistor: str = "none"
     final_box_size: int = 0
     final_heatsink: str = "medium"
