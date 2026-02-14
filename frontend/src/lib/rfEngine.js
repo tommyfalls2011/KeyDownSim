@@ -8,25 +8,49 @@ export const RADIOS = {
   'ranger-rci2970': { name: 'Ranger RCI-2970N2', deadKey: 4, peakKey: 225, type: 'AM/SSB', impedance: 50 },
 };
 
-export const DRIVER_AMPS = {
-  'none': { name: 'No Driver', gainDB: 0, transistors: 0, currentDraw: 0, wattsPerPill: 275, combiningStages: 0 },
-  '1-pill': { name: '1-Pill Driver', gainDB: 13, transistors: 1, currentDraw: 15, wattsPerPill: 275, combiningStages: 0 },
-  '2-pill': { name: '2-Pill Driver', gainDB: 17, transistors: 2, currentDraw: 50, wattsPerPill: 275, combiningStages: 0 },
-  '3-pill': { name: '3-Pill (1→2)', gainDB: 13, transistors: 3, currentDraw: 65, wattsPerPill: 185, combiningStages: 0 },
-  '4-pill': { name: '4-Pill Driver', gainDB: 20, transistors: 4, currentDraw: 100, wattsPerPill: 275, combiningStages: 1 },
-  '2x4': { name: '2x4 Combo (2→4)', gainDB: 20, transistors: 6, currentDraw: 130, wattsPerPill: 275, combiningStages: 1 },
-  '2x6': { name: '2x6 Combo (2→6)', gainDB: 21, transistors: 8, currentDraw: 180, wattsPerPill: 275, combiningStages: 1 },
+// ─── Transistor (Pill) Types ───
+export const TRANSISTORS = {
+  'toshiba-2sc2879': { name: 'Toshiba 2SC2879', wattsPEP: 100, gainDB: 13, dissipation: 250, tjMax: 175, efficiency: 0.35, driveWatts: 4, currentMax: 25 },
+  'hg-2sc2879': { name: 'HG 2SC2879', wattsPEP: 125, gainDB: 11.5, dissipation: 250, tjMax: 175, efficiency: 0.35, driveWatts: 5, currentMax: 25 },
+  'mitsubishi-2sc3240': { name: 'Mitsubishi 2SC3240', wattsPEP: 105, gainDB: 11.5, dissipation: 270, tjMax: 175, efficiency: 0.575, driveWatts: 7, currentMax: 25 },
+  'mrf454': { name: 'MRF454', wattsPEP: 80, gainDB: 10, dissipation: 150, tjMax: 175, efficiency: 0.65, driveWatts: 8, currentMax: 15 },
+  'sd1446': { name: 'SD1446', wattsPEP: 70, gainDB: 10, dissipation: 183, tjMax: 175, efficiency: 0.55, driveWatts: 7, currentMax: 12 },
+  'hg-sd1446': { name: 'HG SD1446', wattsPEP: 75, gainDB: 10, dissipation: 183, tjMax: 175, efficiency: 0.55, driveWatts: 7.5, currentMax: 12 },
 };
 
-export const FINAL_AMPS = {
-  'none': { name: 'No Final', gainDB: 0, transistors: 0, currentDraw: 0, wattsPerPill: 275, combiningStages: 0 },
-  '2-pill': { name: '2-Pill Comp', gainDB: 10, transistors: 2, currentDraw: 50, wattsPerPill: 275, combiningStages: 0 },
-  '4-pill': { name: '4-Pill Amp', gainDB: 10, transistors: 4, currentDraw: 100, wattsPerPill: 275, combiningStages: 1 },
-  '8-pill': { name: '8-Pill Amp', gainDB: 10, transistors: 8, currentDraw: 200, wattsPerPill: 275, combiningStages: 2 },
-  '16-pill': { name: '16-Pill Amp', gainDB: 13, transistors: 16, currentDraw: 400, wattsPerPill: 275, combiningStages: 4 },
-  '24-pill': { name: '24-Pill Comp', gainDB: 14, transistors: 24, currentDraw: 600, wattsPerPill: 275, combiningStages: 6 },
-  '32-pill': { name: '32-Pill Comp', gainDB: 15, transistors: 32, currentDraw: 800, wattsPerPill: 275, combiningStages: 8 },
+// ─── Box Sizes (pill count → combining stages) ───
+export const BOX_SIZES = [1, 2, 3, 4, 6, 8, 16, 24, 32];
+const BOX_COMBINING = { 1: 0, 2: 0, 3: 0, 4: 1, 6: 1, 8: 2, 16: 4, 24: 6, 32: 8 };
+
+// ─── Heatsink Options ───
+export const HEATSINKS = {
+  'small': { name: 'Small (passive/small fins)', thermalResistance: 2.0, coolRate: 0.8 },
+  'medium': { name: 'Medium (finned + fan)', thermalResistance: 0.8, coolRate: 2.0 },
+  'large': { name: 'Large (big fins + high-CFM)', thermalResistance: 0.3, coolRate: 4.0 },
 };
+
+// ─── Build amp specs from transistor + box + heatsink ───
+export function getAmpSpecs(transistorKey, boxSize, heatsinkKey) {
+  if (!transistorKey || transistorKey === 'none' || !boxSize || boxSize === 0) return null;
+  const pill = TRANSISTORS[transistorKey];
+  if (!pill) return null;
+  const combiningStages = BOX_COMBINING[boxSize] ?? 0;
+  const heatsink = HEATSINKS[heatsinkKey] || HEATSINKS['medium'];
+  const currentPerPill = Math.round(pill.wattsPEP / (12.5 * pill.efficiency));
+  return {
+    name: `${boxSize}x ${pill.name}`,
+    gainDB: pill.gainDB,
+    transistors: boxSize,
+    currentDraw: currentPerPill * boxSize,
+    wattsPerPill: pill.wattsPEP,
+    combiningStages,
+    dissipation: pill.dissipation,
+    tjMax: pill.tjMax,
+    efficiency: pill.efficiency,
+    coolRate: heatsink.coolRate,
+    heatsinkName: heatsink.name,
+  };
+}
 
 const COMBINING_BONUS_PER_STAGE = 1.2;
 
