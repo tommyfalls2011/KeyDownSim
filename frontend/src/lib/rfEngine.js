@@ -54,14 +54,25 @@ export const ANTENNAS = {
 
 // Vehicle ground heights in feet (bed/roof height from ground)
 export const VEHICLES = {
+  // ─── SUVs & Wagons ───
   'suburban': { name: 'Suburban/SUV', groundPlane: 0.88, surfaceSqFt: 42, directional: 0.12, takeoff: 22, shape: 'suv', groundHeight: 5.5 },
-  'shootout': { name: 'Shootout Truck', groundPlane: 0.90, surfaceSqFt: 38, directional: 0.15, takeoff: 18, shape: 'truck', groundHeight: 4.2 },
-  'f150': { name: 'Ford F-150', groundPlane: 0.62, surfaceSqFt: 28, directional: 0.48, takeoff: 35, shape: 'truck', groundHeight: 5.0 },
-  'ram': { name: 'Dodge Ram', groundPlane: 0.68, surfaceSqFt: 31, directional: 0.42, takeoff: 32, shape: 'truck', groundHeight: 5.2 },
-  'van': { name: 'Cargo Van', groundPlane: 0.92, surfaceSqFt: 52, directional: 0.08, takeoff: 18, shape: 'van', groundHeight: 7.0 },
   'wagon': { name: 'Station Wagon', groundPlane: 0.80, surfaceSqFt: 36, directional: 0.20, takeoff: 26, shape: 'wagon', groundHeight: 4.5 },
-  'semi': { name: 'Semi Truck', groundPlane: 0.95, surfaceSqFt: 65, directional: 0.05, takeoff: 15, shape: 'semi', groundHeight: 8.5 },
   'jeep': { name: 'Jeep Wrangler', groundPlane: 0.55, surfaceSqFt: 22, directional: 0.55, takeoff: 40, shape: 'jeep', groundHeight: 4.0 },
+  // ─── Competition ───
+  'shootout': { name: 'Shootout Truck (Built)', groundPlane: 0.92, surfaceSqFt: 38, directional: 0.12, takeoff: 18, shape: 'truck', groundHeight: 4.2 },
+  // ─── Chevy / GM ───
+  'silverado-rcsb': { name: 'Silverado 1500 RCSB', groundPlane: 0.70, surfaceSqFt: 34, directional: 0.35, takeoff: 28, shape: 'truck', groundHeight: 5.8 },
+  'c10': { name: "Chevy C10 ('67-'72)", groundPlane: 0.65, surfaceSqFt: 28, directional: 0.40, takeoff: 32, shape: 'truck', groundHeight: 4.8 },
+  'silverado-3500': { name: 'Silverado 3500HD Crew/Long', groundPlane: 0.82, surfaceSqFt: 46, directional: 0.18, takeoff: 20, shape: 'truck', groundHeight: 6.5 },
+  // ─── Ford ───
+  'f150': { name: 'Ford F-150', groundPlane: 0.68, surfaceSqFt: 32, directional: 0.38, takeoff: 30, shape: 'truck', groundHeight: 5.5 },
+  'f350': { name: 'Ford F-350 Super Duty', groundPlane: 0.80, surfaceSqFt: 48, directional: 0.20, takeoff: 22, shape: 'truck', groundHeight: 6.8 },
+  // ─── Ram ───
+  'ram': { name: 'Ram 1500', groundPlane: 0.68, surfaceSqFt: 31, directional: 0.42, takeoff: 32, shape: 'truck', groundHeight: 5.2 },
+  'ram-3500': { name: 'Ram 3500 Crew Cab', groundPlane: 0.78, surfaceSqFt: 45, directional: 0.22, takeoff: 23, shape: 'truck', groundHeight: 6.5 },
+  // ─── Commercial ───
+  'van': { name: 'Cargo Van', groundPlane: 0.92, surfaceSqFt: 52, directional: 0.08, takeoff: 18, shape: 'van', groundHeight: 7.0 },
+  'semi': { name: 'Semi Truck', groundPlane: 0.95, surfaceSqFt: 65, directional: 0.05, takeoff: 15, shape: 'semi', groundHeight: 8.5 },
 };
 
 // Yagi Array Element Positions (distances in inches from rear antenna)
