@@ -476,51 +476,58 @@ async def stripe_webhook(request: Request):
 @api_router.post("/calculate")
 async def calculate_rf(data: RFCalcRequest):
     radio = RADIOS.get(data.radio)
-    driver = DRIVER_AMPS.get(data.driver_amp)
-    final = FINAL_AMPS.get(data.final_amp)
     antenna = ANTENNAS.get(data.antenna)
     vehicle = VEHICLES.get(data.vehicle)
 
-    if not all([radio, driver, final, antenna, vehicle]):
+    if not all([radio, antenna, vehicle]):
         raise HTTPException(status_code=400, detail="Invalid equipment selection")
 
-    # Signal chain calculation — each 2SC2879 pill produces ~550W max
+    # Build amp specs from transistor + box size
+    BOX_COMBINING = {1: 0, 2: 0, 3: 0, 4: 1, 6: 1, 8: 2, 16: 4, 24: 6, 32: 8}
+
+    def build_amp_specs(transistor_key, box_size):
+        if not transistor_key or transistor_key == "none" or not box_size:
+            return None
+        pill = TRANSISTORS.get(transistor_key)
+        if not pill:
+            return None
+        combining_stages = BOX_COMBINING.get(box_size, 0)
+        current_per_pill = round(pill["watts_pep"] / (12.5 * pill["efficiency"]))
+        return {
+            "gain_db": pill["gain_db"], "transistors": box_size,
+            "watts_per_pill": pill["watts_pep"], "combining_stages": combining_stages,
+            "current_draw": current_per_pill * box_size, "efficiency": pill["efficiency"],
+        }
+
+    driver = build_amp_specs(data.driver_transistor, data.driver_box_size)
+    final = build_amp_specs(data.final_transistor, data.final_box_size)
+
     dead_key_power = radio["dead_key"]
     peak_power = radio["peak_key"]
 
-    # Driver stage: high gain but capped at pills x wpp x compounded combining bonus
-    if driver["gain_db"] > 0:
+    if driver and driver["gain_db"] > 0:
         driver_gain = 10 ** (driver["gain_db"] / 10)
-        stages = driver.get("combining_stages", 0)
-        combining = COMBINING_BONUS_PER_STAGE ** stages
-        driver_max = driver["transistors"] * driver.get("watts_per_pill", 275) * combining
+        combining = COMBINING_BONUS_PER_STAGE ** driver["combining_stages"]
+        driver_max = driver["transistors"] * driver["watts_per_pill"] * combining
         dead_key_power = min(dead_key_power * driver_gain, driver_max)
         peak_power = min(peak_power * driver_gain, driver_max)
 
-    # Final stage: lower gain but capped at pills x wpp x compounded combining bonus
-    if final["gain_db"] > 0:
+    if final and final["gain_db"] > 0:
         final_gain = 10 ** (final["gain_db"] / 10)
-        stages = final.get("combining_stages", 0)
-        combining = COMBINING_BONUS_PER_STAGE ** stages
-        final_max = final["transistors"] * final.get("watts_per_pill", 275) * combining
+        combining = COMBINING_BONUS_PER_STAGE ** final["combining_stages"]
+        final_max = final["transistors"] * final["watts_per_pill"] * combining
         dead_key_power = min(dead_key_power * final_gain, final_max)
         peak_power = min(peak_power * final_gain, final_max)
 
-    # Bonding effect
     bonding_factor = 1.0 if data.bonding else 0.6
     dead_key_power *= bonding_factor
     peak_power *= bonding_factor
 
-    # Antenna position affects pattern shape only, NOT total power output
-    # The amp puts out the same watts — the ground plane redirects it
-
-    # Antenna gain
     antenna_factor = 10 ** (antenna["gain_dbi"] / 10)
     effective_dead = dead_key_power * antenna_factor
     effective_peak = peak_power * antenna_factor
 
-    # Voltage — external regulators control alternator output voltage
-    demand_current = driver["current_draw"] + final["current_draw"]
+    demand_current = (driver["current_draw"] if driver else 0) + (final["current_draw"] if final else 0)
     reg_voltages = data.regulator_voltages or [14.2]
     reg_count = len(reg_voltages)
     alts_per_reg = math.ceil(data.alternator_count / max(1, reg_count))
@@ -573,12 +580,10 @@ async def calculate_rf(data: RFCalcRequest):
         effective_dead *= power_reduction
         effective_peak *= power_reduction
 
-    # Take-off angle
     base_takeoff = vehicle["takeoff"]
     bonding_penalty = 0 if data.bonding else 15
     takeoff_angle = base_takeoff + bonding_penalty
 
-    # SWR calculation — based on antenna type, vehicle surface area, and tip tuning
     base_swr = 1.0
     if antenna["type"] == "mag-mount":
         base_swr = 1.2
@@ -588,7 +593,6 @@ async def calculate_rf(data: RFCalcRequest):
     swr = base_swr + surface_penalty
     if not data.bonding:
         swr += 0.9
-    # Tunable tip adjustment
     if antenna.get("tunable") and data.tip_length:
         sweet_spot = antenna.get("tip_default", 44)
         deviation = abs(data.tip_length - sweet_spot)
@@ -597,26 +601,22 @@ async def calculate_rf(data: RFCalcRequest):
         swr = swr - tip_bonus + max(0, tip_penalty - 0.4) * 0.5
     swr = round(max(1.0, swr), 1)
 
-    # Ground plane quality
     gp_quality = vehicle["ground_plane"] * (1.0 if data.bonding else 0.5)
 
-    # Under-driven detection
     drive_watts = radio["dead_key"]
-    if driver["gain_db"] > 0:
-        driver_gain_raw = 10 ** (driver["gain_db"] / 10)
-        d_stages = driver.get("combining_stages", 0)
-        d_combining = COMBINING_BONUS_PER_STAGE ** d_stages
-        d_max = driver["transistors"] * driver.get("watts_per_pill", 275) * d_combining
-        drive_watts = min(drive_watts * driver_gain_raw, d_max)
+    if driver and driver["gain_db"] > 0:
+        d_gain = 10 ** (driver["gain_db"] / 10)
+        d_combining = COMBINING_BONUS_PER_STAGE ** driver["combining_stages"]
+        d_max = driver["transistors"] * driver["watts_per_pill"] * d_combining
+        drive_watts = min(drive_watts * d_gain, d_max)
 
     under_driven = False
     drive_ratio = 1.0
     ideal_drive = 0
-    if final["gain_db"] > 0:
+    if final and final["gain_db"] > 0:
         f_gain = 10 ** (final["gain_db"] / 10)
-        f_stages = final.get("combining_stages", 0)
-        f_combining = COMBINING_BONUS_PER_STAGE ** f_stages
-        f_capacity = final["transistors"] * final.get("watts_per_pill", 275) * f_combining
+        f_combining = COMBINING_BONUS_PER_STAGE ** final["combining_stages"]
+        f_capacity = final["transistors"] * final["watts_per_pill"] * f_combining
         ideal_drive = f_capacity / f_gain
         drive_ratio = drive_watts / ideal_drive if ideal_drive > 0 else 1.0
         under_driven = drive_ratio < 0.6
