@@ -796,8 +796,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_EQUIPMENT = {
     "radios": RADIOS,
-    "driver_amps": DRIVER_AMPS,
-    "final_amps": FINAL_AMPS,
+    "transistors": TRANSISTORS,
+    "heatsinks": HEATSINKS,
     "antennas": ANTENNAS,
     "vehicles": VEHICLES,
 }
