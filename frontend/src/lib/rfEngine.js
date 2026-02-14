@@ -368,6 +368,11 @@ export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength) {
 
 // ─── Yagi Array SWR Calculation ───
 // SWR depends on element height tuning AND element spacing — both affect impedance matching
+// Physics: mutual coupling between elements changes feed-point impedance
+// - Closer spacing → capacitive coupling increases exponentially → impedance mismatch → SWR spikes
+// - Further spacing → coupling drops, Yagi phasing weakens → SWR rises gently
+// - Absolute position shift → ground plane asymmetry on vehicle roof → SWR rises
+// At 27MHz: λ ≈ 432", ¼λ ≈ 108". Optimal Yagi spacings are 0.1–0.25λ.
 export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const heights = yagiConfig?.elementHeights || {};
@@ -383,14 +388,13 @@ export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
     baseSWR += 0.8;
   }
   
-  // Optimal element heights for each stick type (in inches)
+  // ─── Height Tuning ───
   const optimalHeights = stickType === 'fight-10' ? {
     ant1: 120, ant2: 120, dir1: 108, dir2: 135, dir3: 135,
   } : {
     ant1: 96, ant2: 96, dir1: 84, dir2: 111, dir3: 111,
   };
   
-  // Height deviation penalties
   const ant1Dev = Math.abs((heights.ant1 || optimalHeights.ant1) - optimalHeights.ant1);
   const ant2Dev = Math.abs((heights.ant2 || optimalHeights.ant2) - optimalHeights.ant2);
   const dir1Dev = Math.abs((heights.dir1 || optimalHeights.dir1) - optimalHeights.dir1);
@@ -399,38 +403,76 @@ export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
   const ant2Penalty = ant2Dev * 0.06;
   const dir1Penalty = dir1Dev * 0.04;
   
-  // ─── Element Spacing SWR Impact ───
-  // Moving elements forward/backward changes the electrical spacing between them.
-  // Optimal spacing is ~0.15λ to 0.25λ (about 42"–72" at 27MHz).
-  // Each inch of position offset changes the spacing between adjacent elements,
-  // affecting impedance matching. The driven element (ANT2) spacing is most critical.
-  const ant1Offset = posOffsets.ant1 || 0;
-  const ant2Offset = posOffsets.ant2 || 0;
-  const dir1Offset = posOffsets.dir1 || 0;
-  const dir2Offset = posOffsets.dir2 || 0;
-  const dir3Offset = posOffsets.dir3 || 0;
+  // ─── Element Spacing — Mutual Coupling Model ───
+  // Default optimal spacings between adjacent elements (inches)
+  const dir1OnTruck = yagiConfig?.dir1OnTruck !== false;
+  const dir1BasePos = dir1OnTruck ? 42 : 96;
+  const optimalSpacings = [
+    { name: 'ANT1↔ANT2', optimal: 72, weight: 1.0 },              // reflector↔driven: MOST critical
+    { name: 'ANT2↔DIR1', optimal: dir1BasePos, weight: 0.8 },     // driven↔dir1: high impact
+    { name: 'DIR1↔DIR2', optimal: 96, weight: 0.4 },              // dir1↔dir2: moderate
+    { name: 'DIR2↔DIR3', optimal: 96, weight: 0.2 },              // dir2↔dir3: lower impact
+  ];
   
-  // Spacing between ANT1↔ANT2 (reflector to driven) — most critical for impedance
-  const ant1ant2SpacingDev = Math.abs(ant2Offset - ant1Offset);
-  // Spacing between ANT2↔DIR1 (driven to first director) — affects forward gain + SWR
-  const ant2dir1SpacingDev = Math.abs(dir1Offset - ant2Offset);
-  // Spacing between DIR1↔DIR2 and DIR2↔DIR3 — moderate impact
-  const dir1dir2SpacingDev = Math.abs(dir2Offset - dir1Offset);
-  const dir2dir3SpacingDev = Math.abs(dir3Offset - dir2Offset);
+  // Actual positions with offsets applied
+  const positions = [
+    0 + (posOffsets.ant1 || 0),                                     // ANT1
+    72 + (posOffsets.ant2 || 0),                                    // ANT2
+    72 + dir1BasePos + (posOffsets.dir1 || 0),                      // DIR1
+    72 + dir1BasePos + 96 + (posOffsets.dir2 || 0),                 // DIR2
+    72 + dir1BasePos + 192 + (posOffsets.dir3 || 0),                // DIR3
+  ];
   
-  // SWR penalties for spacing changes (per inch of relative offset)
-  const spacingPenalty = 
-    ant1ant2SpacingDev * 0.05 +   // reflector↔driven: high impact
-    ant2dir1SpacingDev * 0.04 +   // driven↔dir1: moderate-high
-    dir1dir2SpacingDev * 0.02 +   // dir1↔dir2: moderate
-    dir2dir3SpacingDev * 0.01;    // dir2↔dir3: low
+  let spacingPenalty = 0;
+  for (let i = 0; i < optimalSpacings.length; i++) {
+    const actualSpacing = positions[i + 1] - positions[i];
+    const optimal = optimalSpacings[i].optimal;
+    const weight = optimalSpacings[i].weight;
+    const deviation = actualSpacing - optimal;
+    
+    if (deviation < 0) {
+      // CLOSER than optimal — capacitive coupling increases exponentially
+      // Under ¼λ (~108"), coupling is already significant
+      // Going closer makes it much worse — impedance drops away from 50Ω fast
+      const closerInches = Math.abs(deviation);
+      // Exponential curve: 1" closer = mild, 6" closer = noticeable, 12" closer = severe
+      spacingPenalty += weight * (0.04 * closerInches + 0.008 * Math.pow(closerInches, 1.5));
+    } else {
+      // FURTHER than optimal — Yagi phasing weakens, but coupling reduces
+      // This is gentler — the antenna just becomes less efficient as a Yagi
+      // Past ~0.4λ spacing the Yagi effect breaks down
+      const furtherInches = deviation;
+      spacingPenalty += weight * (0.02 * furtherInches);
+    }
+  }
   
-  // Total SWR
-  let swr = baseSWR + ant1Penalty + ant2Penalty + dir1Penalty + spacingPenalty;
+  // ─── Ground Plane / Edge Effect ───
+  // On a vehicle roof, all antennas share the same ground plane (metal roof)
+  // Shifting the entire array forward or backward changes where elements sit
+  // relative to the roof edges — elements near edges see asymmetric ground plane
+  // This is an absolute-position effect, not just relative spacing
+  const avgOffset = ((posOffsets.ant1 || 0) + (posOffsets.ant2 || 0) + 
+    (posOffsets.dir1 || 0) + (posOffsets.dir2 || 0) + (posOffsets.dir3 || 0)) / 5;
+  // Individual elements that deviate far from center of array shift toward roof edge
+  const edgePenalty = [
+    posOffsets.ant1 || 0, posOffsets.ant2 || 0, posOffsets.dir1 || 0,
+    posOffsets.dir2 || 0, posOffsets.dir3 || 0
+  ].reduce((sum, offset) => {
+    // Elements pushed toward either edge of the vehicle get worse ground plane
+    const distFromArrayCenter = Math.abs(offset - avgOffset);
+    return sum + distFromArrayCenter * 0.01;
+  }, 0);
+  // Whole-array shift: if the entire lineup moves, the front/rear elements
+  // get closer to roof edges → asymmetric image → SWR drift
+  const arrayShiftPenalty = Math.abs(avgOffset) * 0.015;
   
-  // When all elements are tuned optimally (heights within 2" AND positions within 2"), give a bonus
+  // ─── Total SWR ───
+  let swr = baseSWR + ant1Penalty + ant2Penalty + dir1Penalty + spacingPenalty + edgePenalty + arrayShiftPenalty;
+  
+  // When all elements are well-tuned (heights AND positions near optimal), bonus
   const totalHeightDev = ant1Dev + ant2Dev + dir1Dev;
-  const totalPosDev = Math.abs(ant1Offset) + Math.abs(ant2Offset) + Math.abs(dir1Offset) + Math.abs(dir2Offset) + Math.abs(dir3Offset);
+  const totalPosDev = Math.abs(posOffsets.ant1 || 0) + Math.abs(posOffsets.ant2 || 0) + 
+    Math.abs(posOffsets.dir1 || 0) + Math.abs(posOffsets.dir2 || 0) + Math.abs(posOffsets.dir3 || 0);
   if (totalHeightDev <= 6 && totalPosDev <= 6) {
     swr -= 0.3 * (1 - Math.max(totalHeightDev, totalPosDev) / 6);
   }
