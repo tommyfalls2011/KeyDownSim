@@ -550,30 +550,27 @@ export function calculateTakeoffAngle(vehicleKey, bonding, options = {}) {
 
 // ─── Under-Driven Detection ───
 
-export function checkUnderDriven(radioKey, driverKey, finalKey, bonding, driveLevel) {
+export function checkUnderDriven(radioKey, driverSpecs, finalSpecs, bonding, driveLevel) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
-  const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
-  const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
+  const driver = driverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0 };
+  const final_ = finalSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0 };
   const dl = driveLevel ?? 1.0;
 
   if (final_.gainDB <= 0) return { isUnderDriven: false, driveRatio: 1.0, driveWatts: 0, finalCapacity: 0 };
 
-  // Calculate what driver stage outputs (power going INTO the final amp)
   let driveWatts = radio.deadKey * dl;
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
     const stages = driver.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    const driverMax = driver.transistors * (driver.wattsPerPill || 275) * combining;
+    const driverMax = driver.transistors * (driver.wattsPerPill || 100) * combining;
     driveWatts = Math.min(driveWatts * driverGain, driverMax);
   }
 
-  // What the final amp needs to be fully driven (ideal input)
-  // Final amp max output / final gain = ideal input
   const finalGain = Math.pow(10, final_.gainDB / 10);
   const stages = final_.combiningStages || 0;
   const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-  const finalCapacity = final_.transistors * (final_.wattsPerPill || 275) * combining;
+  const finalCapacity = final_.transistors * (final_.wattsPerPill || 100) * combining;
   const idealDrive = finalCapacity / finalGain;
 
   const driveRatio = driveWatts / idealDrive;
