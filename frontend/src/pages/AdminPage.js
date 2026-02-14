@@ -343,7 +343,7 @@ function EquipmentTab({ token }) {
     setAddOpen(true);
   };
 
-  const categories = ['radios', 'driver_amps', 'final_amps', 'antennas', 'vehicles'];
+  const categories = ['radios', 'transistors', 'heatsinks', 'antennas', 'vehicles'];
 
   if (loading) return <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-cyan-400 animate-spin" /></div>;
 
