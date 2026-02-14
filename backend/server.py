@@ -818,16 +818,19 @@ async def seed_data():
         if existing.get("role") != "admin":
             await db.users.update_one({"email": admin_email}, {"$set": {"role": "admin", "active": True}})
 
-    # Seed equipment if empty
-    eq_count = await db.equipment.count_documents({})
-    if eq_count == 0:
-        docs = []
-        for category, items in DEFAULT_EQUIPMENT.items():
-            for key, data in items.items():
-                docs.append({"key": key, "category": category, "data": data})
-        if docs:
-            await db.equipment.insert_many(docs)
-            logger.info("Seeded %d equipment items", len(docs))
+    # Sync equipment — upsert all items so new additions are always present
+    synced = 0
+    for category, items in DEFAULT_EQUIPMENT.items():
+        for key, data in items.items():
+            result = await db.equipment.update_one(
+                {"key": key, "category": category},
+                {"$setOnInsert": {"key": key, "category": category, "data": data}},
+                upsert=True,
+            )
+            if result.upserted_id:
+                synced += 1
+    if synced:
+        logger.info("Synced %d new equipment items into DB", synced)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
