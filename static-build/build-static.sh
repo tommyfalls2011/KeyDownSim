@@ -29,6 +29,26 @@ cp /app/static-build/rfEngine.js "$BUILD_DIR/src/lib/rfEngineStatic.js"
 # Copy the static RFContext
 cp /app/static-build/RFContextStatic.js "$BUILD_DIR/src/context/RFContextStatic.js"
 
+# Fix imports in ControlPanel.js to use static versions and remove backend deps
+sed -i "s|from '@/context/RFContext'|from '@/context/RFContextStatic'|g" "$BUILD_DIR/src/components/ControlPanel.js"
+sed -i "s|from '@/lib/rfEngine'|from '@/lib/rfEngineStatic'|g" "$BUILD_DIR/src/components/ControlPanel.js"
+# Remove auth and save-related imports/code from ControlPanel
+sed -i "/import { useAuth } from/d" "$BUILD_DIR/src/components/ControlPanel.js"
+sed -i "/import axios from/d" "$BUILD_DIR/src/components/ControlPanel.js"
+sed -i "/const API = /d" "$BUILD_DIR/src/components/ControlPanel.js"
+
+# Fix imports in CanvasVisualizer.js to use static versions
+sed -i "s|from '@/context/RFContext'|from '@/context/RFContextStatic'|g" "$BUILD_DIR/src/components/CanvasVisualizer.js"
+sed -i "s|from '@/lib/rfEngine'|from '@/lib/rfEngineStatic'|g" "$BUILD_DIR/src/components/CanvasVisualizer.js"
+
+# Fix imports in MetricsPanel.js to use static versions
+sed -i "s|from '@/context/RFContext'|from '@/context/RFContextStatic'|g" "$BUILD_DIR/src/components/MetricsPanel.js"
+sed -i "s|from '@/lib/rfEngine'|from '@/lib/rfEngineStatic'|g" "$BUILD_DIR/src/components/MetricsPanel.js"
+
+# Fix imports in KeyButton.js to use static versions
+sed -i "s|from '@/context/RFContext'|from '@/context/RFContextStatic'|g" "$BUILD_DIR/src/components/KeyButton.js"
+sed -i "s|from '@/lib/rfEngine'|from '@/lib/rfEngineStatic'|g" "$BUILD_DIR/src/components/KeyButton.js"
+
 # Create simplified Dashboard without auth
 cat > "$BUILD_DIR/src/pages/DashboardStatic.js" << 'DASHBOARD_EOF'
 import { useRF } from '@/context/RFContextStatic';
