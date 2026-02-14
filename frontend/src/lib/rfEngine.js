@@ -613,7 +613,9 @@ export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
   const swrAtAntenna = gammaToSWR(gammaAnt);
 
   // Apply feedline loss
-  const gammaRadio = applyFeedlineLoss(gammaAnt, DEFAULT_COAX, DEFAULT_COAX_FT);
+  const coaxType = yagiConfig?.coaxType || DEFAULT_COAX;
+  const coaxLengthFt = yagiConfig?.coaxLengthFt ?? DEFAULT_COAX_FT;
+  const gammaRadio = applyFeedlineLoss(gammaAnt, coaxType, coaxLengthFt);
   const swrAtRadio = gammaToSWR(gammaRadio);
 
   // Tuning bonus: if everything is within 6" of optimal, the system resonates cleanly
