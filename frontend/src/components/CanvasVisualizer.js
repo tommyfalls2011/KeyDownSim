@@ -126,7 +126,8 @@ export default function CanvasVisualizer() {
     ctx.stroke();
     
     // Draw front beam (in front of truck for DIR1, DIR2, DIR3)
-    const frontBeamEnd = cy - inchToPixel(234) - 30 * s;
+    const lastDirPos = elements[elements.length - 1].pos;
+    const frontBeamEnd = cy - inchToPixel(lastDirPos) - 30 * s;
     ctx.strokeStyle = 'rgba(100,100,100,0.8)';
     ctx.lineWidth = 3;
     ctx.beginPath();
