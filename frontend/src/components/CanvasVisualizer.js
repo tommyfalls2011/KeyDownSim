@@ -317,6 +317,7 @@ export default function CanvasVisualizer() {
         drawYagiArray(ctx, cx, cy, 1.2, {
           stickType: config.yagiStickType,
           elementHeights: config.yagiElementHeights,
+          dir1OnTruck: config.yagiDir1OnTruck,
         }, keyed);
       }
 
