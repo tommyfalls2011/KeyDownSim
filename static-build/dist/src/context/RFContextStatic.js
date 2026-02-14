@@ -307,7 +307,10 @@ export function RFProvider({ children }) {
       })
     : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
   
-  const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
+  const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding, {
+    antennaPosition: config.antennaPosition,
+    yagiMode: config.yagiMode,
+  });
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 
   const driver = DRIVER_AMPS[config.driverAmp] || DRIVER_AMPS['none'];
