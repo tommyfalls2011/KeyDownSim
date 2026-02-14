@@ -180,12 +180,13 @@ export function RFProvider({ children }) {
   // Thermal preview simulation — calculates what happens over a given duration without changing state
   const runThermalPreview = useCallback((durationSec = 30) => {
     const driverSpecs = getAmpSpecs(config.driverTransistor, config.driverBoxSize, config.driverHeatsink);
+    const midDriverSpecs = getAmpSpecs(config.midDriverTransistor, config.midDriverBoxSize, config.midDriverHeatsink);
     const finalSpecs = getAmpSpecs(config.finalTransistor, config.finalBoxSize, config.finalHeatsink);
-    const stages = calculateStageOutputs(config.radio, driverSpecs, finalSpecs, config.bonding, config.driveLevel);
+    const stages = calculateStageOutputs(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel);
     const regs = config.regulatorVoltages || [14.2];
     const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
     const voltageStress = avgRegV > 15 ? 1 + (avgRegV - 15) * 0.4 : 1.0;
-    const underDriven = checkUnderDriven(config.radio, driverSpecs, finalSpecs, config.bonding, config.driveLevel);
+    const underDriven = checkUnderDriven(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel);
     const overDriveExcess = Math.max(0, underDriven.driveRatio - 1.0);
     const overDriveStress = overDriveExcess > 0 ? 1 + overDriveExcess * 2.5 + Math.pow(overDriveExcess, 2) * 3.0 : 1.0;
 
@@ -193,20 +194,21 @@ export function RFProvider({ children }) {
     const dt = 0.1;
     const steps = Math.floor(durationSec / dt);
 
-    // Efficiency-based heat factor: less efficient pills waste more heat
     const drvEffFactor = driverSpecs ? (1 - driverSpecs.efficiency) / (1 - 0.35) : 1;
+    const midEffFactor = midDriverSpecs ? (1 - midDriverSpecs.efficiency) / (1 - 0.35) : 1;
     const finEffFactor = finalSpecs ? (1 - finalSpecs.efficiency) / (1 - 0.35) : 1;
     const drvCoolRate = driverSpecs?.coolRate ?? 2;
+    const midCoolRate = midDriverSpecs?.coolRate ?? 2;
     const finCoolRate = finalSpecs?.coolRate ?? 2;
     const drvBlowTemp = driverSpecs?.tjMax ?? 175;
+    const midBlowTemp = midDriverSpecs?.tjMax ?? 175;
     const finBlowTemp = finalSpecs?.tjMax ?? 175;
 
     let drvTemp = driverTemp;
+    let midTemp = midDriverTemp;
     let finTemp = finalTemp;
-    let drvBlowTime = null;
-    let finBlowTime = null;
-    let drvPeakTemp = driverTemp;
-    let finPeakTemp = finalTemp;
+    let drvBlowTime = null, midBlowTime = null, finBlowTime = null;
+    let drvPeakTemp = driverTemp, midPeakTemp = midDriverTemp, finPeakTemp = finalTemp;
 
     for (let i = 0; i < steps; i++) {
       const t = i * dt;
@@ -214,19 +216,27 @@ export function RFProvider({ children }) {
       if (driverSpecs && driverSpecs.transistors > 0 && drvBlowTime === null) {
         const thermalMass = driverSpecs.transistors >= 2 ? Math.sqrt(driverSpecs.transistors / 2) : 1;
         const loadRatio = Math.max(0.05, stages.driverLoadRatioDK + (stages.driverLoadRatioPK - stages.driverLoadRatioDK) * simMicLevel);
-        const loadFactor = loadRatio * voltageStress;
-        const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor * drvEffFactor;
+        const heatRate = (HEAT_BASE_RATE / thermalMass) * loadRatio * voltageStress * drvEffFactor;
         const coolDissipated = (drvTemp - AMBIENT_TEMP) * (drvCoolRate / 50) * dt;
         drvTemp += heatRate * dt - coolDissipated;
         if (drvTemp > drvPeakTemp) drvPeakTemp = drvTemp;
         if (drvTemp >= drvBlowTemp) { drvBlowTime = t; drvTemp = drvBlowTemp; }
       }
 
+      if (midDriverSpecs && midDriverSpecs.transistors > 0 && midBlowTime === null) {
+        const thermalMass = midDriverSpecs.transistors >= 2 ? Math.sqrt(midDriverSpecs.transistors / 2) : 1;
+        const loadRatio = Math.max(0.05, stages.midDriverLoadRatioDK + (stages.midDriverLoadRatioPK - stages.midDriverLoadRatioDK) * simMicLevel);
+        const heatRate = (HEAT_BASE_RATE / thermalMass) * loadRatio * voltageStress * midEffFactor;
+        const coolDissipated = (midTemp - AMBIENT_TEMP) * (midCoolRate / 50) * dt;
+        midTemp += heatRate * dt - coolDissipated;
+        if (midTemp > midPeakTemp) midPeakTemp = midTemp;
+        if (midTemp >= midBlowTemp) { midBlowTime = t; midTemp = midBlowTemp; }
+      }
+
       if (finalSpecs && finalSpecs.transistors > 0 && finBlowTime === null) {
         const thermalMass = finalSpecs.transistors >= 2 ? Math.sqrt(finalSpecs.transistors / 2) : 1;
         const loadRatio = Math.max(0.05, stages.finalLoadRatioDK + (stages.finalLoadRatioPK - stages.finalLoadRatioDK) * simMicLevel);
-        const loadFactor = loadRatio * voltageStress * overDriveStress;
-        const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor * finEffFactor;
+        const heatRate = (HEAT_BASE_RATE / thermalMass) * loadRatio * voltageStress * overDriveStress * finEffFactor;
         const coolDissipated = (finTemp - AMBIENT_TEMP) * (finCoolRate / 50) * dt;
         finTemp += heatRate * dt - coolDissipated;
         if (finTemp > finPeakTemp) finPeakTemp = finTemp;
@@ -238,38 +248,30 @@ export function RFProvider({ children }) {
       if (!specs || specs.transistors <= 0) return null;
       const thermalMass = specs.transistors >= 2 ? Math.sqrt(specs.transistors / 2) : 1;
       const loadRatio = Math.max(0.05, loadRatioDK + (loadRatioPK - loadRatioDK) * simMicLevel);
-      const loadFactor = loadRatio * voltageStress * extraStress;
-      const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor * effFactor;
+      const heatRate = (HEAT_BASE_RATE / thermalMass) * loadRatio * voltageStress * extraStress * effFactor;
       if (heatRate <= 0) return null;
       const degreesToBlow = (specs.tjMax ?? 175) - currentTemp;
       return degreesToBlow / heatRate;
     };
 
-    const drvTimeToBlowFromNow = driverSpecs
-      ? calcTimeToBlowFrom(driverTemp, driverSpecs, stages.driverLoadRatioDK, stages.driverLoadRatioPK, drvEffFactor, drvCoolRate)
-      : null;
-    const finTimeToBlowFromNow = finalSpecs
-      ? calcTimeToBlowFrom(finalTemp, finalSpecs, stages.finalLoadRatioDK, stages.finalLoadRatioPK, finEffFactor, finCoolRate, overDriveStress)
-      : null;
-
     return {
       durationSec,
       driver: {
-        startTemp: Math.round(driverTemp),
-        peakTemp: Math.round(drvPeakTemp),
-        endTemp: Math.round(drvTemp),
-        willBlow: drvBlowTime !== null,
-        blowTime: drvBlowTime ? Math.round(drvBlowTime) : null,
-        timeToBlowFromNow: drvTimeToBlowFromNow ? Math.round(drvTimeToBlowFromNow) : null,
+        startTemp: Math.round(driverTemp), peakTemp: Math.round(drvPeakTemp), endTemp: Math.round(drvTemp),
+        willBlow: drvBlowTime !== null, blowTime: drvBlowTime ? Math.round(drvBlowTime) : null,
+        timeToBlowFromNow: driverSpecs ? (calcTimeToBlowFrom(driverTemp, driverSpecs, stages.driverLoadRatioDK, stages.driverLoadRatioPK, drvEffFactor, drvCoolRate) ? Math.round(calcTimeToBlowFrom(driverTemp, driverSpecs, stages.driverLoadRatioDK, stages.driverLoadRatioPK, drvEffFactor, drvCoolRate)) : null) : null,
         isActive: !!driverSpecs,
       },
+      midDriver: {
+        startTemp: Math.round(midDriverTemp), peakTemp: Math.round(midPeakTemp), endTemp: Math.round(midTemp),
+        willBlow: midBlowTime !== null, blowTime: midBlowTime ? Math.round(midBlowTime) : null,
+        timeToBlowFromNow: midDriverSpecs ? (calcTimeToBlowFrom(midDriverTemp, midDriverSpecs, stages.midDriverLoadRatioDK, stages.midDriverLoadRatioPK, midEffFactor, midCoolRate) ? Math.round(calcTimeToBlowFrom(midDriverTemp, midDriverSpecs, stages.midDriverLoadRatioDK, stages.midDriverLoadRatioPK, midEffFactor, midCoolRate)) : null) : null,
+        isActive: !!midDriverSpecs,
+      },
       final: {
-        startTemp: Math.round(finalTemp),
-        peakTemp: Math.round(finPeakTemp),
-        endTemp: Math.round(finTemp),
-        willBlow: finBlowTime !== null,
-        blowTime: finBlowTime ? Math.round(finBlowTime) : null,
-        timeToBlowFromNow: finTimeToBlowFromNow ? Math.round(finTimeToBlowFromNow) : null,
+        startTemp: Math.round(finalTemp), peakTemp: Math.round(finPeakTemp), endTemp: Math.round(finTemp),
+        willBlow: finBlowTime !== null, blowTime: finBlowTime ? Math.round(finBlowTime) : null,
+        timeToBlowFromNow: finalSpecs ? (calcTimeToBlowFrom(finalTemp, finalSpecs, stages.finalLoadRatioDK, stages.finalLoadRatioPK, finEffFactor, finCoolRate, overDriveStress) ? Math.round(calcTimeToBlowFrom(finalTemp, finalSpecs, stages.finalLoadRatioDK, stages.finalLoadRatioPK, finEffFactor, finCoolRate, overDriveStress)) : null) : null,
         isActive: !!finalSpecs,
       },
       warnings: {
@@ -278,20 +280,23 @@ export function RFProvider({ children }) {
         underDriven: underDriven.isUnderDriven,
       }
     };
-  }, [config, driverTemp, finalTemp]);
+  }, [config, driverTemp, midDriverTemp, finalTemp]);
 
-  // Thermal simulation tick — reads keyed/blown/micLevel from refs to avoid stale closures
+  // Thermal simulation tick
   useEffect(() => {
     const driverSpecs = getAmpSpecs(config.driverTransistor, config.driverBoxSize, config.driverHeatsink);
+    const midDriverSpecs = getAmpSpecs(config.midDriverTransistor, config.midDriverBoxSize, config.midDriverHeatsink);
     const finalSpecs = getAmpSpecs(config.finalTransistor, config.finalBoxSize, config.finalHeatsink);
-    const stages = calculateStageOutputs(config.radio, driverSpecs, finalSpecs, config.bonding, config.driveLevel);
+    const stages = calculateStageOutputs(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel);
 
-    // Efficiency-based heat factor
     const drvEffFactor = driverSpecs ? (1 - driverSpecs.efficiency) / (1 - 0.35) : 1;
+    const midEffFactor = midDriverSpecs ? (1 - midDriverSpecs.efficiency) / (1 - 0.35) : 1;
     const finEffFactor = finalSpecs ? (1 - finalSpecs.efficiency) / (1 - 0.35) : 1;
     const drvCoolRate = driverSpecs?.coolRate ?? 2;
+    const midCoolRate = midDriverSpecs?.coolRate ?? 2;
     const finCoolRate = finalSpecs?.coolRate ?? 2;
     const drvBlowTemp = driverSpecs?.tjMax ?? 175;
+    const midBlowTemp = midDriverSpecs?.tjMax ?? 175;
     const finBlowTemp = finalSpecs?.tjMax ?? 175;
 
     const interval = setInterval(() => {
@@ -301,6 +306,7 @@ export function RFProvider({ children }) {
 
       const isKeyed = keyedRef.current;
       const isDriverBlown = driverBlownRef.current;
+      const isMidDriverBlown = midDriverBlownRef.current;
       const isFinalBlown = finalBlownRef.current;
       const currentMicLevel = micLevelRef.current;
 
@@ -308,53 +314,59 @@ export function RFProvider({ children }) {
       const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
       const voltageStress = avgRegV > 15 ? 1 + (avgRegV - 15) * 0.4 : 1.0;
 
-      const underDriven = checkUnderDriven(config.radio, driverSpecs, finalSpecs, config.bonding);
+      const underDriven = checkUnderDriven(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding);
       const overDriveExcess = Math.max(0, underDriven.driveRatio - 1.0);
       const overDriveStress = overDriveExcess > 0 ? 1 + overDriveExcess * 2.5 + Math.pow(overDriveExcess, 2) * 3.0 : 1.0;
 
       setDriverTemp(prev => {
         if (isDriverBlown) return prev;
         if (!driverSpecs || driverSpecs.transistors <= 0) return Math.max(AMBIENT_TEMP, prev - drvCoolRate * dt);
-
         if (isKeyed) {
           const thermalMass = driverSpecs.transistors >= 2 ? Math.sqrt(driverSpecs.transistors / 2) : 1;
           const dkRatio = stages.driverLoadRatioDK;
           const pkRatio = stages.driverLoadRatioPK;
           const loadRatio = Math.max(0.05, dkRatio + (pkRatio - dkRatio) * currentMicLevel);
           const driverStress = dkRatio > 0.85 ? 1 + (dkRatio - 0.85) * 4.0 : 1.0;
-          const loadFactor = loadRatio * voltageStress * driverStress;
-          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor * drvEffFactor;
+          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadRatio * voltageStress * driverStress * drvEffFactor;
           const coolDissipated = (prev - AMBIENT_TEMP) * (drvCoolRate / 50) * dt;
           const newTemp = prev + heatRate * dt - coolDissipated;
-          if (newTemp >= drvBlowTemp) {
-            setDriverBlown(true);
-            driverBlownRef.current = true;
-            return drvBlowTemp;
-          }
+          if (newTemp >= drvBlowTemp) { setDriverBlown(true); driverBlownRef.current = true; return drvBlowTemp; }
           return newTemp;
         } else {
           return Math.max(AMBIENT_TEMP, prev - drvCoolRate * dt);
         }
       });
 
+      setMidDriverTemp(prev => {
+        if (isMidDriverBlown) return prev;
+        if (!midDriverSpecs || midDriverSpecs.transistors <= 0) return Math.max(AMBIENT_TEMP, prev - midCoolRate * dt);
+        if (isKeyed) {
+          const thermalMass = midDriverSpecs.transistors >= 2 ? Math.sqrt(midDriverSpecs.transistors / 2) : 1;
+          const dkRatio = stages.midDriverLoadRatioDK;
+          const pkRatio = stages.midDriverLoadRatioPK;
+          const loadRatio = Math.max(0.05, dkRatio + (pkRatio - dkRatio) * currentMicLevel);
+          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadRatio * voltageStress * midEffFactor;
+          const coolDissipated = (prev - AMBIENT_TEMP) * (midCoolRate / 50) * dt;
+          const newTemp = prev + heatRate * dt - coolDissipated;
+          if (newTemp >= midBlowTemp) { setMidDriverBlown(true); midDriverBlownRef.current = true; return midBlowTemp; }
+          return newTemp;
+        } else {
+          return Math.max(AMBIENT_TEMP, prev - midCoolRate * dt);
+        }
+      });
+
       setFinalTemp(prev => {
         if (isFinalBlown) return prev;
         if (!finalSpecs || finalSpecs.transistors <= 0) return Math.max(AMBIENT_TEMP, prev - finCoolRate * dt);
-
         if (isKeyed) {
           const thermalMass = finalSpecs.transistors >= 2 ? Math.sqrt(finalSpecs.transistors / 2) : 1;
           const dkRatio = stages.finalLoadRatioDK;
           const pkRatio = stages.finalLoadRatioPK;
           const loadRatio = Math.max(0.05, dkRatio + (pkRatio - dkRatio) * currentMicLevel);
-          const loadFactor = loadRatio * voltageStress * overDriveStress;
-          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor * finEffFactor;
+          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadRatio * voltageStress * overDriveStress * finEffFactor;
           const coolDissipated = (prev - AMBIENT_TEMP) * (finCoolRate / 50) * dt;
           const newTemp = prev + heatRate * dt - coolDissipated;
-          if (newTemp >= finBlowTemp) {
-            setFinalBlown(true);
-            finalBlownRef.current = true;
-            return finBlowTemp;
-          }
+          if (newTemp >= finBlowTemp) { setFinalBlown(true); finalBlownRef.current = true; return finBlowTemp; }
           return newTemp;
         } else {
           return Math.max(AMBIENT_TEMP, prev - finCoolRate * dt);
@@ -367,6 +379,7 @@ export function RFProvider({ children }) {
 
   // Build amp specs for calculations
   const driverSpecs = useMemo(() => getAmpSpecs(config.driverTransistor, config.driverBoxSize, config.driverHeatsink), [config.driverTransistor, config.driverBoxSize, config.driverHeatsink]);
+  const midDriverSpecs = useMemo(() => getAmpSpecs(config.midDriverTransistor, config.midDriverBoxSize, config.midDriverHeatsink), [config.midDriverTransistor, config.midDriverBoxSize, config.midDriverHeatsink]);
   const finalSpecs = useMemo(() => getAmpSpecs(config.finalTransistor, config.finalBoxSize, config.finalHeatsink), [config.finalTransistor, config.finalBoxSize, config.finalHeatsink]);
 
   // Average regulator voltage (what the amps are actually fed)
@@ -374,8 +387,8 @@ export function RFProvider({ children }) {
   const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
 
   // Calculate derived values - pass voltage to signal chain so watts scale with volts
-  const chain = calculateSignalChain(config.radio, driverSpecs, finalSpecs, config.bonding, config.antennaPosition, config.driveLevel, avgRegV);
-  const stages = calculateStageOutputs(config.radio, driverSpecs, finalSpecs, config.bonding, config.driveLevel);
+  const chain = calculateSignalChain(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.antennaPosition, config.driveLevel, avgRegV);
+  const stages = calculateStageOutputs(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel);
   
   // SWR calculation - use Yagi SWR when in Yagi mode
   const swr = config.yagiMode 
@@ -392,23 +405,26 @@ export function RFProvider({ children }) {
     yagiMode: config.yagiMode,
     rideHeightOffset: config.rideHeightOffset,
   });
-  const underDriven = checkUnderDriven(config.radio, driverSpecs, finalSpecs, config.bonding, config.driveLevel);
+  const underDriven = checkUnderDriven(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel);
 
   // Actual current draw — proportional to load, swings with modulation
   const driverLoadRatio = stages.driverLoadRatioDK + (stages.driverLoadRatioPK - stages.driverLoadRatioDK) * micLevel;
+  const midDriverLoadRatio = stages.midDriverLoadRatioDK + (stages.midDriverLoadRatioPK - stages.midDriverLoadRatioPK) * micLevel;
   const finalLoadRatio = stages.finalLoadRatioDK + (stages.finalLoadRatioPK - stages.finalLoadRatioDK) * micLevel;
   const driverCurrentDraw = driverSpecs?.currentDraw ?? 0;
+  const midDriverCurrentDraw = midDriverSpecs?.currentDraw ?? 0;
   const finalCurrentDraw = finalSpecs?.currentDraw ?? 0;
   const driverActualAmps = keyed ? driverCurrentDraw * Math.max(0.05, driverLoadRatio) : 0;
+  const midDriverActualAmps = keyed ? midDriverCurrentDraw * Math.max(0.05, midDriverLoadRatio) : 0;
   const finalActualAmps = keyed ? finalCurrentDraw * Math.max(0.05, finalLoadRatio) : 0;
-  const actualDemand = driverActualAmps + finalActualAmps;
+  const actualDemand = driverActualAmps + midDriverActualAmps + finalActualAmps;
 
   // Voltage calculation uses actual demand when keyed
-  const voltage = calculateVoltageDrop(driverSpecs, finalSpecs, config.alternatorCount, config.alternatorAmps, config.batteryType, config.batteryCount, config.regulatorVoltages, keyed ? actualDemand : 0);
+  const voltage = calculateVoltageDrop(driverSpecs, midDriverSpecs, finalSpecs, config.alternatorCount, config.alternatorAmps, config.batteryType, config.batteryCount, config.regulatorVoltages, keyed ? actualDemand : 0);
 
   // Apply blown amp — if blown, that stage produces nothing
   let effectiveChain = { ...chain };
-  if (driverBlown) {
+  if (driverBlown || midDriverBlown) {
     effectiveChain.deadKey = 0;
     effectiveChain.peakKey = 0;
   }
@@ -442,6 +458,7 @@ export function RFProvider({ children }) {
     highVoltageWarn: avgRegV >= 19,
     currentDraw: voltage.currentDraw || 0,
     driverAmps: Math.round(driverActualAmps * 10) / 10 || 0,
+    midDriverAmps: Math.round(midDriverActualAmps * 10) / 10 || 0,
     finalAmps: Math.round(finalActualAmps * 10) / 10 || 0,
     alternatorCapacity: voltage.alternatorCapacity || 0,
     bankProvides: voltage.bankProvides || 0,
@@ -457,13 +474,15 @@ export function RFProvider({ children }) {
     idealDrive: underDriven.idealDrive,
     // Thermal
     driverTemp: Math.round(driverTemp),
+    midDriverTemp: Math.round(midDriverTemp),
     finalTemp: Math.round(finalTemp),
     driverBlown,
+    midDriverBlown,
     finalBlown,
   };
 
   return (
-    <RFContext.Provider value={{ config, keyed, setKeyed, updateConfig, loadConfig, metrics, micEnabled, toggleMic, resetAmp, equipmentLoaded, runThermalPreview, driverSpecs, finalSpecs }}>
+    <RFContext.Provider value={{ config, keyed, setKeyed, updateConfig, loadConfig, metrics, micEnabled, toggleMic, resetAmp, equipmentLoaded, runThermalPreview, driverSpecs, midDriverSpecs, finalSpecs }}>
       {children}
     </RFContext.Provider>
   );
