@@ -430,7 +430,7 @@ export function RFProvider({ children }) {
   };
 
   return (
-    <RFContext.Provider value={{ config, keyed, setKeyed, updateConfig, loadConfig, metrics, micEnabled, toggleMic, resetAmp, equipmentLoaded, runThermalPreview }}>
+    <RFContext.Provider value={{ config, keyed, setKeyed, updateConfig, loadConfig, metrics, micEnabled, toggleMic, resetAmp, equipmentLoaded, runThermalPreview, driverSpecs, finalSpecs }}>
       {children}
     </RFContext.Provider>
   );
