@@ -204,6 +204,27 @@ export default function EquipmentRack() {
       />
 
       <AmpStageSelector
+        label="Mid Driver"
+        slot="2.5U"
+        transistorKey="mid-driver-transistor"
+        boxSizeKey="mid-driver-box"
+        heatsinkKey="mid-driver-heatsink"
+        transistorValue={config.midDriverTransistor}
+        boxSizeValue={config.midDriverBoxSize}
+        heatsinkValue={config.midDriverHeatsink}
+        onTransistorChange={v => { updateConfig('midDriverTransistor', v); if (v !== 'none' && config.midDriverBoxSize === 0) updateConfig('midDriverBoxSize', 4); }}
+        onBoxSizeChange={v => updateConfig('midDriverBoxSize', v)}
+        onHeatsinkChange={v => updateConfig('midDriverHeatsink', v)}
+        specs={midDriverSpecs}
+        temp={metrics.midDriverTemp}
+        blown={metrics.midDriverBlown}
+        isKeyed={keyed}
+        metrics={metrics.midDriverAmps}
+        resetAmp={resetAmp}
+        resetKey="midDriver"
+      />
+
+      <AmpStageSelector
         label="Final Amplifier"
         slot="3U"
         highlight={config.finalBoxSize >= 16}
