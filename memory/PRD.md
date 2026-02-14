@@ -73,19 +73,25 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 
 ### Completed
 - All core simulation features
-- Combo driver amps (3-pill, 2x4, 2x6)
+- **Transistor + Box Size + Heatsink System**: Replaced all old fixed amp presets with real transistor data
+  - 6 transistor types: Toshiba 2SC2879, HG 2SC2879, Mitsubishi 2SC3240, MRF454, SD1446, HG SD1446
+  - 9 box sizes: 1, 2, 3, 4, 6, 8, 16, 24, 32 pills
+  - 3 heatsink sizes: Small (passive), Medium (finned+fan), Large (high-CFM)
+  - Efficiency-based thermal model: less efficient pills waste more heat
+  - Heatsink affects cooling rate and equilibrium temp
 - Yagi Array + DIR1 Position Toggle
 - Over-drive thermal penalty (enhanced)
 - Receive sensitivity indicator
 - Static build layout fix + Yagi toggle fix
 - VPS deployment to IONOS (simulator.sma-antenna.org)
 - Yagi element position adjustments (±12" per element, SWR-reactive)
-- Equipment DB sync fix: All 52 items (radios, amps, antennas, vehicles) now upserted on startup
+- Equipment DB sync fix: All items now upserted on startup
 
 ### Future Tasks
-- P1: Refactor RFContext.jsx into smaller hooks
-- P2: Refactor AdminPage.jsx into smaller child components
+- P1: Refactor RFContext.js into smaller hooks
+- P2: Refactor AdminPage.js into smaller child components
 - P3: Move build-static.sh inline components to dedicated files
+- P4: Update static build to support new transistor system
 
 ## 3rd Party Integrations
 - **Stripe** — Payment/subscription (test mode)
