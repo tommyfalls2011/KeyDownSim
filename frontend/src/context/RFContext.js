@@ -129,10 +129,13 @@ export function RFProvider({ children }) {
       driveLevel: cfg.drive_level ?? cfg.driveLevel ?? 1.0,
       driverTransistor: cfg.driver_transistor ?? cfg.driverTransistor ?? 'none',
       driverBoxSize: cfg.driver_box_size ?? cfg.driverBoxSize ?? 0,
-      driverHeatsink: cfg.driver_heatsink ?? cfg.driverHeatsink ?? 'medium',
+      driverHeatsink: cfg.driver_heatsink ?? cfg.driverHeatsink ?? 'small',
+      midDriverTransistor: cfg.mid_driver_transistor ?? cfg.midDriverTransistor ?? 'none',
+      midDriverBoxSize: cfg.mid_driver_box_size ?? cfg.midDriverBoxSize ?? 0,
+      midDriverHeatsink: cfg.mid_driver_heatsink ?? cfg.midDriverHeatsink ?? 'small',
       finalTransistor: cfg.final_transistor ?? cfg.finalTransistor ?? 'none',
       finalBoxSize: cfg.final_box_size ?? cfg.finalBoxSize ?? 0,
-      finalHeatsink: cfg.final_heatsink ?? cfg.finalHeatsink ?? 'medium',
+      finalHeatsink: cfg.final_heatsink ?? cfg.finalHeatsink ?? 'small',
       antenna: cfg.antenna || 'whip-102',
       antennaPosition: cfg.antenna_position || 'center',
       vehicle: cfg.vehicle || 'suburban',
@@ -147,10 +150,13 @@ export function RFProvider({ children }) {
     });
     // Reset thermal on load
     setDriverTemp(AMBIENT_TEMP);
+    setMidDriverTemp(AMBIENT_TEMP);
     setFinalTemp(AMBIENT_TEMP);
     setDriverBlown(false);
+    setMidDriverBlown(false);
     setFinalBlown(false);
     driverBlownRef.current = false;
+    midDriverBlownRef.current = false;
     finalBlownRef.current = false;
   }, []);
 
