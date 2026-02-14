@@ -367,10 +367,11 @@ export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength) {
 }
 
 // ─── Yagi Array SWR Calculation ───
-// SWR depends on element height tuning - optimal heights for the stick type give best SWR
+// SWR depends on element height tuning AND element spacing — both affect impedance matching
 export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const heights = yagiConfig?.elementHeights || {};
+  const posOffsets = yagiConfig?.elementPositions || {};
   const stickType = yagiConfig?.stickType || 'fight-8';
   
   // Base SWR depends on ground plane and bonding
@@ -384,40 +385,54 @@ export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
   
   // Optimal element heights for each stick type (in inches)
   const optimalHeights = stickType === 'fight-10' ? {
-    ant1: 120,  // 10' = 120"
-    ant2: 120,
-    dir1: 108,  // ~1' shorter
-    dir2: 135,  // ~15" taller
-    dir3: 135,
+    ant1: 120, ant2: 120, dir1: 108, dir2: 135, dir3: 135,
   } : {
-    ant1: 96,   // 8' = 96"
-    ant2: 96,
-    dir1: 84,   // ~1' shorter
-    dir2: 111,  // ~15" taller
-    dir3: 111,
+    ant1: 96, ant2: 96, dir1: 84, dir2: 111, dir3: 111,
   };
   
-  // Calculate deviation from optimal for each tunable element
-  // ANT1, ANT2, DIR1 are tunable and affect SWR
+  // Height deviation penalties
   const ant1Dev = Math.abs((heights.ant1 || optimalHeights.ant1) - optimalHeights.ant1);
   const ant2Dev = Math.abs((heights.ant2 || optimalHeights.ant2) - optimalHeights.ant2);
   const dir1Dev = Math.abs((heights.dir1 || optimalHeights.dir1) - optimalHeights.dir1);
   
-  // Each inch off optimal adds SWR penalty
-  // ANT1 (reflector) has moderate impact
-  // ANT2 (driven element) has HIGH impact - this is the main radiator
-  // DIR1 (first director) has moderate impact on SWR tuning
   const ant1Penalty = ant1Dev * 0.03;
-  const ant2Penalty = ant2Dev * 0.06;  // Driven element is most critical
+  const ant2Penalty = ant2Dev * 0.06;
   const dir1Penalty = dir1Dev * 0.04;
   
-  // Total SWR
-  let swr = baseSWR + ant1Penalty + ant2Penalty + dir1Penalty;
+  // ─── Element Spacing SWR Impact ───
+  // Moving elements forward/backward changes the electrical spacing between them.
+  // Optimal spacing is ~0.15λ to 0.25λ (about 42"–72" at 27MHz).
+  // Each inch of position offset changes the spacing between adjacent elements,
+  // affecting impedance matching. The driven element (ANT2) spacing is most critical.
+  const ant1Offset = posOffsets.ant1 || 0;
+  const ant2Offset = posOffsets.ant2 || 0;
+  const dir1Offset = posOffsets.dir1 || 0;
+  const dir2Offset = posOffsets.dir2 || 0;
+  const dir3Offset = posOffsets.dir3 || 0;
   
-  // When all elements are tuned optimally (within 2"), give a bonus
-  const totalDev = ant1Dev + ant2Dev + dir1Dev;
-  if (totalDev <= 6) {
-    swr -= 0.3 * (1 - totalDev / 6);
+  // Spacing between ANT1↔ANT2 (reflector to driven) — most critical for impedance
+  const ant1ant2SpacingDev = Math.abs(ant2Offset - ant1Offset);
+  // Spacing between ANT2↔DIR1 (driven to first director) — affects forward gain + SWR
+  const ant2dir1SpacingDev = Math.abs(dir1Offset - ant2Offset);
+  // Spacing between DIR1↔DIR2 and DIR2↔DIR3 — moderate impact
+  const dir1dir2SpacingDev = Math.abs(dir2Offset - dir1Offset);
+  const dir2dir3SpacingDev = Math.abs(dir3Offset - dir2Offset);
+  
+  // SWR penalties for spacing changes (per inch of relative offset)
+  const spacingPenalty = 
+    ant1ant2SpacingDev * 0.05 +   // reflector↔driven: high impact
+    ant2dir1SpacingDev * 0.04 +   // driven↔dir1: moderate-high
+    dir1dir2SpacingDev * 0.02 +   // dir1↔dir2: moderate
+    dir2dir3SpacingDev * 0.01;    // dir2↔dir3: low
+  
+  // Total SWR
+  let swr = baseSWR + ant1Penalty + ant2Penalty + dir1Penalty + spacingPenalty;
+  
+  // When all elements are tuned optimally (heights within 2" AND positions within 2"), give a bonus
+  const totalHeightDev = ant1Dev + ant2Dev + dir1Dev;
+  const totalPosDev = Math.abs(ant1Offset) + Math.abs(ant2Offset) + Math.abs(dir1Offset) + Math.abs(dir2Offset) + Math.abs(dir3Offset);
+  if (totalHeightDev <= 6 && totalPosDev <= 6) {
+    swr -= 0.3 * (1 - Math.max(totalHeightDev, totalPosDev) / 6);
   }
   
   return Math.round(Math.max(1.0, Math.min(5.0, swr)) * 10) / 10;
@@ -509,22 +524,39 @@ export function getRadiationPattern(vehicleKey, bonding, power, antennaKey, ante
 
 // ─── Yagi Array Radiation Pattern ───
 // Creates a highly directional forward beam pattern
+// Element spacing offsets affect beam width, gain, and side lobe levels
 export function getYagiRadiationPattern(vehicleKey, bonding, power, yagiConfig) {
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const points = [];
   const gp = vehicle.groundPlane * (bonding ? 1.0 : 0.5);
+  const posOffsets = yagiConfig?.elementPositions || {};
   
   // Yagi parameters
   const yagiGainDB = YAGI_ARRAY_CONFIG.baseGainDB + (yagiConfig?.stickType === 'fight-10' ? 1.5 : 0);
   const yagiGain = Math.pow(10, yagiGainDB / 10);
   const beamWidth = YAGI_ARRAY_CONFIG.beamWidth; // degrees
-  const beamWidthRad = (beamWidth * Math.PI) / 180;
+  
+  // Element spacing offsets affect the beam shape:
+  // - Wider reflector-driven spacing → slightly broader beam, less front-to-back
+  // - Tighter director spacing → narrower beam but harder to tune
+  // - Overall misalignment → wider beam + higher side lobes
+  const totalPosDeviation = Math.abs(posOffsets.ant1 || 0) + Math.abs(posOffsets.ant2 || 0) + 
+    Math.abs(posOffsets.dir1 || 0) + Math.abs(posOffsets.dir2 || 0) + Math.abs(posOffsets.dir3 || 0);
+  
+  // Beam broadens with spacing misalignment (each inch adds ~0.8° to beam width)
+  const adjustedBeamWidth = beamWidth + totalPosDeviation * 0.8;
+  const beamWidthRad = (adjustedBeamWidth * Math.PI) / 180;
+  
+  // Gain drops slightly with spacing deviation (~0.15dB per inch of total deviation)
+  const spacingGainPenalty = Math.pow(10, -(totalPosDeviation * 0.15) / 10);
+  
+  // Side lobe level increases with misalignment
+  const sideLobeBoost = 1 + totalPosDeviation * 0.02;
   
   // Vehicle ground height affects vertical angle efficiency
   const groundHeightFactor = Math.min(1.2, (vehicle.groundHeight || 5) / 5);
   
   // Element height tuning affects SWR/efficiency
-  // If elements are well-tuned, better efficiency
   const tuningEfficiency = yagiConfig?.swrTuned ? 1.0 : 0.85;
   
   // Forward direction is 270 degrees (up/north on canvas = front of vehicle)
@@ -535,24 +567,23 @@ export function getYagiRadiationPattern(vehicleKey, bonding, power, yagiConfig) 
     const rad = (angle * Math.PI) / 180;
     const angleDiff = rad - forwardRad;
     
-    // Yagi pattern: strong forward lobe, smaller side lobes, rear null
-    // Main lobe - Gaussian-like forward beam
+    // Main lobe - Gaussian-like forward beam (width affected by spacing)
     const mainLobe = Math.exp(-Math.pow(angleDiff, 2) / (2 * Math.pow(beamWidthRad / 2.35, 2)));
     
-    // Side lobes (smaller peaks ~60-90 degrees off-axis)
+    // Side lobes (boosted by spacing misalignment)
     const sideLobeAngle1 = Math.abs(angleDiff - Math.PI / 2);
     const sideLobeAngle2 = Math.abs(angleDiff + Math.PI / 2);
-    const sideLobe = 0.15 * (Math.exp(-Math.pow(sideLobeAngle1, 2) / 0.3) + Math.exp(-Math.pow(sideLobeAngle2, 2) / 0.3));
+    const sideLobe = 0.15 * sideLobeBoost * (Math.exp(-Math.pow(sideLobeAngle1, 2) / 0.3) + Math.exp(-Math.pow(sideLobeAngle2, 2) / 0.3));
     
-    // Back lobe (very small, ~180 degrees)
+    // Back lobe (increases with poor spacing alignment)
     const backLobeAngle = Math.abs(Math.abs(angleDiff) - Math.PI);
-    const backLobe = 0.08 * Math.exp(-Math.pow(backLobeAngle, 2) / 0.2);
+    const backLobe = (0.08 + totalPosDeviation * 0.005) * Math.exp(-Math.pow(backLobeAngle, 2) / 0.2);
     
     // Combine lobes
     let gain = mainLobe + sideLobe + backLobe;
     
-    // Apply yagi gain
-    gain *= yagiGain;
+    // Apply yagi gain (reduced by spacing penalty)
+    gain *= yagiGain * spacingGainPenalty;
     
     // Ground plane and bonding effects
     gain *= (0.6 + gp * 0.4);
