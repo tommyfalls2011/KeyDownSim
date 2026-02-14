@@ -147,25 +147,22 @@ RADIOS = {
     "ranger-rci2970": {"name": "Ranger RCI-2970N2", "dead_key": 4, "peak_key": 225, "type": "AM/SSB", "impedance": 50},
 }
 
-DRIVER_AMPS = {
-    "none": {"name": "No Driver", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 275, "combining_stages": 0},
-    "1-pill": {"name": "1-Pill Driver", "gain_db": 13, "transistors": 1, "current_draw": 15, "watts_per_pill": 275, "combining_stages": 0},
-    "2-pill": {"name": "2-Pill Driver", "gain_db": 17, "transistors": 2, "current_draw": 50, "watts_per_pill": 275, "combining_stages": 0},
-    "3-pill": {"name": "3-Pill (1->2)", "gain_db": 13, "transistors": 3, "current_draw": 65, "watts_per_pill": 185, "combining_stages": 0},
-    "4-pill": {"name": "4-Pill Driver", "gain_db": 20, "transistors": 4, "current_draw": 100, "watts_per_pill": 275, "combining_stages": 1},
-    "2x4": {"name": "2x4 Combo (2->4)", "gain_db": 20, "transistors": 6, "current_draw": 130, "watts_per_pill": 275, "combining_stages": 1},
-    "2x6": {"name": "2x6 Combo (2->6)", "gain_db": 21, "transistors": 8, "current_draw": 180, "watts_per_pill": 275, "combining_stages": 1},
+TRANSISTORS = {
+    "toshiba-2sc2879": {"name": "Toshiba 2SC2879", "watts_pep": 100, "gain_db": 13, "dissipation": 250, "tj_max": 175, "efficiency": 0.35, "drive_watts": 4, "current_max": 25},
+    "hg-2sc2879": {"name": "HG 2SC2879", "watts_pep": 125, "gain_db": 11.5, "dissipation": 250, "tj_max": 175, "efficiency": 0.35, "drive_watts": 5, "current_max": 25},
+    "mitsubishi-2sc3240": {"name": "Mitsubishi 2SC3240", "watts_pep": 105, "gain_db": 11.5, "dissipation": 270, "tj_max": 175, "efficiency": 0.575, "drive_watts": 7, "current_max": 25},
+    "mrf454": {"name": "MRF454", "watts_pep": 80, "gain_db": 10, "dissipation": 150, "tj_max": 175, "efficiency": 0.65, "drive_watts": 8, "current_max": 15},
+    "sd1446": {"name": "SD1446", "watts_pep": 70, "gain_db": 10, "dissipation": 183, "tj_max": 175, "efficiency": 0.55, "drive_watts": 7, "current_max": 12},
+    "hg-sd1446": {"name": "HG SD1446", "watts_pep": 75, "gain_db": 10, "dissipation": 183, "tj_max": 175, "efficiency": 0.55, "drive_watts": 7.5, "current_max": 12},
 }
 
-FINAL_AMPS = {
-    "none": {"name": "No Final", "gain_db": 0, "transistors": 0, "current_draw": 0, "watts_per_pill": 275, "combining_stages": 0},
-    "2-pill": {"name": "2-Pill Comp", "gain_db": 10, "transistors": 2, "current_draw": 50, "watts_per_pill": 275, "combining_stages": 0},
-    "4-pill": {"name": "4-Pill Amp", "gain_db": 10, "transistors": 4, "current_draw": 100, "watts_per_pill": 275, "combining_stages": 1},
-    "8-pill": {"name": "8-Pill Amp", "gain_db": 10, "transistors": 8, "current_draw": 200, "watts_per_pill": 275, "combining_stages": 2},
-    "16-pill": {"name": "16-Pill Amp", "gain_db": 13, "transistors": 16, "current_draw": 400, "watts_per_pill": 275, "combining_stages": 4},
-    "24-pill": {"name": "24-Pill Comp", "gain_db": 14, "transistors": 24, "current_draw": 600, "watts_per_pill": 275, "combining_stages": 6},
-    "32-pill": {"name": "32-Pill Comp", "gain_db": 15, "transistors": 32, "current_draw": 800, "watts_per_pill": 275, "combining_stages": 8},
+HEATSINKS = {
+    "small": {"name": "Small (passive/small fins)", "thermal_resistance": 2.0, "cool_rate": 0.8},
+    "medium": {"name": "Medium (finned + fan)", "thermal_resistance": 0.8, "cool_rate": 2.0},
+    "large": {"name": "Large (big fins + high-CFM)", "thermal_resistance": 0.3, "cool_rate": 4.0},
 }
+
+BOX_SIZES = [1, 2, 3, 4, 6, 8, 16, 24, 32]
 
 COMBINING_BONUS_PER_STAGE = 1.2
 
