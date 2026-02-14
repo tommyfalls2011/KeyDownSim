@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { getRadiationPattern, getYagiRadiationPattern, VEHICLES, ANTENNA_POSITIONS } from '@/lib/rfEngine';
 
 export default function Dashboard() {
   const { user, logout, isAdmin } = useAuth();
