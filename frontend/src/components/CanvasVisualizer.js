@@ -351,7 +351,7 @@ export default function CanvasVisualizer() {
             })
           : getRadiationPattern(config.vehicle, config.bonding, power, config.antenna, config.antennaPosition);
         
-        const pulse = 1 + Math.sin(time * 4) * 0.05 * intensity;
+        const pulse = 1 + Math.sin(time * 4) * 0.02 * intensity;
 
         // Auto-scale: find max pattern gain and scale to fit within 90% of maxR
         const maxGain = Math.max(...pattern.map(p => p.gain));
