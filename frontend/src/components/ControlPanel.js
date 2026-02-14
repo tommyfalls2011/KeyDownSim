@@ -1,5 +1,5 @@
 import { useRF } from '@/context/RFContext';
-import { VEHICLES, ANTENNA_POSITIONS, YAGI_ARRAY_CONFIG } from '@/lib/rfEngine';
+import { VEHICLES, ANTENNA_POSITIONS, YAGI_ARRAY_CONFIG, COAX_TYPES } from '@/lib/rfEngine';
 import KeyButton from '@/components/KeyButton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
