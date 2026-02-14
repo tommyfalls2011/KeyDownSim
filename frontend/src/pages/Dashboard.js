@@ -18,7 +18,7 @@ import { getRadiationPattern, getYagiRadiationPattern, VEHICLES, ANTENNA_POSITIO
 
 export default function Dashboard() {
   const { user, logout, isAdmin } = useAuth();
-  const { keyed, loadConfig } = useRF();
+  const { keyed, loadConfig, config, metrics } = useRF();
   const navigate = useNavigate();
   const [mobileTab, setMobileTab] = useState('viz');
 
@@ -29,6 +29,16 @@ export default function Dashboard() {
       sessionStorage.removeItem('loadConfig');
     }
   }, [loadConfig]);
+
+  // Get radiation pattern based on mode
+  const vehicle = VEHICLES[config.vehicle] || VEHICLES['suburban'];
+  const antennaPos = ANTENNA_POSITIONS[config.antennaPosition] || ANTENNA_POSITIONS['center'];
+  const pattern = config.yagiMode 
+    ? getYagiRadiationPattern(config.vehicle, config.bonding, keyed ? metrics.modulatedWatts : 0, {
+        stickType: config.yagiStickType,
+        swrTuned: true, // TODO: calculate from element heights
+      })
+    : getRadiationPattern(config.vehicle, config.bonding, keyed ? metrics.modulatedWatts : 0, config.antenna, config.antennaPosition);
 
   return (
     <div className="h-screen flex flex-col bg-void overflow-hidden" data-testid="dashboard-page">
