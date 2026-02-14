@@ -25,6 +25,8 @@ function TempBar({ temp, blown, tjMax }) {
 
 function AmpStageSelector({ label, slot, transistorKey, boxSizeKey, heatsinkKey, transistorValue, boxSizeValue, heatsinkValue, onTransistorChange, onBoxSizeChange, onHeatsinkChange, specs, temp, blown, isKeyed, metrics, underDriven, resetAmp, resetKey, highlight }) {
   const hasAmp = transistorValue !== 'none' && boxSizeValue > 0;
+  const recommended = getRecommendedHeatsink(boxSizeValue);
+  const undersized = hasAmp && isHeatsinkUndersized(heatsinkValue, boxSizeValue);
   return (
     <RackUnit label={label} slot={slot} highlight={highlight}>
       {/* Transistor Type */}
@@ -66,18 +68,28 @@ function AmpStageSelector({ label, slot, transistorKey, boxSizeKey, heatsinkKey,
           <div className="flex-1">
             <span className="font-mono text-[8px] text-slate-700 uppercase block mb-1">Heatsink</span>
             <Select value={heatsinkValue} onValueChange={onHeatsinkChange}>
-              <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid={`${heatsinkKey}-select`}>
+              <SelectTrigger className={`bg-void border-white/10 text-white font-mono text-xs h-8 ${undersized ? 'border-amber-500/50' : ''}`} data-testid={`${heatsinkKey}-select`}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-panel border-white/10">
                 {Object.entries(HEATSINKS).map(([key, h]) => (
                   <SelectItem key={key} value={key} className="font-mono text-xs text-slate-300">
-                    {h.name}
+                    {h.name}{key === recommended ? ' *' : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+        </div>
+      )}
+
+      {/* Undersized heatsink warning */}
+      {undersized && (
+        <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1 mb-1" data-testid={`${heatsinkKey}-undersized-warning`}>
+          <Thermometer className="w-3 h-3 text-amber-400 shrink-0" />
+          <span className="font-mono text-[8px] text-amber-400">
+            Heatsink undersized for {boxSizeValue}-pill — recommend {HEATSINKS[recommended]?.name}
+          </span>
         </div>
       )}
 
