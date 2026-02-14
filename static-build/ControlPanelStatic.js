@@ -161,6 +161,44 @@ export default function ControlPanel() {
             </div>
           </div>
 
+          {/* Element Position Adjustments */}
+          <div className="space-y-2 pt-2 border-t border-white/5">
+            <Label className="font-mono text-[8px] text-slate-600 block">POSITION ADJUST (front/back)</Label>
+            
+            {[
+              { id: 'ant1', name: 'ANT1', color: 'text-slate-500', accent: 'accent-amber-400' },
+              { id: 'ant2', name: 'ANT2', color: 'text-slate-500', accent: 'accent-amber-400' },
+              { id: 'dir1', name: 'DIR1', color: 'text-cyan-400', accent: 'accent-cyan-400' },
+              { id: 'dir2', name: 'DIR2', color: 'text-orange-400', accent: 'accent-orange-400' },
+              { id: 'dir3', name: 'DIR3', color: 'text-orange-400', accent: 'accent-orange-400' },
+            ].map(el => {
+              const offset = config.yagiElementPositions?.[el.id] || 0;
+              return (
+                <div key={el.id} className="flex items-center gap-2">
+                  <span className={`font-mono text-[9px] ${el.color} w-12`}>{el.name}</span>
+                  <input
+                    type="range"
+                    min="-12"
+                    max="12"
+                    step="1"
+                    value={offset}
+                    onChange={e => updateConfig('yagiElementPositions', { ...config.yagiElementPositions, [el.id]: parseInt(e.target.value) })}
+                    className={`flex-1 h-1 ${el.accent} bg-slate-800 rounded cursor-pointer`}
+                    data-testid={`yagi-pos-${el.id}-slider`}
+                  />
+                  <span className={`font-mono text-[9px] w-10 ${offset === 0 ? 'text-slate-600' : offset > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {offset > 0 ? '+' : ''}{offset}"
+                  </span>
+                </div>
+              );
+            })}
+            <div className="flex justify-between font-mono text-[7px] text-slate-700 px-12">
+              <span>-12" back</span>
+              <span>0</span>
+              <span>+12" fwd</span>
+            </div>
+          </div>
+
           {/* DIR1 Position Toggle */}
           <div className="flex items-center justify-between pt-2 border-t border-white/5">
             <Label className="font-mono text-[9px] text-cyan-400 flex items-center gap-1">
