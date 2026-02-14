@@ -136,7 +136,8 @@ export function RFProvider({ children }) {
       if (driver.currentDraw > 0 && drvBlowTime === null) {
         const thermalMass = driver.transistors >= 2 ? Math.sqrt(driver.transistors / 2) : 1;
         const loadRatio = Math.max(0.05, stages.driverLoadRatioDK + (stages.driverLoadRatioPK - stages.driverLoadRatioDK) * simMicLevel);
-        const loadFactor = loadRatio * voltageStress;
+        const driverStress = stages.driverLoadRatioDK > 0.85 ? 1 + (stages.driverLoadRatioDK - 0.85) * 4.0 : 1.0;
+        const loadFactor = loadRatio * voltageStress * driverStress;
         const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
         drvTemp += heatRate * dt;
         if (drvTemp > drvPeakTemp) drvPeakTemp = drvTemp;
