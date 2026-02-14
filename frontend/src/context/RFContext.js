@@ -97,6 +97,9 @@ export function RFProvider({ children }) {
       if (key === 'driverBoxSize' && value > 0) {
         next.driverHeatsink = getRecommendedHeatsink(value);
       }
+      if (key === 'midDriverBoxSize' && value > 0) {
+        next.midDriverHeatsink = getRecommendedHeatsink(value);
+      }
       if (key === 'finalBoxSize' && value > 0) {
         next.finalHeatsink = getRecommendedHeatsink(value);
       }
@@ -107,6 +110,11 @@ export function RFProvider({ children }) {
       setDriverTemp(AMBIENT_TEMP);
       setDriverBlown(false);
       driverBlownRef.current = false;
+    }
+    if (key === 'midDriverTransistor' || key === 'midDriverBoxSize' || key === 'midDriverHeatsink') {
+      setMidDriverTemp(AMBIENT_TEMP);
+      setMidDriverBlown(false);
+      midDriverBlownRef.current = false;
     }
     if (key === 'finalTransistor' || key === 'finalBoxSize' || key === 'finalHeatsink') {
       setFinalTemp(AMBIENT_TEMP);
