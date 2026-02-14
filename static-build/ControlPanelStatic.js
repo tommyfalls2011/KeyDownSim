@@ -4,7 +4,7 @@ import KeyButton from '@/components/KeyButton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Antenna } from 'lucide-react';
+import { Antenna, Radio } from 'lucide-react';
 
 export default function ControlPanel() {
   const { config, updateConfig } = useRF();
