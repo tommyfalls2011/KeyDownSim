@@ -27,14 +27,16 @@ const AdminRoute = ({ children }) => {
 
 function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/auth" element={<AuthPage />} />
-      <Route path="/dashboard" element={<ProtectedRoute><RFProvider><Dashboard /></RFProvider></ProtectedRoute>} />
-      <Route path="/configurations" element={<ProtectedRoute><ConfigurationsPage /></ProtectedRoute>} />
-      <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
-      <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
-    </Routes>
+    <RFProvider>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/configurations" element={<ProtectedRoute><ConfigurationsPage /></ProtectedRoute>} />
+        <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+        <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+      </Routes>
+    </RFProvider>
   );
 }
 
