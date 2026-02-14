@@ -138,14 +138,23 @@ export const ANTENNA_POSITIONS = {
 function transformRadio(d) {
   return { name: d.name, deadKey: d.dead_key ?? d.deadKey ?? 1, peakKey: d.peak_key ?? d.peakKey ?? 4, type: d.type || 'AM', impedance: d.impedance || 50 };
 }
-function transformAmp(d) {
-  return { name: d.name, gainDB: d.gain_db ?? d.gainDB ?? 0, transistors: d.transistors || 0, currentDraw: d.current_draw ?? d.currentDraw ?? 0, wattsPerPill: d.watts_per_pill ?? d.wattsPerPill ?? 275, combiningStages: d.combining_stages ?? d.combiningStages ?? 0 };
-}
 function transformAntenna(d) {
   return { name: d.name, gainDBI: d.gain_dbi ?? d.gainDBI ?? 0, type: d.type || 'vertical', tunable: d.tunable || false, tipMin: d.tip_min ?? d.tipMin, tipMax: d.tip_max ?? d.tipMax, tipDefault: d.tip_default ?? d.tipDefault };
 }
 function transformVehicle(d) {
   return { name: d.name, groundPlane: d.ground_plane ?? d.groundPlane ?? 0.7, surfaceSqFt: d.surface_sqft ?? d.surfaceSqFt ?? 30, directional: d.directional ?? 0.2, takeoff: d.takeoff ?? 25, shape: d.shape || 'truck' };
+}
+function transformTransistor(d) {
+  return {
+    name: d.name,
+    wattsPEP: d.watts_pep ?? d.wattsPEP ?? 100,
+    gainDB: d.gain_db ?? d.gainDB ?? 10,
+    dissipation: d.dissipation ?? 250,
+    tjMax: d.tj_max ?? d.tjMax ?? 175,
+    efficiency: d.efficiency ?? 0.35,
+    driveWatts: d.drive_watts ?? d.driveWatts ?? 5,
+    currentMax: d.current_max ?? d.currentMax ?? 25,
+  };
 }
 
 export function mergeEquipmentFromAPI(apiData) {
@@ -154,14 +163,9 @@ export function mergeEquipmentFromAPI(apiData) {
       RADIOS[key] = transformRadio(data);
     }
   }
-  if (apiData.driver_amps) {
-    for (const [key, data] of Object.entries(apiData.driver_amps)) {
-      DRIVER_AMPS[key] = transformAmp(data);
-    }
-  }
-  if (apiData.final_amps) {
-    for (const [key, data] of Object.entries(apiData.final_amps)) {
-      FINAL_AMPS[key] = transformAmp(data);
+  if (apiData.transistors) {
+    for (const [key, data] of Object.entries(apiData.transistors)) {
+      TRANSISTORS[key] = transformTransistor(data);
     }
   }
   if (apiData.antennas) {
