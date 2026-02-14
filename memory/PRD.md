@@ -76,7 +76,14 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - **Transistor + Box Size + Heatsink System**: Replaced all old fixed amp presets with real transistor data
   - 6 transistor types: Toshiba 2SC2879, HG 2SC2879, Mitsubishi 2SC3240, MRF454, SD1446, HG SD1446
   - 9 box sizes: 1, 2, 3, 4, 6, 8, 16, 24, 32 pills
-  - 3 heatsink sizes: Small (passive), Medium (finned+fan), Large (high-CFM)
+  - **5-tier heatsink system** (upgraded from 3-tier):
+    - Small (passive fins) — 1-2 pills, coolRate 0.6
+    - Medium (finned + fan) — 3-4 pills, coolRate 1.5
+    - Large (extruded + high-CFM) — 6-8 pills, coolRate 3.0
+    - XL (bonded fin + dual fans) — 12-16 pills, coolRate 5.0
+    - Extreme (machined radiator) — 24-32 pills, coolRate 8.0
+  - Auto-selects recommended heatsink when box size changes
+  - Undersized heatsink warning with recommended alternative
   - Efficiency-based thermal model: less efficient pills waste more heat
   - Heatsink affects cooling rate and equilibrium temp
 - Yagi Array + DIR1 Position Toggle
@@ -91,7 +98,7 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - P1: Refactor RFContext.js into smaller hooks
 - P2: Refactor AdminPage.js into smaller child components
 - P3: Move build-static.sh inline components to dedicated files
-- P4: Update static build to support new transistor system
+- P4: Update static build to support new transistor system + 5-tier heatsinks
 
 ## 3rd Party Integrations
 - **Stripe** — Payment/subscription (test mode)
