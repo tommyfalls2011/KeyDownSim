@@ -499,43 +499,48 @@ export function calculateTakeoffAngle(vehicleKey, bonding, options = {}) {
   const yagiMode = options.yagiMode || false;
   const rideHeightOffset = options.rideHeightOffset || 0; // inches from stock
   
-  // Effective ground height with ride height adjustment
-  // rideHeightOffset in inches, convert to feet for the height calc
+  // Effective ground height with ride height adjustment (inches → feet)
   const effectiveHeight = vehicle.groundHeight + (rideHeightOffset / 12);
   
-  // Start with a physics-based angle from the ground plane quality
-  // Ideal infinite ground plane = ~5° take-off. No ground plane = ~45°+
-  // Ground plane efficiency 0.0 → 1.0 maps to roughly 45° → 8°
+  // Base angle from ground plane quality
+  // Perfect GP = ~10°, none = ~45°
   const gpEfficiency = vehicle.groundPlane * (bonding ? 1.0 : 0.6);
-  let angle = 45 - (gpEfficiency * 37);  // Range: ~8° (perfect) to ~45° (no ground)
+  let angle = 45 - (gpEfficiency * 30);  // Range: ~15° (great) to ~45° (no ground)
   
-  // Surface area factor: More sqft = more complete image
-  const surfaceBonus = Math.max(0, (vehicle.surfaceSqFt - 25) * 0.12);
-  angle -= surfaceBonus;
+  // Surface area: bigger roof = better image, but diminishing returns
+  // Baseline at 30sqft. Below = penalty, above = bonus
+  const surfaceEffect = (vehicle.surfaceSqFt - 30) * 0.08;
+  angle -= surfaceEffect;
   
-  // Vehicle height: Lower = antenna closer to ground plane reflection point
-  // This is counterintuitive: LOWER ride height actually LOWERS the take-off angle
-  // because the ground plane (roof) gets closer to being a flat reflector
-  // relative to far-field ground reflections.
-  // At CB frequencies (~27MHz, λ≈36ft), the antenna is always in the near-field
-  // of the ground plane. Lower CG = more stable image = tighter vertical pattern.
-  // Stock height is the baseline. Lowering drops the angle, lifting raises it.
-  const heightEffect = Math.max(0, (effectiveHeight - 3.5)) * 0.6;
-  angle -= (6 - heightEffect); // Lower height = bigger bonus
+  // Ride height effect on takeoff angle:
+  // LOWER = antenna closer to ground reflection = tighter vertical pattern = LOWER angle
+  // HIGHER = more ground clearance but antenna further from coherent image = HIGHER angle
+  // Each inch of lowering drops the angle ~0.5°, each inch of lift raises it ~0.3°
+  // (lowering is more impactful than lifting because you're compressing the image)
+  if (rideHeightOffset < 0) {
+    angle += rideHeightOffset * 0.5; // negative offset → subtracts from angle
+  } else {
+    angle += rideHeightOffset * 0.3; // positive offset → adds to angle
+  }
   
-  // Antenna position: Center roof = symmetric ground plane = best angle
+  // Base vehicle height: taller vehicles have a slight advantage
+  // (antenna sees more metal below it), but effect is moderate
+  const heightBonus = Math.max(0, (effectiveHeight - 4)) * 0.4;
+  angle -= heightBonus;
+  
+  // Antenna position: Center = symmetric = best
   const positionPenalties = {
     'center': 0, 'front': 2, 'rear': 2, 'right': 3, 'left': 3,
     'bumper': 8, 'hood': 4, 'trunk': 5, 'mirror': 10,
   };
   angle += (positionPenalties[antennaPos] || 0);
   
-  // Yagi array effect: Directors compress the vertical lobe
+  // Yagi array: directors compress vertical lobe
   if (yagiMode) {
     angle -= 4;
   }
   
-  // Clamp to realistic range: 5° (incredible) to 50° (terrible)
+  // Clamp: 5° (competition build) to 50° (terrible)
   return Math.round(Math.max(5, Math.min(50, angle)));
 }
 
