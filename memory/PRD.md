@@ -53,20 +53,13 @@ A standalone version of the RF Visualizer that runs WITHOUT any backend. No logi
 
 ### How to Deploy Static Build Updates
 
-**Step 1: Build (if source changed)**
+**Step 1: Rebuild (agent runs this)**
 ```bash
-cd /app/static-build/dist
-yarn build
+cd /app/static-build && bash build-static.sh
 ```
+This script automatically: copies sources, fixes imports, installs deps, builds, and creates `keydown-rf-static.zip`.
 
-**Step 2: Create zip**
-```bash
-rm -f /app/static-build/keydown-rf-static.zip
-cd /app/static-build/dist
-zip -r /app/static-build/keydown-rf-static.zip build/
-```
-
-**Step 3: Save to GitHub**
+**Step 2: Save to GitHub**
 Click "Save to GitHub" in Emergent chat
 
 **Step 4: User downloads from GitHub**
