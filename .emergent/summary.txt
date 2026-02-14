@@ -5,11 +5,10 @@ The user wants to build a Key Down RF Visualizer application. The user has now s
 - **Visualization**: A real-time, canvas-based 2D/pseudo-3D visualization of an antenna's radiation pattern.
 - **Simulation**:
     - A realistic signal chain model including radio, amplifiers, and antenna.
-    - **Yagi-Uda Antenna Array**: A 5-element Yagi mode with adjustable element positions and SWR feedback. (COMPLETED)
-    - **Combo Amps**: Model combo amplifiers (e.g., a 2x4 driver) as single selectable units. (COMPLETED, PENDING DB SYNC)
+    - **Customizable Amplifiers**: A system to build amplifiers by selecting transistor type (pill), box size (pill count), and heatsink size. The simulation must use real-world specs for each component to calculate power, heat, and efficiency. (COMPLETED)
     - **Over-drive Thermal Penalty:** Over-driving an amplifier should significantly increase heat generation. (COMPLETED)
     - **Receive Sensitivity Indicator:** A UI element showing receive loss based on antenna position. (COMPLETED)
-    - **Realistic Physics**: SWR, Take-off angle, and power calculations should be based on real-world RF physics, including ground plane effects and vehicle geometry. (COMPLETED)
+    - **Realistic Physics**: SWR, Take-off angle, and power calculations should be based on real-world RF physics. (COMPLETED)
 - **Static Build**: A backend-less, hardcoded version of the simulator for static hosting.
 - **User System**: User authentication (login/register) to save configurations.
 - **Admin Panel**: An admin account to manage users and equipment.
@@ -18,57 +17,40 @@ The user wants to build a Key Down RF Visualizer application. The user has now s
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack solution with a React frontend, FastAPI backend, and MongoDB database. It is live and self-hosted on the user's IONOS VPS, served via Nginx. In this session, the agent implemented numerous physics-based features requested by the user, including adjustable Yagi elements, a more realistic SWR and take-off angle model, ride height adjustments, and an expanded list of vehicle presets. The agent also fixed several bugs related to UI rendering, state persistence, and calculation errors (NaN values).
+The application is a full-stack solution with a React frontend, FastAPI backend, and MongoDB database, self-hosted on the user's IONOS VPS. In this session, the agent fixed several bugs related to database synchronization, configuration saving, and UI state. The most significant achievement was a major feature implementation: replacing the static list of amplifiers with a dynamic, component-based system. Users can now construct their own driver and final amplifiers by selecting from a list of real-world transistors (pills), specifying the number of pills (box size), and choosing a heatsink. The simulation engine was completely refactored to use the specific specs of these components for all physics calculations (power, heat, efficiency).
 
 **Last working item**:
-    - Last item agent was working: The agent was addressing two related issues reported by the user:
-        1. Combo amplifiers (e.g., 2x4 Combo) were visible in the main simulation dropdown but missing from the Admin equipment management page.
-        2. The power output for the 2x4 Combo shown in the UI did not match the user's expectations, which was due to outdated specs in the backend.
-      The agent correctly identified that these issues were because the new/updated combo amp definitions existed in the frontend code () but had never been added to or updated in the backend MongoDB database. The agent was investigating  to devise a fix before the session ended.
-    - Status: IN PROGRESS
-    - Agent Testing Done: N
-    - Which testing method agent to use? Both. First, use the backend testing method (e.g., ) to verify that the  and  endpoints return the new combo amplifiers after the fix. Then, use the frontend testing agent or a screenshot to visually confirm the 2x4 Combo and 2x6 Combo appear in the Admin Panel's equipment list.
+    - Last item agent was working: The user provided detailed information about heatsink sizes corresponding to different amplifier pill counts. The agent had just finished implementing the initial version of the customizable amplifier feature (using generic Small, Medium, Large heatsinks) and was preparing to integrate this more specific data.
+    - Status: USER VERIFICATION PENDING
+    - Agent Testing Done: Y
+    - Which testing method agent to use? NA
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Combo amplifiers are not synchronized with the backend database. (Priority: P0)
-
-  Issues Detail:
-  - Issue 1: 
-     - **Description**: The 2x4 Combo and 2x6 Combo amplifiers are defined in the frontend's static  file but are missing from the  collection in the MongoDB database. This causes them to be absent from the admin panel and can lead to inconsistencies in equipment specifications between the frontend and backend.
-     - **Attempted fixes**: The agent correctly diagnosed the problem by comparing frontend definitions with the lack of backend data but did not get to implement a fix.
-     - **Next debug checklist**:
-       1.  Modify  to include a one-time startup logic or a dedicated admin endpoint to synchronize the equipment. This script should read the amplifier definitions from a shared source or have them hardcoded, check if they exist in the  collection by , and insert them if they are missing.
-       2.  Ensure the specs for the new amps (gain, wattsPerPill, etc.) match the latest improved values from .
-       3.  After implementation, restart the backend service: backend: stopped
-backend: started.
-       4.  Test by logging in as admin ( / ) and navigating to the admin page to confirm the combo amps are now listed.
-     - **Why fix this issue and what will be achieved with the fix?**: This will resolve the data inconsistency, allow the user to manage all amplifiers from the admin panel, and ensure that power calculations are consistent across the application.
-     - **Status**: IN PROGRESS
-     - **Is recurring issue?** N
-     - **Should Test frontend/backend/both after fix?** Both
-     - **Blocked on other issue**: None
+There are no pending or in-progress issues. All reported bugs from this session have been resolved.
 
 **In progress Task List**:
-  There are no other tasks in progress. The focus is on fixing the pending issue above.
+There are no tasks currently in progress.
 
 **Upcoming and Future Tasks**
+
 Upcoming Tasks:
-- **P0: Guide User on Deployment:** After the combo amp database issue is fixed, remind the user of the command to update their live VPS: .
+- **P0: Integrate Detailed Heatsink Specifications:** The user has provided a detailed breakdown of heatsink sizes required for different pill counts (e.g., 1-2 pills need a small heatsink, 12-16 pills need a very large one). The next task is to replace the current Small/Medium/Large heatsink model with this more granular, realistic data.
+    - **Files to update:** , , .
+    - **Action:** Update the thermal model to use the new heatsink specifications to provide more accurate temperature simulations.
 
 Future Tasks:
-- **P1: Refactor RFContext.jsx:** This file has grown significantly with new physics logic and state. It should be decomposed into smaller, single-responsibility custom hooks (e.g., , , ) to improve readability and maintainability.
+- **P1: Refactor RFContext.jsx:** This file contains a large amount of client-side logic and state. It should be decomposed into smaller, single-responsibility custom hooks (e.g., , , ) to improve readability and maintainability.
 - **P2: Refactor AdminPage.jsx**: Split the large admin component into smaller child components for managing users and equipment separately.
-- **P3: Refactor **: The script contains a large, inline React component (). This should be moved into its own file () to improve maintainability and separation of concerns.
+- **P3: Refactor **: The script contains a large, inline React component (). This should be moved into its own file ().
+- **P4: Guide User on Deployment:** After the next feature is complete, remind the user of the command to update their live VPS: .
 
 **Completed work in this session**
-- **Adjustable Yagi Elements & SWR Physics:** Implemented UI sliders for adjusting the position of all 5 Yagi elements and integrated a realistic SWR physics model that accounts for capacitive coupling and ground plane effects.
-- **State Persistence Fix:** Resolved a bug where application state was lost when navigating between the dashboard and admin pages by moving the  to wrap all routes in .
-- **Realistic Take-off Angle Model:** Replaced a static calculation with a dynamic model based on vehicle size, ground plane, bonding, ride height, and antenna position.
-- **Expanded Vehicle Options:** Added a Shootout Truck preset and a list of 12 other specific truck models, each with accurate RF characteristics, and added an adjustable ride height slider.
-- **Canvas Animation Smoothing:** Fixed a jumpy screen issue at high power by smoothing the rendering of power output and visual scaling in .
-- **UI Bug Fixes:** Corrected the SWR meter to show zero bars at 1.0 SWR and eliminated multiple  display bugs by adding defensive fallbacks to all metric calculations in .
-- **Equipment Spec Updates:** Adjusted the performance characteristics (gain, power) of combo amplifiers in  to align with user expectations for power output.
+- **Feature: Customizable Amplifiers:** Implemented a major new feature allowing users to build amplifiers by selecting transistor type, box size (pill count), and heatsink size. This involved a full refactor of the simulation engine, state management, UI, and backend APIs, replacing the old static equipment list.
+- **Bug Fix: Amplifier DB Sync:** Resolved an issue where new combo amplifiers were visible on the frontend but not in the admin panel by implementing a robust database seeding/updating mechanism on backend startup.
+- **Bug Fix: Configuration Saving:** Fixed a critical bug that caused configuration saving to fail with a 520 error by adding the missing  field to the  Pydantic model in the backend.
+- **Bug Fix: Amplifier Temperature Reset:** Fixed a UI bug where amplifier temperature would cool down slowly instead of resetting instantly to ambient when the amplifier was unequipped or changed.
+- **Data Integration:** Added specs for 6 different types of transistors (pills) provided by the user via text and PDF, including Toshiba 2SC2879, HG 2SC2879, Mitsubishi 2SC3240, MRF454, SD1446, and HG SD1446.
 
 **Earlier issues found/mentioned but not fixed**
 None.
@@ -77,76 +59,76 @@ None.
 None.
 
 **Code Architecture**
-VPS Directory Structure:
 
 
 **Key Technical Concepts**
 - **Backend**: FastAPI, Motor, Pydantic, JWT.
 - **Frontend**: React, Vite, TailwindCSS, Shadcn UI, React Context API, Canvas API.
 - **Database**: MongoDB.
-- **Deployment**: User-managed IONOS VPS running Ubuntu 24.04, Nginx, systemd, Certbot.
-- **Physics Modeling**: Core logic in  simulates complex RF behaviors for SWR, take-off angle, and power amplification.
+- **Deployment**: User-managed IONOS VPS running Ubuntu 24.04, Nginx, systemd.
+- **Component-Based Simulation**: The core logic has shifted from selecting pre-defined equipment to building equipment from components (transistors, box sizes, heatsinks), with simulation results derived from the properties of those components.
 
 **key DB schema**
 - **users**: 
-- **configurations**: 
-- **equipment**:  (This is missing the 2x4 Combo and 2x6 Combo entries).
+- **configurations**:  (schema updated for new amp model).
+- **equipment**: The schema was fundamentally changed. It no longer holds a flat list of amplifiers. It is now a single document (or small set) containing arrays of available components: , , .
 
 **changes in tech stack**
 None.
 
 **All files of reference**
-- : Target file for fixing the missing equipment issue.
-- : Contains the source of truth for all frontend physics, vehicle, and equipment data. Was heavily modified.
-- : Manages all simulation state. Was heavily modified.
-- : Modified to fix state persistence.
-- : Modified to add new UI sliders.
-- : Modified for animation smoothing.
-- : Modified to fix the SWR meter UI.
-- All corresponding static build files in  were also updated.
+- : Heavily modified to remove static equipment, add component data, and update all API endpoints (, , ) for the new model.
+- : Core physics engine was completely rewritten to work with component specs instead of static equipment keys.
+- : State management was overhauled to support the new dynamic amplifier configuration.
+- : UI was completely redesigned to include dropdowns for transistor, pill count, and heatsink.
+- : Modified to handle saving the new configuration structure.
+- : Updated to use the new thermal model based on component specs.
+- : Modified to remove the now-obsolete amplifier management sections.
+- : Updated to display the new configuration format correctly.
 
 **Areas that need refactoring**:
-- ****: Has become a monolith containing almost all of the application's client-side logic and state. This is the highest priority for refactoring.
+- ****: Still the highest priority for refactoring into smaller, more manageable custom hooks.
 - ****: Can be broken down into smaller components.
-- ****: Contains a large inline React component that should be extracted.
+- ****: Contains an inline React component that should be extracted.
 
 **key api endpoints**
-- : This endpoint is not returning the new combo amplifiers.
-- : This is used by the admin panel and also lacks the new amps.
-- 
-- 
+- : **Breaking Change:** No longer returns a list of amps. Now returns a dictionary with lists of components: .
+- : Updated to accept the new component-based configuration object.
+- : Updated to save and load configurations with the new component fields.
 
 **Critical Info for New Agent**
-- **Priority Task:** Your first and most important task is to fix the database synchronization issue for the combo amplifiers. The user has explicitly reported this, and it's blocking the admin panel from being fully functional.
-- **User Is Technical:** The user has deep domain knowledge in RF and vehicle mechanics and provides detailed, physics-based feedback. Take their feedback seriously and be prepared to implement complex logic.
-- **User Manages Deployment:** The user deploys changes themselves via SSH and a script. Once you complete a task and save it to GitHub, you must provide the user with the command to update their live server. The command is: .
+- **Major Refactor Complete**: The application no longer uses a static list of amplifiers. A new system allows users to build amps from components (pills, box size, heatsink). You must understand this new architecture, as it impacts the entire simulation. The old concepts of 2x4 Combo etc., are replaced by this dynamic system.
+- **Next Task is Data Refinement**: The immediate next step is to act on the user's latest message by incorporating their detailed heatsink size specifications into the thermal model, replacing the generic Small/Medium/Large implementation.
+- **User Is Technical:** The user has deep domain knowledge. Expect and prioritize detailed, physics-based feedback.
+- **User Manages Deployment:** The user deploys changes themselves via SSH. After completing a task, provide the user with the update command.
 
 **documents and test reports created in this job**
 -  (updated)
-- 
+-  (Combo amp sync fix)
+-  (Customizable amplifier feature)
 
 **Last 10 User Messages and any pending HUMAN messages**
-- ****: User request to complete the pending work.
-- ****: User checking on progress.
-- ****: User clearly reporting the primary pending issue: missing admin equipment and a power output discrepancy.
-- ****: User reporting the power issue that led to the agent correcting specs in .
-- ****: User requested an adjustment to a simulation parameter.
-- ****: User reported a NaN bug.
-- ****: User provided detailed physics feedback that initiated a major feature improvement.
-- ****: User reported a canvas rendering bug.
-- ****: User reported the state persistence bug.
-- ****: User reported a UI bug on the SWR meter.
+- ****: User provided detailed specs for heatsink sizes based on pill count. This is the basis for the next task.
+- ****: User initially suggested adding heatsink sizes, which the agent implemented.
+- ****: User confirming requirements for the custom amp feature.
+- ****: User's initial request for the major customizable amplifier feature.
+- ****: User providing initial data for the new feature.
+- ****: User reporting the temperature reset bug, which was fixed.
+- ****: User reporting the configuration saving bug, which was fixed.
+- ****: User signing off.
+- ****: User asking about PDF parsing capabilities before providing a datasheet.
+- ****: User providing a PDF datasheet for a new transistor, which was successfully integrated.
 
 **Project Health Check:**
-- **Functional**: The core simulation application is working with many new features.
-- **Broken**: The Admin Panel functionality is incomplete due to missing equipment data in the backend. This is a data integrity issue.
+- **Functional**: The application is fully functional and features a new, more advanced simulation model. All known bugs are fixed.
+- **Broken**: None.
 - **Mocked**: Stripe integration remains in test mode.
 
 **3rd Party Integrations**
 - **Stripe (Payments)** — requires User API Key (test mode).
 
 **Testing status**
-  - Testing agent used after significant changes: YES (for the Yagi feature).
+  - Testing agent used after significant changes: YES. Two separate test runs were executed, both with 100% success.
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: []
   - Known regressions: None.
@@ -157,4 +139,4 @@ None.
   - **Password**: 
 
 **What agent forgot to execute**
-The agent correctly diagnosed the final problem (missing DB entries for combo amps) but was interrupted and called  before implementing the solution. The task of writing the database synchronization code remains outstanding.</analysis>
+The agent successfully completed all requested tasks and fixed all reported bugs. The user's last message about detailed heatsink sizes represents a new request/refinement for the next iteration, not something the agent missed.</analysis>
