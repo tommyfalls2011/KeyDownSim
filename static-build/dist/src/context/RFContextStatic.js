@@ -47,6 +47,7 @@ const DEFAULT_STATE = {
   // Yagi Array Mode
   yagiMode: false,
   yagiStickType: 'fight-8',
+  yagiDir1OnTruck: true,
   yagiElementHeights: {
     ant1: 96,
     ant2: 96,
@@ -115,7 +116,8 @@ export function RFProvider({ children }) {
     const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
     const voltageStress = avgRegV > 15 ? 1 + (avgRegV - 15) * 0.4 : 1.0;
     const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
-    const overDriveStress = underDriven.driveRatio > 1.2 ? 1 + (underDriven.driveRatio - 1.2) * 0.8 : 1.0;
+    const overDriveExcess = Math.max(0, underDriven.driveRatio - 1.0);
+    const overDriveStress = overDriveExcess > 0 ? 1 + overDriveExcess * 2.5 + Math.pow(overDriveExcess, 2) * 3.0 : 1.0;
 
     const simMicLevel = 0.5;
     const dt = 0.1;
@@ -134,7 +136,8 @@ export function RFProvider({ children }) {
       if (driver.currentDraw > 0 && drvBlowTime === null) {
         const thermalMass = driver.transistors >= 2 ? Math.sqrt(driver.transistors / 2) : 1;
         const loadRatio = Math.max(0.05, stages.driverLoadRatioDK + (stages.driverLoadRatioPK - stages.driverLoadRatioDK) * simMicLevel);
-        const loadFactor = loadRatio * voltageStress;
+        const driverStress = stages.driverLoadRatioDK > 0.85 ? 1 + (stages.driverLoadRatioDK - 0.85) * 4.0 : 1.0;
+        const loadFactor = loadRatio * voltageStress * driverStress;
         const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
         drvTemp += heatRate * dt;
         if (drvTemp > drvPeakTemp) drvPeakTemp = drvTemp;
@@ -198,7 +201,7 @@ export function RFProvider({ children }) {
       },
       warnings: {
         highVoltage: avgRegV >= 18,
-        overDriven: underDriven.driveRatio > 1.2,
+        overDriven: underDriven.driveRatio > 1.0,
         underDriven: underDriven.isUnderDriven,
       }
     };

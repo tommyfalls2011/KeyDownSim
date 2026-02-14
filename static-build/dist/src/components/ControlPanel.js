@@ -4,7 +4,7 @@ import KeyButton from '@/components/KeyButton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Antenna } from 'lucide-react';
+import { Antenna, Radio } from 'lucide-react';
 
 export default function ControlPanel() {
   const { config, updateConfig } = useRF();
@@ -45,6 +45,12 @@ export default function ControlPanel() {
             ))}
           </SelectContent>
         </Select>
+        {ANTENNA_POSITIONS[config.antennaPosition]?.dBLoss > 0 && (
+          <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[9px]" data-testid="receive-sensitivity">
+            <Radio className="w-3 h-3 text-amber-400" />
+            <span className="text-slate-600">Rx Sensitivity Loss: <span className="text-amber-400">-{ANTENNA_POSITIONS[config.antennaPosition].dBLoss}dB</span></span>
+          </div>
+        )}
       </div>
 
       {/* Toggles */}
@@ -152,6 +158,22 @@ export default function ControlPanel() {
               <span className="font-mono text-[9px] text-slate-600 w-12">DIR2/3</span>
               <div className="flex-1 h-1 bg-slate-800 rounded" />
               <span className="font-mono text-[9px] text-slate-500 w-10">{config.yagiElementHeights?.dir2 || 111}" (fixed)</span>
+            </div>
+          </div>
+
+          {/* DIR1 Position Toggle */}
+          <div className="flex items-center justify-between pt-2 border-t border-white/5">
+            <Label className="font-mono text-[9px] text-cyan-400 flex items-center gap-1">
+              DIR1 Position
+            </Label>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[8px] text-slate-600">{config.yagiDir1OnTruck ? 'On Truck' : 'Front Beam'}</span>
+              <Switch
+                data-testid="yagi-dir1-position-toggle"
+                checked={!config.yagiDir1OnTruck}
+                onCheckedChange={v => updateConfig('yagiDir1OnTruck', !v)}
+                className="data-[state=checked]:bg-cyan-400 scale-75"
+              />
             </div>
           </div>
 

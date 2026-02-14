@@ -31,6 +31,7 @@ const DEFAULT_STATE = {
   // Yagi Array Mode
   yagiMode: false,
   yagiStickType: 'fight-8', // 'fight-8' or 'fight-10'
+  yagiDir1OnTruck: true, // true = on the truck roof, false = on the front beam
   yagiElementHeights: {
     ant1: 96,   // inches - base height
     ant2: 96,   // same as ant1
@@ -140,7 +141,8 @@ export function RFProvider({ children }) {
     const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
     const voltageStress = avgRegV > 15 ? 1 + (avgRegV - 15) * 0.4 : 1.0;
     const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
-    const overDriveStress = underDriven.driveRatio > 1.2 ? 1 + (underDriven.driveRatio - 1.2) * 0.8 : 1.0;
+    const overDriveExcess = Math.max(0, underDriven.driveRatio - 1.0);
+    const overDriveStress = overDriveExcess > 0 ? 1 + overDriveExcess * 2.5 + Math.pow(overDriveExcess, 2) * 3.0 : 1.0;
 
     // Simulate with moderate modulation (50% mic level average)
     const simMicLevel = 0.5;
@@ -227,7 +229,7 @@ export function RFProvider({ children }) {
       },
       warnings: {
         highVoltage: avgRegV >= 18,
-        overDriven: underDriven.driveRatio > 1.2,
+        overDriven: underDriven.driveRatio > 1.0,
         underDriven: underDriven.isUnderDriven,
       }
     };
@@ -258,7 +260,8 @@ export function RFProvider({ children }) {
       const modStress = 1 + currentMicLevel * 0.25;
 
       const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding);
-      const overDriveStress = underDriven.driveRatio > 1.2 ? 1 + (underDriven.driveRatio - 1.2) * 0.8 : 1.0;
+      const overDriveExcess = Math.max(0, underDriven.driveRatio - 1.0);
+      const overDriveStress = overDriveExcess > 0 ? 1 + overDriveExcess * 2.5 + Math.pow(overDriveExcess, 2) * 3.0 : 1.0;
 
       setDriverTemp(prev => {
         if (isDriverBlown) return prev;
@@ -270,7 +273,9 @@ export function RFProvider({ children }) {
           const dkRatio = stages.driverLoadRatioDK;
           const pkRatio = stages.driverLoadRatioPK;
           const loadRatio = Math.max(0.05, dkRatio + (pkRatio - dkRatio) * currentMicLevel);
-          const loadFactor = loadRatio * voltageStress;
+          // Driver over-drive: if driver load ratio > 0.85, it's running hot
+          const driverStress = dkRatio > 0.85 ? 1 + (dkRatio - 0.85) * 4.0 : 1.0;
+          const loadFactor = loadRatio * voltageStress * driverStress;
           const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {

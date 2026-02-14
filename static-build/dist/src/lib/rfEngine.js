@@ -12,8 +12,10 @@ export const DRIVER_AMPS = {
   'none': { name: 'No Driver', gainDB: 0, transistors: 0, currentDraw: 0, wattsPerPill: 275, combiningStages: 0 },
   '1-pill': { name: '1-Pill Driver', gainDB: 13, transistors: 1, currentDraw: 15, wattsPerPill: 275, combiningStages: 0 },
   '2-pill': { name: '2-Pill Driver', gainDB: 17, transistors: 2, currentDraw: 50, wattsPerPill: 275, combiningStages: 0 },
-  '3-pill': { name: '3-Pill Driver', gainDB: 13, transistors: 3, currentDraw: 60, wattsPerPill: 275, combiningStages: 0 },
+  '3-pill': { name: '3-Pill (1→2)', gainDB: 13, transistors: 3, currentDraw: 65, wattsPerPill: 185, combiningStages: 0 },
   '4-pill': { name: '4-Pill Driver', gainDB: 20, transistors: 4, currentDraw: 100, wattsPerPill: 275, combiningStages: 1 },
+  '2x4': { name: '2x4 Combo (2→4)', gainDB: 17, transistors: 6, currentDraw: 130, wattsPerPill: 250, combiningStages: 1 },
+  '2x6': { name: '2x6 Combo (2→6)', gainDB: 18, transistors: 8, currentDraw: 180, wattsPerPill: 250, combiningStages: 1 },
 };
 
 export const FINAL_AMPS = {
