@@ -566,7 +566,11 @@ export function getRadiationPattern(vehicleKey, bonding, power, antennaKey, ante
 
 // ─── Yagi Array Radiation Pattern ───
 // Creates a highly directional forward beam pattern
-// Element spacing offsets affect beam width, gain, and side lobe levels
+// Element spacing changes affect:
+// - Beam width (closer directors = narrower but more unstable, further = wider/weaker)
+// - Side lobe levels (spacing errors = higher side lobes = wasted power)
+// - Front-to-back ratio (reflector spacing is critical)
+// - Overall gain (misaligned spacing = lower efficiency)
 export function getYagiRadiationPattern(vehicleKey, bonding, power, yagiConfig) {
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const points = [];
@@ -578,22 +582,49 @@ export function getYagiRadiationPattern(vehicleKey, bonding, power, yagiConfig) 
   const yagiGain = Math.pow(10, yagiGainDB / 10);
   const beamWidth = YAGI_ARRAY_CONFIG.beamWidth; // degrees
   
-  // Element spacing offsets affect the beam shape:
-  // - Wider reflector-driven spacing → slightly broader beam, less front-to-back
-  // - Tighter director spacing → narrower beam but harder to tune
-  // - Overall misalignment → wider beam + higher side lobes
-  const totalPosDeviation = Math.abs(posOffsets.ant1 || 0) + Math.abs(posOffsets.ant2 || 0) + 
-    Math.abs(posOffsets.dir1 || 0) + Math.abs(posOffsets.dir2 || 0) + Math.abs(posOffsets.dir3 || 0);
+  // Calculate actual spacings vs optimal to determine pattern degradation
+  const dir1OnTruck = yagiConfig?.dir1OnTruck !== false;
+  const dir1BasePos = dir1OnTruck ? 42 : 96;
+  const optimalSpacings = [72, dir1BasePos, 96, 96]; // ANT1→ANT2, ANT2→DIR1, DIR1→DIR2, DIR2→DIR3
+  const actualPositions = [
+    0 + (posOffsets.ant1 || 0),
+    72 + (posOffsets.ant2 || 0),
+    72 + dir1BasePos + (posOffsets.dir1 || 0),
+    72 + dir1BasePos + 96 + (posOffsets.dir2 || 0),
+    72 + dir1BasePos + 192 + (posOffsets.dir3 || 0),
+  ];
   
-  // Beam broadens with spacing misalignment (each inch adds ~0.8° to beam width)
-  const adjustedBeamWidth = beamWidth + totalPosDeviation * 0.8;
+  // Measure how far each spacing is from optimal
+  let totalSpacingError = 0;
+  let reflectorError = 0; // Specifically track reflector-driven spacing error
+  for (let i = 0; i < optimalSpacings.length; i++) {
+    const actual = actualPositions[i + 1] - actualPositions[i];
+    const error = actual - optimalSpacings[i];
+    totalSpacingError += Math.abs(error);
+    if (i === 0) reflectorError = error; // negative = closer, positive = further
+  }
+  
+  // Beam width changes:
+  // - Directors closer → beam tries to narrow but coupling destabilizes it → widens
+  // - Directors further → Yagi phasing weaker → beam widens
+  // - Net effect: any spacing deviation broadens the beam
+  const beamBroadening = totalSpacingError * 0.6; // degrees per inch of total error
+  const adjustedBeamWidth = beamWidth + beamBroadening;
   const beamWidthRad = (adjustedBeamWidth * Math.PI) / 180;
   
-  // Gain drops slightly with spacing deviation (~0.15dB per inch of total deviation)
-  const spacingGainPenalty = Math.pow(10, -(totalPosDeviation * 0.15) / 10);
+  // Gain drops with spacing errors — misaligned phasing = less constructive interference
+  const spacingGainPenalty = Math.pow(10, -(totalSpacingError * 0.12) / 10);
   
-  // Side lobe level increases with misalignment
-  const sideLobeBoost = 1 + totalPosDeviation * 0.02;
+  // Side lobe levels increase with spacing errors — power goes into wrong directions
+  const sideLobeBoost = 1 + totalSpacingError * 0.025;
+  
+  // Front-to-back ratio: reflector spacing is critical
+  // Closer reflector = less front-to-back (more back radiation)
+  // Further reflector = weaker reflection
+  const backLobeBase = 0.08;
+  const backLobeFromReflector = reflectorError < 0 
+    ? backLobeBase + Math.abs(reflectorError) * 0.015  // closer = more back radiation
+    : backLobeBase + reflectorError * 0.005;            // further = slight increase
   
   // Vehicle ground height affects vertical angle efficiency
   const groundHeightFactor = Math.min(1.2, (vehicle.groundHeight || 5) / 5);
@@ -617,9 +648,9 @@ export function getYagiRadiationPattern(vehicleKey, bonding, power, yagiConfig) 
     const sideLobeAngle2 = Math.abs(angleDiff + Math.PI / 2);
     const sideLobe = 0.15 * sideLobeBoost * (Math.exp(-Math.pow(sideLobeAngle1, 2) / 0.3) + Math.exp(-Math.pow(sideLobeAngle2, 2) / 0.3));
     
-    // Back lobe (increases with poor spacing alignment)
+    // Back lobe (affected by reflector spacing)
     const backLobeAngle = Math.abs(Math.abs(angleDiff) - Math.PI);
-    const backLobe = (0.08 + totalPosDeviation * 0.005) * Math.exp(-Math.pow(backLobeAngle, 2) / 0.2);
+    const backLobe = backLobeFromReflector * Math.exp(-Math.pow(backLobeAngle, 2) / 0.2);
     
     // Combine lobes
     let gain = mainLobe + sideLobe + backLobe;
