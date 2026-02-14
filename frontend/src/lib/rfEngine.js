@@ -412,8 +412,13 @@ export function calculateVoltageDrop(driverSpecs, midDriverSpecs, finalSpecs, al
 const Z0 = 50; // Characteristic impedance (Ω) — standard coax
 
 // Feedline loss at 27MHz (dB per 100 feet)
-const COAX_LOSS = { 'rg58': 1.3, 'rg8x': 0.9, 'rg213': 0.5 };
-const DEFAULT_COAX = 'rg58';
+export const COAX_TYPES = {
+  'rg213':   { name: 'RG-213',         lossPerHundredFt: 0.5,  desc: 'Standard 50Ω' },
+  'rg217':   { name: 'RG-217',         lossPerHundredFt: 0.35, desc: 'Large diameter, low loss' },
+  'rg393':   { name: 'RG-393',         lossPerHundredFt: 0.4,  desc: 'Double-shield, flexible' },
+  'heliax':  { name: 'Heliax 1"',      lossPerHundredFt: 0.1,  desc: 'Hardline, ultra-low loss' },
+};
+const DEFAULT_COAX = 'rg213';
 const DEFAULT_COAX_FT = 18;
 
 // Base impedance per antenna type (R + jX on a perfect infinite ground plane)
