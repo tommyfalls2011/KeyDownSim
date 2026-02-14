@@ -77,104 +77,145 @@ export default function CanvasVisualizer() {
   }, []);
 
   // Draw Yagi Array with beam and 5 elements
+  // ANT1 = behind truck (rear support rig)
+  // ANT2 = on truck bed
+  // DIR1, DIR2, DIR3 = in front on forward beam
   const drawYagiArray = useCallback((ctx, cx, cy, scale, yagiConfig, keyed) => {
     const heights = yagiConfig?.elementHeights || {};
     const stickType = yagiConfig?.stickType || 'fight-8';
     const baseHeight = stickType === 'fight-10' ? 120 : 96;
     
-    // Scale factor for visualization
     const s = scale * 0.5;
-    const beamY = cy - 70 * s; // Beam extends forward (up) from truck
     
-    // Element positions (from YAGI_ARRAY_CONFIG, scaled)
-    // Position 0 = rear (on truck), positions go forward (up on screen)
+    // Positions relative to truck center (negative = behind, positive = in front)
+    // ANT1: 72" behind truck
+    // ANT2: on truck (0)
+    // DIR1: 42" in front (3.5')
+    // DIR2: 42 + 96 = 138" in front (8' from DIR1)
+    // DIR3: 138 + 96 = 234" in front (8' from DIR2)
     const elements = [
-      { id: 'ant1', name: 'ANT1', pos: 0, height: heights.ant1 || 96, color: '#00F0FF' },
-      { id: 'ant2', name: 'ANT2', pos: 72, height: heights.ant2 || 96, color: '#00F0FF' },
-      { id: 'dir1', name: 'DIR1', pos: 114, height: heights.dir1 || 84, color: '#FFD700' },
-      { id: 'dir2', name: 'DIR2', pos: 210, height: heights.dir2 || 111, color: '#FF6B35' },
-      { id: 'dir3', name: 'DIR3', pos: 306, height: heights.dir3 || 111, color: '#FF6B35' },
+      { id: 'ant1', name: 'ANT1', pos: -72, height: heights.ant1 || 96, color: '#00F0FF', label: 'REFLECTOR' },
+      { id: 'ant2', name: 'ANT2', pos: 0, height: heights.ant2 || 96, color: '#00F0FF', label: 'DRIVEN' },
+      { id: 'dir1', name: 'DIR1', pos: 42, height: heights.dir1 || 84, color: '#FFD700', label: '' },
+      { id: 'dir2', name: 'DIR2', pos: 138, height: heights.dir2 || 111, color: '#FF6B35', label: '' },
+      { id: 'dir3', name: 'DIR3', pos: 234, height: heights.dir3 || 111, color: '#FF6B35', label: '' },
     ];
     
-    // Calculate beam length (total array length)
-    const maxPos = 306; // DIR3 position in inches
-    const beamLength = (maxPos / 12) * 8 * s; // Convert to feet, then scale
+    // Scale: 12 inches = 8 pixels at scale 1
+    const inchToPixel = (inches) => (inches / 12) * 8 * s;
     
-    // Draw the mounting beam (extending forward from truck)
+    // Draw rear support rig (behind truck for ANT1)
+    const rearRigEnd = cy + inchToPixel(72) + 20 * s;
     ctx.strokeStyle = 'rgba(100,100,100,0.8)';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(cx, cy - 30 * s); // Start from truck
-    ctx.lineTo(cx, cy - 30 * s - beamLength); // Extend forward
+    ctx.moveTo(cx, cy + 35 * s); // Start from back of truck
+    ctx.lineTo(cx, rearRigEnd); // Extend backward
     ctx.stroke();
     
-    // Beam support struts
+    // Rear support struts (V shape)
     ctx.strokeStyle = 'rgba(80,80,80,0.6)';
     ctx.lineWidth = 1.5;
-    // Left strut
     ctx.beginPath();
-    ctx.moveTo(cx - 20 * s, cy);
-    ctx.lineTo(cx, cy - 30 * s - beamLength * 0.3);
+    ctx.moveTo(cx - 15 * s, cy + 45 * s);
+    ctx.lineTo(cx, rearRigEnd - 10 * s);
     ctx.stroke();
-    // Right strut
     ctx.beginPath();
-    ctx.moveTo(cx + 20 * s, cy);
-    ctx.lineTo(cx, cy - 30 * s - beamLength * 0.3);
+    ctx.moveTo(cx + 15 * s, cy + 45 * s);
+    ctx.lineTo(cx, rearRigEnd - 10 * s);
+    ctx.stroke();
+    
+    // Draw front beam (in front of truck for DIR1, DIR2, DIR3)
+    const frontBeamEnd = cy - inchToPixel(234) - 30 * s;
+    ctx.strokeStyle = 'rgba(100,100,100,0.8)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 45 * s); // Start from front of truck
+    ctx.lineTo(cx, frontBeamEnd); // Extend forward
+    ctx.stroke();
+    
+    // Front support struts
+    ctx.strokeStyle = 'rgba(80,80,80,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cx - 20 * s, cy - 35 * s);
+    ctx.lineTo(cx, cy - inchToPixel(100));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx + 20 * s, cy - 35 * s);
+    ctx.lineTo(cx, cy - inchToPixel(100));
     ctx.stroke();
     
     // Draw each antenna element
-    elements.forEach((el, idx) => {
-      const posScale = (el.pos / maxPos) * beamLength;
+    elements.forEach((el) => {
+      // Position: negative = behind (down on screen), positive = in front (up on screen)
+      const elY = cy - inchToPixel(el.pos);
       const elX = cx;
-      const elY = cy - 30 * s - posScale;
       
-      // Height visualization (taller = longer line)
-      const heightScale = (el.height / baseHeight) * 25 * s;
+      // Height visualization (taller = longer line going up from mount point)
+      const heightScale = (el.height / baseHeight) * 30 * s;
       
       // Antenna base (mount point on beam)
-      ctx.fillStyle = '#444';
+      ctx.fillStyle = '#555';
       ctx.beginPath();
-      ctx.arc(elX, elY, 3 * s, 0, Math.PI * 2);
+      ctx.arc(elX, elY, 4 * s, 0, Math.PI * 2);
       ctx.fill();
       
-      // Antenna element (vertical line)
+      // Antenna element (vertical line going UP from mount)
       ctx.strokeStyle = el.color;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(elX, elY);
       ctx.lineTo(elX, elY - heightScale);
       ctx.stroke();
       
-      // Antenna tip (small circle)
-      ctx.fillStyle = keyed ? el.color : 'rgba(255,255,255,0.3)';
+      // Antenna tip glow when keyed
+      if (keyed) {
+        ctx.fillStyle = el.color;
+        ctx.shadowColor = el.color;
+        ctx.shadowBlur = 8;
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.shadowBlur = 0;
+      }
       ctx.beginPath();
-      ctx.arc(elX, elY - heightScale, 2 * s, 0, Math.PI * 2);
+      ctx.arc(elX, elY - heightScale, 3 * s, 0, Math.PI * 2);
       ctx.fill();
+      ctx.shadowBlur = 0;
       
-      // Label
-      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      // Element label (to the side)
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.font = `${8 * s}px "JetBrains Mono"`;
+      ctx.textAlign = 'left';
+      ctx.fillText(el.name, elX + 8 * s, elY);
+      
+      // Height label
+      ctx.fillStyle = el.color;
       ctx.font = `${7 * s}px "JetBrains Mono"`;
-      ctx.textAlign = 'center';
-      ctx.fillText(el.name, elX, elY + 10 * s);
+      ctx.fillText(`${el.height}"`, elX + 8 * s, elY - heightScale + 3);
     });
     
-    // Draw "YAGI ARRAY" label
-    ctx.fillStyle = 'rgba(255,215,0,0.6)';
-    ctx.font = `${9 * s}px "Chakra Petch"`;
+    // "YAGI ARRAY" label at the front
+    ctx.fillStyle = 'rgba(255,215,0,0.7)';
+    ctx.font = `bold ${10 * s}px "Chakra Petch"`;
     ctx.textAlign = 'center';
-    ctx.fillText('YAGI ARRAY', cx, cy - 30 * s - beamLength - 15 * s);
+    ctx.fillText('YAGI ARRAY', cx, frontBeamEnd - 10 * s);
     
-    // Direction arrow
-    ctx.strokeStyle = 'rgba(255,215,0,0.4)';
-    ctx.lineWidth = 1.5;
+    // Direction arrow (forward)
+    ctx.strokeStyle = 'rgba(255,215,0,0.5)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cx, cy - 30 * s - beamLength - 25 * s);
-    ctx.lineTo(cx - 8 * s, cy - 30 * s - beamLength - 15 * s);
-    ctx.moveTo(cx, cy - 30 * s - beamLength - 25 * s);
-    ctx.lineTo(cx + 8 * s, cy - 30 * s - beamLength - 15 * s);
-    ctx.moveTo(cx, cy - 30 * s - beamLength - 25 * s);
-    ctx.lineTo(cx, cy - 30 * s - beamLength - 5 * s);
+    const arrowY = frontBeamEnd - 20 * s;
+    ctx.moveTo(cx, arrowY);
+    ctx.lineTo(cx - 10 * s, arrowY + 12 * s);
+    ctx.moveTo(cx, arrowY);
+    ctx.lineTo(cx + 10 * s, arrowY + 12 * s);
     ctx.stroke();
+    
+    // "REAR" label
+    ctx.fillStyle = 'rgba(100,100,100,0.5)';
+    ctx.font = `${8 * s}px "JetBrains Mono"`;
+    ctx.fillText('REAR', cx, rearRigEnd + 15 * s);
   }, []);
 
   useEffect(() => {
