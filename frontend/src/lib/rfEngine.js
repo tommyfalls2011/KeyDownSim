@@ -206,9 +206,10 @@ export function mergeEquipmentFromAPI(apiData) {
 // ─── Calculation Functions ───
 
 // Per-stage output and load ratios — for thermal model and actual current draw
-export function calculateStageOutputs(radioKey, driverSpecs, finalSpecs, bonding, driveLevel) {
+export function calculateStageOutputs(radioKey, driverSpecs, midDriverSpecs, finalSpecs, bonding, driveLevel) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = driverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0, efficiency: 0.35 };
+  const midDriver = midDriverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0, efficiency: 0.35 };
   const final_ = finalSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0, efficiency: 0.35 };
   const bondingFactor = bonding ? 1.0 : 0.6;
   const dl = driveLevel ?? 1.0;
@@ -217,8 +218,8 @@ export function calculateStageOutputs(radioKey, driverSpecs, finalSpecs, bonding
   const radioPK = radio.peakKey * dl;
 
   let driverOutDK = 0, driverOutPK = 0, driverMax = 0;
-  let inputToFinalDK = radioDK;
-  let inputToFinalPK = radioPK;
+  let inputToNextDK = radioDK;
+  let inputToNextPK = radioPK;
 
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
@@ -227,8 +228,20 @@ export function calculateStageOutputs(radioKey, driverSpecs, finalSpecs, bonding
     driverMax = driver.transistors * (driver.wattsPerPill || 100) * combining;
     driverOutDK = Math.min(radioDK * driverGain, driverMax);
     driverOutPK = Math.min(radioPK * driverGain, driverMax);
-    inputToFinalDK = driverOutDK;
-    inputToFinalPK = driverOutPK;
+    inputToNextDK = driverOutDK;
+    inputToNextPK = driverOutPK;
+  }
+
+  let midDriverOutDK = 0, midDriverOutPK = 0, midDriverMax = 0;
+  if (midDriver.gainDB > 0) {
+    const midGain = Math.pow(10, midDriver.gainDB / 10);
+    const stages = midDriver.combiningStages || 0;
+    const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
+    midDriverMax = midDriver.transistors * (midDriver.wattsPerPill || 100) * combining;
+    midDriverOutDK = Math.min(inputToNextDK * midGain, midDriverMax);
+    midDriverOutPK = Math.min(inputToNextPK * midGain, midDriverMax);
+    inputToNextDK = midDriverOutDK;
+    inputToNextPK = midDriverOutPK;
   }
 
   let finalOutDK = 0, finalOutPK = 0, finalMax = 0;
@@ -237,23 +250,27 @@ export function calculateStageOutputs(radioKey, driverSpecs, finalSpecs, bonding
     const stages = final_.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
     finalMax = final_.transistors * (final_.wattsPerPill || 100) * combining;
-    finalOutDK = Math.min(inputToFinalDK * finalGain, finalMax);
-    finalOutPK = Math.min(inputToFinalPK * finalGain, finalMax);
+    finalOutDK = Math.min(inputToNextDK * finalGain, finalMax);
+    finalOutPK = Math.min(inputToNextPK * finalGain, finalMax);
   }
 
   return {
     driverMax,
     driverLoadRatioDK: driverMax > 0 ? Math.min(1, (driverOutDK * bondingFactor) / driverMax) : 0,
     driverLoadRatioPK: driverMax > 0 ? Math.min(1, (driverOutPK * bondingFactor) / driverMax) : 0,
+    midDriverMax,
+    midDriverLoadRatioDK: midDriverMax > 0 ? Math.min(1, (midDriverOutDK * bondingFactor) / midDriverMax) : 0,
+    midDriverLoadRatioPK: midDriverMax > 0 ? Math.min(1, (midDriverOutPK * bondingFactor) / midDriverMax) : 0,
     finalMax,
     finalLoadRatioDK: finalMax > 0 ? Math.min(1, (finalOutDK * bondingFactor) / finalMax) : 0,
     finalLoadRatioPK: finalMax > 0 ? Math.min(1, (finalOutPK * bondingFactor) / finalMax) : 0,
   };
 }
 
-export function calculateSignalChain(radioKey, driverSpecs, finalSpecs, bonding, antennaPosKey, driveLevel, ampVoltage) {
+export function calculateSignalChain(radioKey, driverSpecs, midDriverSpecs, finalSpecs, bonding, antennaPosKey, driveLevel, ampVoltage) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = driverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0 };
+  const midDriver = midDriverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0 };
   const final_ = finalSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0 };
   const dl = driveLevel ?? 1.0;
 
@@ -272,6 +289,15 @@ export function calculateSignalChain(radioKey, driverSpecs, finalSpecs, bonding,
     const driverMax = driver.transistors * (driver.wattsPerPill || 100) * combining * voltageBoost;
     deadKey = Math.min(deadKey * driverGain * voltageBoost, driverMax);
     peakKey = Math.min(peakKey * driverGain * voltageBoost, driverMax);
+  }
+
+  if (midDriver.gainDB > 0) {
+    const midGain = Math.pow(10, midDriver.gainDB / 10);
+    const stages = midDriver.combiningStages || 0;
+    const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
+    const midMax = midDriver.transistors * (midDriver.wattsPerPill || 100) * combining * voltageBoost;
+    deadKey = Math.min(deadKey * midGain * voltageBoost, midMax);
+    peakKey = Math.min(peakKey * midGain * voltageBoost, midMax);
   }
 
   if (final_.gainDB > 0) {
