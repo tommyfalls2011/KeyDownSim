@@ -338,6 +338,7 @@ export function RFProvider({ children }) {
         stickType: config.yagiStickType,
         elementHeights: config.yagiElementHeights,
         elementPositions: config.yagiElementPositions,
+        dir1OnTruck: config.yagiDir1OnTruck,
       })
     : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
   
