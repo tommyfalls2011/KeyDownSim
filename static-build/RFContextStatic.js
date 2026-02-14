@@ -36,6 +36,7 @@ const DEFAULT_STATE = {
   antenna: 'whip-102',
   antennaPosition: 'center',
   vehicle: 'suburban',
+  rideHeightOffset: 0,
   bonding: true,
   alternatorCount: 1,
   alternatorAmps: 130,
