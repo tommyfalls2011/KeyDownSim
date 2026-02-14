@@ -45,6 +45,12 @@ export default function ControlPanel() {
             ))}
           </SelectContent>
         </Select>
+        {ANTENNA_POSITIONS[config.antennaPosition]?.dBLoss > 0 && (
+          <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[9px]" data-testid="receive-sensitivity">
+            <Radio className="w-3 h-3 text-amber-400" />
+            <span className="text-slate-600">Rx Sensitivity Loss: <span className="text-amber-400">-{ANTENNA_POSITIONS[config.antennaPosition].dBLoss}dB</span></span>
+          </div>
+        )}
       </div>
 
       {/* Toggles */}
