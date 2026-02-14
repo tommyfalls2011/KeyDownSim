@@ -39,6 +39,14 @@ const DEFAULT_STATE = {
     dir2: 111,  // 15" taller (fixed relative)
     dir3: 111,  // same as dir2
   },
+  // Per-element position offsets in inches (-12 to +12, 0 = default spacing)
+  yagiElementPositions: {
+    ant1: 0,
+    ant2: 0,
+    dir1: 0,
+    dir2: 0,
+    dir3: 0,
+  },
 };
 
 export function RFProvider({ children }) {
