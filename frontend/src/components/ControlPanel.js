@@ -224,11 +224,34 @@ export default function ControlPanel() {
               <span className="font-mono text-[9px] text-cyan-400 w-10">{config.yagiElementHeights?.dir1 || 84}"</span>
             </div>
             
-            {/* DIR2 & DIR3 - Fixed (taller) */}
-            <div className="flex items-center gap-2 opacity-60">
-              <span className="font-mono text-[9px] text-slate-600 w-12">DIR2/3</span>
-              <div className="flex-1 h-1 bg-slate-800 rounded" />
-              <span className="font-mono text-[9px] text-slate-500 w-10">{config.yagiElementHeights?.dir2 || 111}" (fixed)</span>
+            {/* DIR2 - Second Director (tunable) */}
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] text-orange-400 w-12">DIR2</span>
+              <input
+                type="range"
+                min="60"
+                max="120"
+                value={config.yagiElementHeights?.dir2 || 111}
+                onChange={e => updateConfig('yagiElementHeights', { ...config.yagiElementHeights, dir2: parseInt(e.target.value) })}
+                className="flex-1 h-1 accent-orange-400 bg-slate-800 rounded cursor-pointer"
+                data-testid="yagi-dir2-slider"
+              />
+              <span className="font-mono text-[9px] text-orange-400 w-10">{config.yagiElementHeights?.dir2 || 111}"</span>
+            </div>
+            
+            {/* DIR3 - Third Director (tunable) */}
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] text-orange-400 w-12">DIR3</span>
+              <input
+                type="range"
+                min="60"
+                max="120"
+                value={config.yagiElementHeights?.dir3 || 111}
+                onChange={e => updateConfig('yagiElementHeights', { ...config.yagiElementHeights, dir3: parseInt(e.target.value) })}
+                className="flex-1 h-1 accent-orange-400 bg-slate-800 rounded cursor-pointer"
+                data-testid="yagi-dir3-slider"
+              />
+              <span className="font-mono text-[9px] text-orange-400 w-10">{config.yagiElementHeights?.dir3 || 111}"</span>
             </div>
           </div>
 
