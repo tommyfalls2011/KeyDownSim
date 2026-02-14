@@ -445,9 +445,10 @@ function applyFeedlineLoss(gamma, coaxType, lengthFt) {
   return gamma * Math.pow(10, -roundTripDB / 20);
 }
 
-export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength) {
+export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength, antennaPosKey) {
   const antenna = ANTENNAS[antennaKey] || ANTENNAS['whip-102'];
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
+  const pos = ANTENNA_POSITIONS[antennaPosKey] || ANTENNA_POSITIONS['center'];
   const baseZ = ANTENNA_Z[antenna.type] || ANTENNA_Z['vertical'];
 
   // Start with antenna's base impedance
@@ -460,6 +461,21 @@ export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength) {
   const gp = Math.max(0.3, vehicle.groundPlane);
   R = R / gp;
   X += baseZ.R * (1 - gp) * 0.8;
+
+  // ── Antenna position effect ──
+  // Off-center mount = asymmetric ground plane. The antenna sees less metal
+  // on one side, weakening the image current → R rises (lossy return path)
+  // and asymmetry adds reactance (unbalanced current distribution).
+  // biasStrength: 0 = center (symmetric), 0.7 = rear edge (highly asymmetric)
+  // dBLoss: measured efficiency loss from Larsen data
+  if (pos.biasStrength > 0) {
+    // Asymmetry raises R — the missing metal means the ground return
+    // path has higher resistance. Scales with how far off-center.
+    R += pos.biasStrength * 8;
+    // Asymmetric counterpoise adds reactance — the image current
+    // is incomplete on one side, creating a reactive component.
+    X += pos.biasStrength * 12;
+  }
 
   // ── Bonding ──
   // Poor bonding → common-mode current on coax shield → stray RF paths
