@@ -399,7 +399,7 @@ export function RFProvider({ children }) {
         elementPositions: config.yagiElementPositions,
         dir1OnTruck: config.yagiDir1OnTruck,
       })
-    : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
+    : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength, config.antennaPosition);
   const swr = swrResult.atRadio;
   const swrAtAntenna = swrResult.atAntenna;
   
