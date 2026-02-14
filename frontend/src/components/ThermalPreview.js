@@ -18,7 +18,7 @@ export default function ThermalPreview() {
     }, 300);
   };
 
-  const hasAmps = config.driverAmp !== 'none' || config.finalAmp !== 'none';
+  const hasAmps = config.driverTransistor !== 'none' || config.finalTransistor !== 'none';
 
   if (!hasAmps) {
     return (
