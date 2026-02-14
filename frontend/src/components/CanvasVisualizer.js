@@ -174,7 +174,15 @@ export default function CanvasVisualizer() {
       if (intensity > 0.01) {
         // Use modulated power when mic is active, otherwise dead key
         const power = keyed ? metrics.modulatedWatts : 0;
-        const pattern = getRadiationPattern(config.vehicle, config.bonding, power, config.antenna, config.antennaPosition);
+        
+        // Choose pattern based on Yagi mode
+        const pattern = config.yagiMode 
+          ? getYagiRadiationPattern(config.vehicle, config.bonding, power, {
+              stickType: config.yagiStickType,
+              swrTuned: true,
+            })
+          : getRadiationPattern(config.vehicle, config.bonding, power, config.antenna, config.antennaPosition);
+        
         const pulse = 1 + Math.sin(time * 4) * 0.05 * intensity;
 
         // Auto-scale: find max pattern gain and scale to fit within 90% of maxR
