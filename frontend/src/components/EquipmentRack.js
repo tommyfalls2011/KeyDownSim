@@ -133,7 +133,7 @@ function AmpStageSelector({ label, slot, transistorKey, boxSizeKey, heatsinkKey,
 }
 
 export default function EquipmentRack() {
-  const { config, updateConfig, metrics, resetAmp, keyed, equipmentLoaded, driverSpecs, finalSpecs } = useRF();
+  const { config, updateConfig, metrics, resetAmp, keyed, equipmentLoaded, driverSpecs, midDriverSpecs, finalSpecs } = useRF();
 
   const radios = useMemo(() => ({ ...RADIOS }), [equipmentLoaded]);
   const antennas = useMemo(() => ({ ...ANTENNAS }), [equipmentLoaded]);
