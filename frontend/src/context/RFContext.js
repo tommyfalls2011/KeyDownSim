@@ -28,6 +28,16 @@ const DEFAULT_STATE = {
   regulatorVoltages: [14.2],
   tipLength: 48,
   keyed: false,
+  // Yagi Array Mode
+  yagiMode: false,
+  yagiStickType: 'fight-8', // 'fight-8' or 'fight-10'
+  yagiElementHeights: {
+    ant1: 96,   // inches - base height
+    ant2: 96,   // same as ant1
+    dir1: 84,   // ~1' shorter, tunable
+    dir2: 111,  // 15" taller (fixed relative)
+    dir3: 111,  // same as dir2
+  },
 };
 
 export function RFProvider({ children }) {
