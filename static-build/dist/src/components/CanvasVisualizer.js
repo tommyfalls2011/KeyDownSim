@@ -324,6 +324,7 @@ export default function CanvasVisualizer() {
           stickType: config.yagiStickType,
           elementHeights: config.yagiElementHeights,
           dir1OnTruck: config.yagiDir1OnTruck,
+          elementPositions: config.yagiElementPositions,
         }, keyed);
       }
 
@@ -337,6 +338,7 @@ export default function CanvasVisualizer() {
           ? getYagiRadiationPattern(config.vehicle, config.bonding, power, {
               stickType: config.yagiStickType,
               swrTuned: true,
+              elementPositions: config.yagiElementPositions,
             })
           : getRadiationPattern(config.vehicle, config.bonding, power, config.antenna, config.antennaPosition);
         
