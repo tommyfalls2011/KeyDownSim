@@ -451,7 +451,7 @@ function applyFeedlineLoss(gamma, coaxType, lengthFt) {
   return gamma * Math.pow(10, -roundTripDB / 20);
 }
 
-export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength, antennaPosKey) {
+export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength, antennaPosKey, coaxType, coaxLengthFt) {
   const antenna = ANTENNAS[antennaKey] || ANTENNAS['whip-102'];
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const pos = ANTENNA_POSITIONS[antennaPosKey] || ANTENNA_POSITIONS['center'];
