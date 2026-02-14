@@ -359,20 +359,19 @@ export function RFProvider({ children }) {
     yagiMode: config.yagiMode,
     rideHeightOffset: config.rideHeightOffset,
   });
-  const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
+  const underDriven = checkUnderDriven(config.radio, driverSpecs, finalSpecs, config.bonding, config.driveLevel);
 
   // Actual current draw — proportional to load, swings with modulation
-  // Dead key = baseline current, mic modulation pushes toward peak current
-  const driver = DRIVER_AMPS[config.driverAmp] || DRIVER_AMPS['none'];
-  const final_ = FINAL_AMPS[config.finalAmp] || FINAL_AMPS['none'];
   const driverLoadRatio = stages.driverLoadRatioDK + (stages.driverLoadRatioPK - stages.driverLoadRatioDK) * micLevel;
   const finalLoadRatio = stages.finalLoadRatioDK + (stages.finalLoadRatioPK - stages.finalLoadRatioDK) * micLevel;
-  const driverActualAmps = keyed ? driver.currentDraw * Math.max(0.05, driverLoadRatio) : 0;
-  const finalActualAmps = keyed ? final_.currentDraw * Math.max(0.05, finalLoadRatio) : 0;
+  const driverCurrentDraw = driverSpecs?.currentDraw ?? 0;
+  const finalCurrentDraw = finalSpecs?.currentDraw ?? 0;
+  const driverActualAmps = keyed ? driverCurrentDraw * Math.max(0.05, driverLoadRatio) : 0;
+  const finalActualAmps = keyed ? finalCurrentDraw * Math.max(0.05, finalLoadRatio) : 0;
   const actualDemand = driverActualAmps + finalActualAmps;
 
   // Voltage calculation uses actual demand when keyed
-  const voltage = calculateVoltageDrop(config.driverAmp, config.finalAmp, config.alternatorCount, config.alternatorAmps, config.batteryType, config.batteryCount, config.regulatorVoltages, keyed ? actualDemand : 0);
+  const voltage = calculateVoltageDrop(driverSpecs, finalSpecs, config.alternatorCount, config.alternatorAmps, config.batteryType, config.batteryCount, config.regulatorVoltages, keyed ? actualDemand : 0);
 
   // Apply blown amp — if blown, that stage produces nothing
   let effectiveChain = { ...chain };
@@ -380,8 +379,7 @@ export function RFProvider({ children }) {
     effectiveChain.deadKey = 0;
     effectiveChain.peakKey = 0;
   }
-  if (finalBlown && config.finalAmp !== 'none') {
-    // Final blown: signal only goes through driver (if any)
+  if (finalBlown && finalSpecs) {
     effectiveChain.deadKey = 0;
     effectiveChain.peakKey = 0;
   }
