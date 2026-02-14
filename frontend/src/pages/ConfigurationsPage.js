@@ -73,6 +73,7 @@ export default function ConfigurationsPage() {
                   <div className="font-mono text-[10px] text-slate-600 mt-1 flex gap-4">
                     <span>Radio: {cfg.radio}</span>
                     <span>Driver: {cfg.driver_transistor !== 'none' ? `${cfg.driver_box_size}x ${cfg.driver_transistor}` : 'None'}</span>
+                    <span>Mid: {cfg.mid_driver_transistor && cfg.mid_driver_transistor !== 'none' ? `${cfg.mid_driver_box_size}x ${cfg.mid_driver_transistor}` : 'None'}</span>
                     <span>Final: {cfg.final_transistor !== 'none' ? `${cfg.final_box_size}x ${cfg.final_transistor}` : 'None'}</span>
                     <span>Vehicle: {cfg.vehicle}</span>
                   </div>
