@@ -321,7 +321,7 @@ export function RFProvider({ children }) {
   const effectivePower = keyed ? effectiveChain : { deadKey: 0, peakKey: 0 };
 
   const metrics = {
-    deadKey: Math.round(effectivePower.deadKey * 10) / 10,
+    deadKeyWatts: Math.round(effectivePower.deadKey * 10) / 10,
     peakWatts: Math.round(effectivePower.peakKey * 10) / 10,
     avgWatts: Math.round((effectivePower.deadKey + (effectivePower.peakKey - effectivePower.deadKey) * micLevel * 0.35) * 10) / 10,
     peakSwingWatts: Math.round((effectivePower.deadKey + (effectivePower.peakKey - effectivePower.deadKey) * Math.min(1, micLevel * 1.8)) * 10) / 10,
