@@ -343,15 +343,11 @@ export function RFProvider({ children }) {
       })
     : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
   
-  const takeoffRaw = calculateTakeoffAngle(config.vehicle, config.bonding, {
+  const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding, {
     antennaPosition: config.antennaPosition,
     yagiMode: config.yagiMode,
     rideHeightOffset: config.rideHeightOffset,
   });
-  if (isNaN(takeoffRaw)) {
-    console.warn('TAKEOFF NaN! vehicle:', config.vehicle, 'bonding:', config.bonding, 'pos:', config.antennaPosition, 'yagi:', config.yagiMode, 'ride:', config.rideHeightOffset);
-  }
-  const takeoff = isNaN(takeoffRaw) ? 22 : takeoffRaw;
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 
   // Actual current draw — proportional to load, swings with modulation
