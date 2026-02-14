@@ -486,7 +486,10 @@ export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength) {
   const gammaRadio = applyFeedlineLoss(gammaAnt, DEFAULT_COAX, DEFAULT_COAX_FT);
   const swrAtRadio = gammaToSWR(gammaRadio);
 
-  return Math.round(Math.max(1.0, swrAtRadio) * 10) / 10;
+  return {
+    atRadio: Math.round(Math.max(1.0, swrAtRadio) * 10) / 10,
+    atAntenna: Math.round(Math.max(1.0, swrAtAntenna) * 10) / 10,
+  };
 }
 
 // ─── Yagi Array SWR — Impedance Model ───
@@ -600,7 +603,10 @@ export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
   }
 
   const finalSWR = Math.max(1.0, swrAtRadio - bonus);
-  return Math.round(Math.min(9.9, finalSWR) * 10) / 10;
+  return {
+    atRadio: Math.round(Math.min(9.9, finalSWR) * 10) / 10,
+    atAntenna: Math.round(Math.max(1.0, swrAtAntenna) * 10) / 10,
+  };
 }
 
 // ─── Take-off Angle Calculation ───
