@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 class RFVisualizerAPITester:
-    def __init__(self, base_url="https://keydown-rf.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://yagi-simulator.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.user_id = None
@@ -197,7 +197,7 @@ class RFVisualizerAPITester:
         # Test subscription creation (will fail without valid payment but should return proper error)
         sub_data = {
             "plan": "monthly",
-            "origin_url": "https://keydown-rf.preview.emergentagent.com"
+            "origin_url": "https://yagi-simulator.preview.emergentagent.com"
         }
         
         result = self.test_api_endpoint("POST", "/subscribe", 200, sub_data, "(Create Subscription)")

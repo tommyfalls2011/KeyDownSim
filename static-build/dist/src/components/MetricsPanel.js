@@ -1,4 +1,4 @@
-import { useRF } from '@/context/RFContextStatic';
+import { useRF } from '@/context/RFContext';
 
 function MeterBar({ value, max, segments = 12, colors }) {
   const activeCount = Math.round((value / max) * segments);

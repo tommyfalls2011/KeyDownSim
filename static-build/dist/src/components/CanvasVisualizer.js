@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { useRF } from '@/context/RFContextStatic';
-import { getRadiationPattern, getYagiRadiationPattern, VEHICLES, ANTENNA_POSITIONS, ANTENNAS, YAGI_ARRAY_CONFIG } from '@/lib/rfEngineStatic';
+import { useRF } from '@/context/RFContext';
+import { getRadiationPattern, getYagiRadiationPattern, VEHICLES, ANTENNA_POSITIONS, ANTENNAS, YAGI_ARRAY_CONFIG } from '@/lib/rfEngine';
 
 export default function CanvasVisualizer() {
   const canvasRef = useRef(null);

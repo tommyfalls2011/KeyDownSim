@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useRF } from '@/context/RFContextStatic';
+import { useRF } from '@/context/RFContext';
 import { Thermometer, AlertTriangle, Clock, Zap, Play } from 'lucide-react';
 
 export default function ThermalPreview() {

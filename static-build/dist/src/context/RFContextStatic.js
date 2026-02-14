@@ -56,11 +56,6 @@ export function RFProvider({ children }) {
   const [finalBlown, setFinalBlown] = useState(false);
   const lastTickRef = useRef(Date.now());
 
-  // Smoothed amp display values (update slower for readability)
-  const [smoothDriverAmps, setSmoothDriverAmps] = useState(0);
-  const [smoothFinalAmps, setSmoothFinalAmps] = useState(0);
-  const smoothingFactor = 0.15; // Lower = smoother/slower updates
-
   // Refs to avoid stale closures
   const keyedRef = useRef(keyed);
   const driverBlownRef = useRef(driverBlown);
@@ -272,28 +267,6 @@ export function RFProvider({ children }) {
     return () => clearInterval(interval);
   }, [config]);
 
-  // Smoothed amp display update (runs slower for readability)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const driver = DRIVER_AMPS[config.driverAmp] || DRIVER_AMPS['none'];
-      const final_ = FINAL_AMPS[config.finalAmp] || FINAL_AMPS['none'];
-      const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
-      const currentMicLevel = micLevelRef.current;
-      const isKeyed = keyedRef.current;
-      
-      const driverLoadRatio = stages.driverLoadRatioDK + (stages.driverLoadRatioPK - stages.driverLoadRatioDK) * currentMicLevel;
-      const finalLoadRatio = stages.finalLoadRatioDK + (stages.finalLoadRatioPK - stages.finalLoadRatioDK) * currentMicLevel;
-      const targetDriverAmps = isKeyed ? driver.currentDraw * Math.max(0.05, driverLoadRatio) : 0;
-      const targetFinalAmps = isKeyed ? final_.currentDraw * Math.max(0.05, finalLoadRatio) : 0;
-      
-      // Smooth interpolation toward target
-      setSmoothDriverAmps(prev => prev + (targetDriverAmps - prev) * smoothingFactor);
-      setSmoothFinalAmps(prev => prev + (targetFinalAmps - prev) * smoothingFactor);
-    }, 150); // Update every 150ms for readable display
-
-    return () => clearInterval(interval);
-  }, [config, smoothingFactor]);
-
   // Average regulator voltage
   const regs = config.regulatorVoltages || [14.2];
   const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
@@ -341,8 +314,8 @@ export function RFProvider({ children }) {
     overloaded: voltage.overloaded,
     highVoltageWarn: avgRegV >= 19,
     currentDraw: voltage.currentDraw,
-    driverAmps: Math.round(smoothDriverAmps * 10) / 10,
-    finalAmps: Math.round(smoothFinalAmps * 10) / 10,
+    driverAmps: Math.round(driverActualAmps * 10) / 10,
+    finalAmps: Math.round(finalActualAmps * 10) / 10,
     alternatorCapacity: voltage.alternatorCapacity,
     bankProvides: voltage.bankProvides,
     altProvides: voltage.altProvides,

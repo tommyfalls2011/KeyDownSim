@@ -9,6 +9,10 @@ The user wants to build a Key Down RF Visualizer application.
     - The simulation must account for different vehicle types, alternator configurations, external voltage regulators, wiring, battery banks, and various antenna types with tunable elements.
     - The radiation pattern should be affected by antenna placement on the vehicle.
     - Microphone audio should modulate the power output from a dead key carrier to a peak value.
+    - **Voltage Scaling**: Increasing the voltage supplied to the amplifiers should realistically increase their power output.
+    - **Amplifier Power Accuracy**: Larger amplifiers (e.g., 24-pill, 32-pill) must produce more power than smaller ones (16-pill), correcting previous math errors.
+    - **Yagi-Uda Antenna Array**: Implement a 5-element Yagi array mode with a directional forward beam, high gain (9-11dB), and tunable elements that affect SWR. The visualization must show all 5 elements correctly positioned relative to the vehicle. The ground clearance of the vehicle should also be a factor.
+    - **Static Build**: Provide a backend-less, hardcoded version of the simulator that can be deployed as a static site on the user's domain ().
 - **User System**:
     - User authentication (login/register) to save and load configurations.
     - A subscription model (monthly/yearly) managed via Stripe.
@@ -21,66 +25,63 @@ The user wants to build a Key Down RF Visualizer application.
 **User's preferred language**: English
 
 **what currently exists?**
-A functional full-stack application with a React/Vite frontend and a Python/FastAPI backend using MongoDB. The application features user authentication, a Stripe-integrated subscription system, and a comprehensive admin panel.
+A full-stack application (React/FastAPI/MongoDB) with user authentication, a Stripe-integrated subscription system, and an admin panel. The core of the app is a detailed RF simulation engine.
 
-The core of the application is a highly detailed RF simulation engine. In this session, the engine was significantly improved:
-- **Load-Based Physics**: The thermal model and current draw now scale realistically based on the radio's Drive Level (dead key output). A lower drive results in less current draw and slower heat generation.
-- **Dynamic Current Draw**: Current demand now swings realistically from a baseline (dead key) to a peak value as the user modulates, affecting the entire power system.
-- **Refined Thermal Model**: The thermal simulation was fixed and tuned to reflect the real-world behavior of 2SC2879 transistors, with a 175°C failure temperature and heat generation scaled by the number of transistors (pills) in an amplifier.
-- **Realistic Metering**: The Power and Peak watt meters now simulate the behavior of real-world radio meters, showing average and peak-hold power swings during modulation.
-- **Database-Driven Equipment**: The frontend now fetches custom equipment (radios, amps, antennas) from the database on load, allowing user-added equipment to appear in dropdowns.
-- **Drive Level Control**: A new slider allows users to adjust the radio's dead key output, which affects the entire signal chain simulation.
+**Key features completed this session:**
+- **Admin Bug Fix:** A critical bug was fixed where equipment edited in the admin panel did not update in the UI. This is now fully functional.
+- **Voltage-to-Watts Scaling:** Amplifier power output now realistically increases with higher input voltage.
+- **Thermal Preview:** A Test Config feature was added to simulate a key-down cycle, predicting thermal stress and potential component failure.
+- **Amplifier Math Fix:** Power output for large amplifiers (24/32-pill) now scales correctly and is higher than smaller amps.
+- **Yagi Antenna Array:** A major new feature for a 5-element Yagi array was implemented on the Emergent (main) version. It includes a UI toggle, canvas visualization of all elements, a directional radiation pattern, and SWR simulation based on tunable element heights.
+- **Static Site Build:** A separate, backend-less version of the application was created and successfully deployed by the user after extensive debugging of file paths and component dependencies. The deployment process has been documented.
 
 **Last working item**:
-    - Last item agent was working: The user reported that equipment they added or edited via the admin panel was not appearing in the UI dropdowns. The agent diagnosed that the logic for merging database equipment with the hardcoded defaults was faulty: it only *added* new items but didn't *overwrite* existing ones. The agent was in the process of fixing this.
+    - Last item agent was working: The user requested that the new Yagi Array feature be ported over to the static build so they could update their live site. The agent began this process by updating  for the static build but did not complete porting the feature to all necessary static components.
     - Status: IN PROGRESS
     - Agent Testing Done: N
-    - Which testing method agent to use? Frontend testing agent
+    - Which testing method agent to use? Manual testing. The agent needs to run the static build script, serve the files locally, and take a screenshot to verify the Yagi features work before zipping the build for the user.
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Equipment edited in the Admin Panel does not update in the UI. (Priority: P0)
-
-  Issues Detail:
-  - Issue 1:
-     - Attempted fixes: The agent identified that the  function in  incorrectly prioritizes the hardcoded equipment objects.
-     - Next debug checklist:
-       1. Modify the  function in .
-       2. Change the logic to ensure that any equipment fetched from the  endpoint overwrites the corresponding hardcoded item in the , , , and  objects. The database should be the source of truth.
-       3. Test by logging in as admin, editing an existing radio (e.g., changing Cobra 29's dead key), reloading the dashboard, and confirming the dropdown and simulation reflect the new value.
-     - Why fix this issue and what will be achieved with the fix?: This breaks a core feature of the admin panel, preventing the user from customizing and testing their own equipment configurations. Fixing it will make the admin panel fully functional.
-     - Status: IN PROGRESS
-     - Is recurring issue? Y (It's an evolution of a previously fixed bug).
-     - Should Test frontend/backend/both after fix? Frontend
-     - Blocked on other issue: None
+There are no pending bugs. All work is task-based.
 
 **In progress Task List**:
-  There are no tasks currently in progress, only the bug fix above.
+  - Task 1: Port Yagi Array Feature to the Static Build (P0)
+
+ Task Detail:
+  - Task 1: 
+     - Where to resume: The agent has updated . The next steps are:
+        1. Copy/update the Yagi logic into the static versions of , , and .
+        2. Ensure all components in the  directory use the correct static file imports ().
+        3. Run the  script to rebuild the static application.
+        4. Create a new  file containing the updated  directory.
+        5. Inform the user the new zip is ready for download and deployment.
+     - What will be achieved with this?: The user's public-facing static site () will be updated with the latest Yagi Array feature.
+     - Status: IN PROGRESS
+     - Should Test frontend/backend/both after fix?: Frontend only.
+     - Blocked on something: None.
 
 **Upcoming and Future Tasks**
 Upcoming Tasks:
-- **P0: Yagi-Uda Antenna Array Simulation**: The next major feature is to implement an Antenna Array selector (2, 3, or 5-element arrays) based on the user's detailed specifications, which should dramatically increase forward gain (9-11 dB) and create a narrow, directional beam pattern.
-- **P1: Over-drive Thermal Penalty**: Enhance the thermal model so that over-driving an amplifier significantly accelerates heat generation, making a blown pill more likely.
-- **P2: Receive Sensitivity Indicator**: Implement a UI element that shows Receive Sensitivity Loss based on antenna position, using the existing  data.
-- **P3: Static Site Build**: The user wants to host a backend-less version of the simulator on their existing website (). This will require creating a static build process that removes backend-dependent features (auth, saving, admin) but keeps the full simulation intact.
+- **P0: Yagi DIR1 Position Toggle:** Implement a UI toggle to allow the user to change the position of the first director (DIR1) of the Yagi array. It should be switchable between being mounted on the truck or on the front beam. This needs to be implemented in both the main app and the static build.
+- **P1: Over-drive Thermal Penalty:** Enhance the thermal model so that over-driving an amplifier significantly accelerates heat generation, making a blown pill more likely.
+- **P2: Receive Sensitivity Indicator:** Implement a UI element that shows Receive Sensitivity Loss based on antenna position, using the existing  data.
 
 Future Tasks:
-- **P4: Refactor RFContext.jsx**: Decompose the monolithic context into smaller, single-responsibility custom hooks (e.g., , , ).
-- **P5: Refactor AdminPage.jsx**: Split the large admin component into smaller child components for each management tab.
+- **P3: Refactor RFContext.jsx:** Decompose the monolithic context into smaller, single-responsibility custom hooks (e.g., , ).
+- **P4: Refactor AdminPage.jsx**: Split the large admin component into smaller child components for each management tab.
 
 **Completed work in this session**
-- **Thermal Simulation Fix**: Resolved the critical bug where thermal simulation failed after the first use by correctly managing state in  with .
-- **Realistic Thermal Model**: Tuned the thermal simulation to match real-world 2SC2879 transistor behavior, including a 175°C failure temperature and heat dissipation scaled by amplifier size (pill count).
-- **Load-Based Physics**: Implemented a more realistic simulation where current draw and heat generation are directly tied to the radio's output power (Drive Level).
-- **Dynamic Current Simulation**: Alternator and battery current draw now swings realistically between dead key and peak power during microphone modulation.
-- **Custom Equipment Fix**: Implemented the initial functionality for loading user-added equipment from the database into the UI dropdowns.
-- **Realistic Watt Meters**: Reworked the Power and Peak meters to mimic the average vs. peak-hold behavior of real radio wattmeters.
-- **Drive Level Control**: Added a new UI slider to control the radio's dead key power, allowing users to simulate under-driving their amplifier chain.
-- **Expanded Equipment List**: Added a large number of new hardcoded radios, amplifiers, and antennas based on user requests for the static demo version.
-- **User Guidance**: Assisted the user with questions about saving to GitHub and deployment options.
+- **Admin Equipment Bug Fix:** Resolved the P0 issue where edited equipment didn't appear in UI dropdowns. (Verified with testing agent)
+- **Voltage-to-Watts Simulation:** Implemented realistic power scaling with voltage.
+- **Thermal Preview Feature:** Added a Test Config button to predict thermal behavior.
+- **Amplifier Power Math Fix:** Corrected gain values for large amplifiers.
+- **Static Site Build & Deployment:** Created and debugged a backend-less static build, and successfully guided the user through deploying it to their cPanel hosting.
+- **UI/UX Improvements:** Smoothed the amp draw display for readability and fixed multiple layout issues on the static site.
+- **5-Element Yagi Array (Main App):** Implemented a complete Yagi array simulation with a UI, canvas visualization, SWR calculation, and a directional radiation pattern.
 
 **Earlier issues found/mentioned but not fixed**
-- The current P0 issue: **Equipment edited in the Admin Panel does not update in the UI.** The agent correctly diagnosed the issue (faulty merge logic) but has not yet implemented the fix.
+None.
 
 **Known issue recurrence from previous fork**
 N/A
@@ -89,76 +90,89 @@ N/A
 
 
 **Key Technical Concepts**
-- **Backend**: FastAPI, Motor (async MongoDB driver), Pydantic, JWT, Stripe API.
-- **Frontend**: React, Vite, TailwindCSS, Shadcn UI, React Context API, , Canvas API.
+- **Backend**: FastAPI, Motor, Pydantic, JWT, Stripe API.
+- **Frontend**: React, Vite, TailwindCSS, Shadcn UI, React Context API, Canvas API.
 - **Database**: MongoDB.
-- **Architecture**: Monolithic backend () and a single-page React application.
+- **Static Site Generation**: Using shell scripts () and a separate set of React components to create a backend-less version of the application.
 
 **key DB schema**
 - **users**: 
 - **configurations**: 
 - **equipment**: 
-- **payments**: 
-- **plans**: 
 
 **changes in tech stack**
 N/A.
 
 **All files of reference**
-- ****: Core of the client-side simulation. **NEEDS FIXING** for the equipment merge logic. Contains all equipment definitions and physics calculations.
-- ****: Manages all simulation state and effects. Was heavily modified in this session.
-- ****: UI for selecting equipment and controlling the new Drive Level slider.
-- ****: UI for displaying all output metrics, including the reworked watt meters.
-- ****: The monolithic backend. The  endpoint is relevant.
+- **Static Build Files (to be modified):**
+  - 
+  - 
+  - 
+  - === Building Static RF Visualizer for sma-antenna.org ===
+=== Static build files prepared in /app/static-build/dist ===
+
+To build the static version:
+  cd /app/static-build/dist
+  yarn install
+  yarn build
+
+The built files will be in /app/static-build/dist/build/
+Upload those files to sma-antenna.org
+- **Yagi Feature Files (reference for porting):**
+  - 
+  - 
+  - 
+  - 
 
 **Areas that need refactoring**:
-- **** is overly complex and should be decomposed into smaller, specialized hooks.
-- **** could be split into smaller components.
+-  and  are overly complex.
+-  could be split into smaller components.
 
 **key api endpoints**
 - 
--  (POST/PUT payload now includes )
--  (GET endpoint to fetch all custom equipment)
+- 
+- 
 - 
 
 **Critical Info for New Agent**
-- **PRIORITY 1**: You must fix the equipment merge bug. The user wants to edit equipment in the admin panel and see those changes reflected in the dropdowns. The fix involves modifying  to ensure data fetched from the API *overwrites* the hardcoded defaults. This is your immediate P0 task.
-- **USER CONTEXT**: The user gets frustrated when they feel they have to repeat themselves across sessions. Start by acknowledging the work done and the current bug to show you are up to speed.
-- **STATIC BUILD**: The user is planning to deploy a backend-less version of the simulator on their own domain. Keep this in mind, as it may be the next major task after the bug fix and Yagi antenna feature. This will involve stripping out auth, DB saves, and admin functionality for a frontend-only build.
+- **Your immediate task (P0) is to finish porting the Yagi Array feature to the static build.** The user wants to deploy this to their live website. Follow the plan in the In progress Task List.
+- **Static Build Process (CRITICAL):** The user needs specific instructions for deployment. This process has been a recurring point of confusion.
+    1.  You run the  script in the  directory. This creates the zip file.
+    2.  The user saves to GitHub and downloads .
+    3.  The user unzips the file, which contains a  folder.
+    4.  The user must upload the **CONTENTS** of the  folder (NOT the  folder itself) directly into the  directory on their cPanel server, overwriting any existing files. This has been documented in  as requested by the user.
+- After completing the static build update, your next task is to implement the Yagi DIR1 Position Toggle feature on the main (Emergent) version of the app.
 
 **documents and test reports created in this job**
+-  (updated with static deployment instructions)
 - 
-- 
-- 
-- 
-- 
-- 
+-  (This will need to be regenerated)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.   - **User reports the current P0 bug.**
-2.   - User clarifies the bug is on the preview environment.
-3.   - User requests adding more hardcoded equipment. (Completed)
-4.   - User requests adding more custom amps. (Completed)
-5.   - User requests changing stats for existing radios for the static build. (Completed)
-6.   - User confirms they want to customize the hardcoded equipment for their static site.
-7.   - User asks to add more default equipment for the static build. (Completed)
-8.   - User asks for limitations of the backend-less static build.
-9.   - User confirms they want a static demo version for their website.
-10.  - User expresses frustration about having to repeat context.
+1.  - **Done.** User requested a correction to the Yagi visualization layout, which was implemented.
+2.  - **Pending.** User requested a new feature to toggle the position of the first director (DIR1).
+3.  - **Done.** User explicitly asked for the static build deployment process to be documented for the next agent.
+4.  - **In Progress.** User requested to prioritize updating the static build with all the latest features.
+5.  - **Done.** User requested session updates be documented.
+6.  - User clarified they accidentally deleted files from their main site's root, not the simulator's.
+7.  - User reported an issue with their live site, unrelated to the simulator project.
+8.  - User again emphasizing the need to document the static build process.
+9.  - **Done.** User requested smoothing for the amp draw meters, which was implemented.
+10.  - **Done.** User reported the canvas was being cut off, which was fixed.
 
 **Project Health Check:**
-- **Functional**: The core simulation is highly functional and feature-rich.
-- **Broken**: The data flow from the admin panel to the UI is buggy, preventing users from seeing their custom equipment edits.
-- **Mocked**: Stripe integration is present but in test mode.
+- **Functional**: The main application on the Emergent platform is fully functional with the new Yagi Array feature.
+- **Broken**: The static build is currently out-of-date. It works, but lacks the latest Yagi features and UI fixes. The task to update it is in progress.
+- **Mocked**: Stripe integration remains in test mode.
 
 **3rd Party Integrations**
 - **Stripe (Payments)** — requires User API Key.
 
 **Testing status**
-  - Testing agent used after significant changes: YES
+  - Testing agent used after significant changes: YES (for the initial bug fix).
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: []
-  - Known regressions: The equipment loading feature has a regression where it doesn't overwrite existing items.
+  - Known regressions: None.
 
 **Credentials to test flow:**
 - **Admin User**:
@@ -166,4 +180,4 @@ N/A.
   - **Password**: 
 
 **What agent forgot to execute**
-- The agent correctly diagnosed the equipment merge bug but did not complete the implementation. The fix in  is the immediate next step.</analysis>
+- The agent did not fully complete the task of porting the Yagi Array feature to the static build. Work was started but several components still need updating.</analysis>

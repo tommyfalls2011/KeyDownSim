@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import { calculateSignalChain, calculateVoltageDrop, calculateSWR, calculateTakeoffAngle, checkUnderDriven, calculateStageOutputs, mergeEquipmentFromAPI, DRIVER_AMPS, FINAL_AMPS } from '@/lib/rfEngine';
+import { calculateSignalChain, calculateVoltageDrop, calculateSWR, calculateYagiSWR, calculateTakeoffAngle, checkUnderDriven, calculateStageOutputs, mergeEquipmentFromAPI, DRIVER_AMPS, FINAL_AMPS, YAGI_ARRAY_CONFIG } from '@/lib/rfEngine';
 import { useMic } from '@/lib/useMic';
 
 const RFContext = createContext(null);
@@ -28,6 +28,16 @@ const DEFAULT_STATE = {
   regulatorVoltages: [14.2],
   tipLength: 48,
   keyed: false,
+  // Yagi Array Mode
+  yagiMode: false,
+  yagiStickType: 'fight-8', // 'fight-8' or 'fight-10'
+  yagiElementHeights: {
+    ant1: 96,   // inches - base height
+    ant2: 96,   // same as ant1
+    dir1: 84,   // ~1' shorter, tunable
+    dir2: 111,  // 15" taller (fixed relative)
+    dir3: 111,  // same as dir2
+  },
 };
 
 export function RFProvider({ children }) {
@@ -308,7 +318,15 @@ export function RFProvider({ children }) {
   // Calculate derived values - pass voltage to signal chain so watts scale with volts
   const chain = calculateSignalChain(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.antennaPosition, config.driveLevel, avgRegV);
   const stages = calculateStageOutputs(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
-  const swr = calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
+  
+  // SWR calculation - use Yagi SWR when in Yagi mode
+  const swr = config.yagiMode 
+    ? calculateYagiSWR(config.vehicle, config.bonding, {
+        stickType: config.yagiStickType,
+        elementHeights: config.yagiElementHeights,
+      })
+    : calculateSWR(config.antenna, config.vehicle, config.bonding, config.tipLength);
+  
   const takeoff = calculateTakeoffAngle(config.vehicle, config.bonding);
   const underDriven = checkUnderDriven(config.radio, config.driverAmp, config.finalAmp, config.bonding, config.driveLevel);
 

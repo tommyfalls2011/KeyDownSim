@@ -1,4 +1,7 @@
-// ─── RF Equipment Database ───
+// Static RF Engine - All equipment hardcoded, no API calls
+// This version is for standalone deployment on sma-antenna.org
+
+// ─── RF Equipment Database (Hardcoded) ───
 
 export const RADIOS = {
   'cobra-29': { name: 'Cobra 29 LTD', deadKey: 0.75, peakKey: 25, type: 'AM', impedance: 50 },
@@ -6,6 +9,9 @@ export const RADIOS = {
   'stryker-955': { name: 'Stryker SR-955HPC', deadKey: 3, peakKey: 125, type: 'AM/SSB', impedance: 50 },
   'connex-4300': { name: 'Connex 4300HP', deadKey: 3.5, peakKey: 160, type: 'AM/SSB', impedance: 50 },
   'ranger-rci2970': { name: 'Ranger RCI-2970N2', deadKey: 4, peakKey: 225, type: 'AM/SSB', impedance: 50 },
+  'president-lincoln': { name: 'President Lincoln II+', deadKey: 3, peakKey: 80, type: 'AM/SSB', impedance: 50 },
+  'general-lee': { name: 'General Lee', deadKey: 2.5, peakKey: 50, type: 'AM', impedance: 50 },
+  'uniden-980': { name: 'Uniden 980SSB', deadKey: 1.5, peakKey: 35, type: 'AM/SSB', impedance: 50 },
 };
 
 export const DRIVER_AMPS = {
@@ -25,8 +31,6 @@ export const FINAL_AMPS = {
   '24-pill': { name: '24-Pill Comp', gainDB: 14, transistors: 24, currentDraw: 600, wattsPerPill: 275, combiningStages: 6 },
   '32-pill': { name: '32-Pill Comp', gainDB: 15, transistors: 32, currentDraw: 800, wattsPerPill: 275, combiningStages: 8 },
 };
-
-const COMBINING_BONUS_PER_STAGE = 1.2;
 
 export const ANTENNAS = {
   'whip-102': { name: '102" Stainless Whip', gainDBI: 0, type: 'vertical', tunable: false },
@@ -50,43 +54,16 @@ export const ANTENNAS = {
   'fight-stix-12': { name: "Fight Stix 12' (10ft shaft + whip)", gainDBI: 8, type: 'vertical', tunable: true, tipMin: 34, tipMax: 58, tipDefault: 48 },
 };
 
-// Vehicle ground heights in feet (bed/roof height from ground)
 export const VEHICLES = {
-  'suburban': { name: 'Suburban/SUV', groundPlane: 0.88, surfaceSqFt: 42, directional: 0.12, takeoff: 22, shape: 'suv', groundHeight: 5.5 },
-  'f150': { name: 'Ford F-150', groundPlane: 0.62, surfaceSqFt: 28, directional: 0.48, takeoff: 35, shape: 'truck', groundHeight: 5.0 },
-  'ram': { name: 'Dodge Ram', groundPlane: 0.68, surfaceSqFt: 31, directional: 0.42, takeoff: 32, shape: 'truck', groundHeight: 5.2 },
-  'van': { name: 'Cargo Van', groundPlane: 0.92, surfaceSqFt: 52, directional: 0.08, takeoff: 18, shape: 'van', groundHeight: 7.0 },
-  'wagon': { name: 'Station Wagon', groundPlane: 0.80, surfaceSqFt: 36, directional: 0.20, takeoff: 26, shape: 'wagon', groundHeight: 4.5 },
-  'semi': { name: 'Semi Truck', groundPlane: 0.95, surfaceSqFt: 65, directional: 0.05, takeoff: 15, shape: 'semi', groundHeight: 8.5 },
-  'jeep': { name: 'Jeep Wrangler', groundPlane: 0.55, surfaceSqFt: 22, directional: 0.55, takeoff: 40, shape: 'jeep', groundHeight: 4.0 },
+  'suburban': { name: 'Suburban/SUV', groundPlane: 0.88, surfaceSqFt: 42, directional: 0.12, takeoff: 22, shape: 'suv' },
+  'f150': { name: 'Ford F-150', groundPlane: 0.62, surfaceSqFt: 28, directional: 0.48, takeoff: 35, shape: 'truck' },
+  'ram': { name: 'Dodge Ram', groundPlane: 0.68, surfaceSqFt: 31, directional: 0.42, takeoff: 32, shape: 'truck' },
+  'van': { name: 'Cargo Van', groundPlane: 0.92, surfaceSqFt: 52, directional: 0.08, takeoff: 18, shape: 'van' },
+  'wagon': { name: 'Station Wagon', groundPlane: 0.80, surfaceSqFt: 36, directional: 0.20, takeoff: 26, shape: 'wagon' },
+  'semi': { name: 'Semi Truck', groundPlane: 0.95, surfaceSqFt: 65, directional: 0.05, takeoff: 15, shape: 'semi' },
+  'jeep': { name: 'Jeep Wrangler', groundPlane: 0.55, surfaceSqFt: 22, directional: 0.55, takeoff: 40, shape: 'jeep' },
 };
 
-// Yagi Array Element Positions (distances in inches from rear antenna)
-// ANT1 = rear (reflector), ANT2 = driven element, DIR1-3 = directors
-export const YAGI_ARRAY_CONFIG = {
-  elements: [
-    { id: 'ant1', name: 'ANT1 (Reflector)', position: 0, heightOffset: 0, tunable: true, defaultHeight: 96 },      // rear, base height
-    { id: 'ant2', name: 'ANT2 (Driven)', position: 72, heightOffset: 0, tunable: true, defaultHeight: 96 },        // 72" forward
-    { id: 'dir1', name: 'DIR1', position: 72 + 42, heightOffset: -12, tunable: true, defaultHeight: 84 },          // 3.5' forward, 1' shorter
-    { id: 'dir2', name: 'DIR2', position: 72 + 42 + 96, heightOffset: 15, tunable: false, defaultHeight: 111 },    // 8' forward, 15" taller
-    { id: 'dir3', name: 'DIR3', position: 72 + 42 + 96 + 96, heightOffset: 15, tunable: false, defaultHeight: 111 }, // 8' forward, same as DIR2
-  ],
-  // Fighting sticks options for the array
-  stickOptions: [
-    { id: 'fight-8', name: "8' Fighting Sticks", baseHeight: 96, gainDBI: 5.5 },
-    { id: 'fight-10', name: "10' Fighting Sticks", baseHeight: 120, gainDBI: 7 },
-  ],
-  // Yagi gain based on element count and spacing
-  baseGainDB: 9.5, // ~9-11dB typical for 5-element yagi
-  beamWidth: 45,   // degrees - narrower than omni
-};
-
-// Antenna mount positions — the pattern is DRAWN TOWARD the metal surface
-// More metal in a direction = more signal that way
-// biasAngle: direction the signal pulls toward (canvas coords: 0=E, 90=S, 180=W, 270=N/front)
-// biasStrength: how much the pattern skews (0=omni, higher=more directional)
-// dBLoss: efficiency loss vs center-roof ideal (Larsen data: rear ~2.1dB avg)
-// xOffset/yOffset: position on vehicle visual (-1 to 1, 0=center)
 export const ANTENNA_POSITIONS = {
   'center':     { name: 'Center Roof',  biasAngle: 270, biasStrength: 0.0,  dBLoss: 0,   xOffset: 0,    yOffset: 0 },
   'rear':       { name: 'Rear Mount',   biasAngle: 270, biasStrength: 0.7,  dBLoss: 2.1, xOffset: 0,    yOffset: 0.8 },
@@ -95,53 +72,10 @@ export const ANTENNA_POSITIONS = {
   'back-left':  { name: 'Back Left',    biasAngle: 315, biasStrength: 0.65, dBLoss: 2.8, xOffset: -0.7, yOffset: 0.7 },
 };
 
-// ─── Merge admin-added equipment from API (snake_case → camelCase) ───
-
-function transformRadio(d) {
-  return { name: d.name, deadKey: d.dead_key ?? d.deadKey ?? 1, peakKey: d.peak_key ?? d.peakKey ?? 4, type: d.type || 'AM', impedance: d.impedance || 50 };
-}
-function transformAmp(d) {
-  return { name: d.name, gainDB: d.gain_db ?? d.gainDB ?? 0, transistors: d.transistors || 0, currentDraw: d.current_draw ?? d.currentDraw ?? 0, wattsPerPill: d.watts_per_pill ?? d.wattsPerPill ?? 275, combiningStages: d.combining_stages ?? d.combiningStages ?? 0 };
-}
-function transformAntenna(d) {
-  return { name: d.name, gainDBI: d.gain_dbi ?? d.gainDBI ?? 0, type: d.type || 'vertical', tunable: d.tunable || false, tipMin: d.tip_min ?? d.tipMin, tipMax: d.tip_max ?? d.tipMax, tipDefault: d.tip_default ?? d.tipDefault };
-}
-function transformVehicle(d) {
-  return { name: d.name, groundPlane: d.ground_plane ?? d.groundPlane ?? 0.7, surfaceSqFt: d.surface_sqft ?? d.surfaceSqFt ?? 30, directional: d.directional ?? 0.2, takeoff: d.takeoff ?? 25, shape: d.shape || 'truck' };
-}
-
-function mergeEquipmentFromAPI(apiData) {
-  if (apiData.radios) {
-    for (const [key, data] of Object.entries(apiData.radios)) {
-      RADIOS[key] = transformRadio(data);
-    }
-  }
-  if (apiData.driver_amps) {
-    for (const [key, data] of Object.entries(apiData.driver_amps)) {
-      DRIVER_AMPS[key] = transformAmp(data);
-    }
-  }
-  if (apiData.final_amps) {
-    for (const [key, data] of Object.entries(apiData.final_amps)) {
-      FINAL_AMPS[key] = transformAmp(data);
-    }
-  }
-  if (apiData.antennas) {
-    for (const [key, data] of Object.entries(apiData.antennas)) {
-      ANTENNAS[key] = transformAntenna(data);
-    }
-  }
-  if (apiData.vehicles) {
-    for (const [key, data] of Object.entries(apiData.vehicles)) {
-      VEHICLES[key] = transformVehicle(data);
-    }
-  }
-}
+const COMBINING_BONUS_PER_STAGE = 1.2;
 
 // ─── Calculation Functions ───
 
-// Per-stage output and load ratios — for thermal model and actual current draw
-// Returns both dead key and peak ratios so current swings with modulation
 export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding, driveLevel) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
@@ -149,7 +83,6 @@ export function calculateStageOutputs(radioKey, driverKey, finalKey, bonding, dr
   const bondingFactor = bonding ? 1.0 : 0.6;
   const dl = driveLevel ?? 1.0;
 
-  // Drive level scales radio output — 4:1 ratio preserved
   const radioDK = radio.deadKey * dl;
   const radioPK = radio.peakKey * dl;
 
@@ -192,46 +125,34 @@ export function calculateSignalChain(radioKey, driverKey, finalKey, bonding, ant
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
-  const pos = ANTENNA_POSITIONS[antennaPosKey] || ANTENNA_POSITIONS['center'];
   const dl = driveLevel ?? 1.0;
 
   // Voltage scaling: amps are rated at ~13.8V nominal
-  // Power scales roughly with V² — but we use a gentler curve for realism
-  // At 14.2V (typical running) = baseline, at 18V = significant boost
   const nominalVoltage = 13.8;
   const voltage = ampVoltage ?? 14.2;
-  // Gentler scaling: sqrt of V²/Vnom² = V/Vnom, then blend 50/50 with linear
   const vRatio = voltage / nominalVoltage;
-  const voltageBoost = (vRatio + vRatio * vRatio) / 2; // Blend linear + squared
+  const voltageBoost = (vRatio + vRatio * vRatio) / 2;
 
   let deadKey = radio.deadKey * dl;
   let peakKey = radio.peakKey * dl;
 
-  // Driver stage: high gain but capped at pills x wpp x compounded combining bonus
-  // Voltage boost applies to amp output, not radio
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
     const stages = driver.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    // Max output scales with voltage
     const driverMax = driver.transistors * (driver.wattsPerPill || 275) * combining * voltageBoost;
     deadKey = Math.min(deadKey * driverGain * voltageBoost, driverMax);
     peakKey = Math.min(peakKey * driverGain * voltageBoost, driverMax);
   }
 
-  // Final stage: lower gain but capped at pills x wpp x compounded combining bonus
   if (final_.gainDB > 0) {
     const finalGain = Math.pow(10, final_.gainDB / 10);
     const stages = final_.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    // Max output scales with voltage
     const finalMax = final_.transistors * (final_.wattsPerPill || 275) * combining * voltageBoost;
     deadKey = Math.min(deadKey * finalGain * voltageBoost, finalMax);
     peakKey = Math.min(peakKey * finalGain * voltageBoost, finalMax);
   }
-
-  // Antenna position affects pattern shape (directional), NOT total power output
-  // The amp puts out the same watts — the ground plane redirects it
 
   const bondingFactor = bonding ? 1.0 : 0.6;
   return {
@@ -244,12 +165,9 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
   const driver = DRIVER_AMPS[driverKey] || DRIVER_AMPS['none'];
   const final_ = FINAL_AMPS[finalKey] || FINAL_AMPS['none'];
 
-  // Use actual demand if provided (keyed state), otherwise rated max
   const ratedMax = driver.currentDraw + final_.currentDraw;
   const demandCurrent = actualDemandCurrent !== undefined ? actualDemandCurrent : ratedMax;
 
-  // External regulators: each controls up to 3 alts
-  // Average the regulator voltages weighted by how many alts each controls
   const regs = regulatorVoltages || [14.2];
   const regCount = regs.length;
   const altsPerReg = Math.ceil(alternatorCount / Math.max(1, regCount));
@@ -265,11 +183,8 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
   const batteryVoltage = totalAltsAssigned > 0 ? weightedVoltage / totalAltsAssigned : 14.2;
 
   const alternatorMax = alternatorCount * alternatorAmps * 1.08;
-
-  // 0 AWG OFC wire
   const wireResistance = (0.0001 * 12) / Math.max(1, alternatorCount);
 
-  // Battery bank specs — Ah, C rating, internal resistance per unit
   const BATTERY_SPECS = {
     'none':    { ah: 0,   cRate: 0,  internalR: 999,   name: 'No Bank' },
     'lead':    { ah: 100, cRate: 3,  internalR: 0.012, name: 'Lead Acid' },
@@ -280,22 +195,15 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
 
   const batt = BATTERY_SPECS[batteryType] || BATTERY_SPECS['none'];
   const bankAh = batt.ah * (batteryCount || 0);
-  // Max discharge = total Ah × C rating
   const bankMaxDischarge = bankAh * batt.cRate;
-  // Bank internal resistance drops with parallel batteries
   const bankResistance = batteryCount > 0 ? batt.internalR / batteryCount : 999;
 
-  // Battery bank takes most of the load — it's the primary power source
-  // Alternator recharges the bank and covers what it can in steady state
   const bankProvides = Math.min(demandCurrent, bankMaxDischarge);
-  // Whatever the bank can't cover, alternator tries to supplement directly
   const altDirect = Math.min(Math.max(0, demandCurrent - bankProvides), alternatorMax);
   const actualCurrent = bankProvides + altDirect;
   const overloaded = demandCurrent > (bankMaxDischarge + alternatorMax);
 
-  // Voltage drop from bank internal resistance under load
   const bankDrop = bankProvides * bankResistance;
-  // Wire drop from alternator's contribution
   const wireDrop = altDirect * wireResistance;
 
   let voltage = batteryVoltage - bankDrop - wireDrop;
@@ -308,11 +216,8 @@ export function calculateVoltageDrop(driverKey, finalKey, alternatorCount, alter
 
   voltage = Math.max(8.0, voltage);
 
-  // How long can the bank sustain this key-down (in seconds)?
-  // Net drain = what bank provides minus what alternator recharges
-  const altRechargeRate = Math.min(alternatorMax, alternatorMax); // alt charges bank when not overloaded
+  const altRechargeRate = Math.min(alternatorMax, alternatorMax);
   const netBankDrain = Math.max(0, bankProvides - altRechargeRate);
-  // Time = Ah capacity / net drain amps × 3600 (convert to seconds)
   const holdTimeSec = netBankDrain > 0 ? (bankAh / netBankDrain) * 3600 : 9999;
 
   return {
@@ -334,91 +239,26 @@ export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength) {
   const antenna = ANTENNAS[antennaKey] || ANTENNAS['whip-102'];
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
 
-  // Base SWR — a perfect antenna on a perfect ground plane
   let baseSWR = 1.0;
   if (antenna.type === 'mag-mount') baseSWR = 1.2;
   else if (antenna.type === 'base-load') baseSWR = 1.05;
 
-  // Vehicle surface area penalty — less metal = worse SWR
   const surfacePenalty = (1 - vehicle.groundPlane) * 2.5;
   let swr = baseSWR + surfacePenalty;
 
-  // Bonding — all panels grounded together dramatically lowers SWR
   if (!bonding) {
     swr += 0.9;
   }
 
-  // Tunable tip — when set to the sweet spot, SWR drops to near 1.0
-  // The "sweet spot" is the antenna's default tip length for resonance
   if (antenna.tunable && tipLength !== undefined) {
     const sweetSpot = antenna.tipDefault || 44;
     const deviation = Math.abs(tipLength - sweetSpot);
-    // Every inch off the sweet spot adds ~0.05 SWR
     const tipPenalty = deviation * 0.05;
-    // But when tuned right, the tip can subtract up to 0.4 SWR
     const tipBonus = Math.max(0, 0.4 - tipPenalty);
     swr = swr - tipBonus + Math.max(0, tipPenalty - 0.4) * 0.5;
   }
 
-  // With perfect tuning + bonding + good ground plane, SWR can hit 1.0
   return Math.round(Math.max(1.0, swr) * 10) / 10;
-}
-
-// ─── Yagi Array SWR Calculation ───
-// SWR depends on element height tuning - optimal heights for the stick type give best SWR
-export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
-  const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
-  const heights = yagiConfig?.elementHeights || {};
-  const stickType = yagiConfig?.stickType || 'fight-8';
-  
-  // Base SWR depends on ground plane and bonding
-  let baseSWR = 1.0;
-  const surfacePenalty = (1 - vehicle.groundPlane) * 1.5;
-  baseSWR += surfacePenalty;
-  
-  if (!bonding) {
-    baseSWR += 0.8;
-  }
-  
-  // Optimal element heights for each stick type (in inches)
-  const optimalHeights = stickType === 'fight-10' ? {
-    ant1: 120,  // 10' = 120"
-    ant2: 120,
-    dir1: 108,  // ~1' shorter
-    dir2: 135,  // ~15" taller
-    dir3: 135,
-  } : {
-    ant1: 96,   // 8' = 96"
-    ant2: 96,
-    dir1: 84,   // ~1' shorter
-    dir2: 111,  // ~15" taller
-    dir3: 111,
-  };
-  
-  // Calculate deviation from optimal for each tunable element
-  // ANT1, ANT2, DIR1 are tunable and affect SWR
-  const ant1Dev = Math.abs((heights.ant1 || optimalHeights.ant1) - optimalHeights.ant1);
-  const ant2Dev = Math.abs((heights.ant2 || optimalHeights.ant2) - optimalHeights.ant2);
-  const dir1Dev = Math.abs((heights.dir1 || optimalHeights.dir1) - optimalHeights.dir1);
-  
-  // Each inch off optimal adds SWR penalty
-  // ANT1 (reflector) has moderate impact
-  // ANT2 (driven element) has HIGH impact - this is the main radiator
-  // DIR1 (first director) has moderate impact on SWR tuning
-  const ant1Penalty = ant1Dev * 0.03;
-  const ant2Penalty = ant2Dev * 0.06;  // Driven element is most critical
-  const dir1Penalty = dir1Dev * 0.04;
-  
-  // Total SWR
-  let swr = baseSWR + ant1Penalty + ant2Penalty + dir1Penalty;
-  
-  // When all elements are tuned optimally (within 2"), give a bonus
-  const totalDev = ant1Dev + ant2Dev + dir1Dev;
-  if (totalDev <= 6) {
-    swr -= 0.3 * (1 - totalDev / 6);
-  }
-  
-  return Math.round(Math.max(1.0, Math.min(5.0, swr)) * 10) / 10;
 }
 
 export function calculateTakeoffAngle(vehicleKey, bonding) {
@@ -426,8 +266,6 @@ export function calculateTakeoffAngle(vehicleKey, bonding) {
   const bondingPenalty = bonding ? 0 : 15;
   return vehicle.takeoff + bondingPenalty;
 }
-
-// ─── Under-Driven Detection ───
 
 export function checkUnderDriven(radioKey, driverKey, finalKey, bonding, driveLevel) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
@@ -437,7 +275,6 @@ export function checkUnderDriven(radioKey, driverKey, finalKey, bonding, driveLe
 
   if (final_.gainDB <= 0) return { isUnderDriven: false, driveRatio: 1.0, driveWatts: 0, finalCapacity: 0 };
 
-  // Calculate what driver stage outputs (power going INTO the final amp)
   let driveWatts = radio.deadKey * dl;
   if (driver.gainDB > 0) {
     const driverGain = Math.pow(10, driver.gainDB / 10);
@@ -447,8 +284,6 @@ export function checkUnderDriven(radioKey, driverKey, finalKey, bonding, driveLe
     driveWatts = Math.min(driveWatts * driverGain, driverMax);
   }
 
-  // What the final amp needs to be fully driven (ideal input)
-  // Final amp max output / final gain = ideal input
   const finalGain = Math.pow(10, final_.gainDB / 10);
   const stages = final_.combiningStages || 0;
   const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
@@ -466,8 +301,6 @@ export function checkUnderDriven(radioKey, driverKey, finalKey, bonding, driveLe
   };
 }
 
-// ─── Radiation Pattern Calculation ───
-
 export function getRadiationPattern(vehicleKey, bonding, power, antennaKey, antennaPosKey) {
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const antenna = ANTENNAS[antennaKey] || ANTENNAS['whip-102'];
@@ -480,94 +313,18 @@ export function getRadiationPattern(vehicleKey, bonding, power, antennaKey, ante
 
   for (let angle = 0; angle < 360; angle += 2) {
     const rad = (angle * Math.PI) / 180;
-    // Base omnidirectional pattern
     let gain = 1.0;
-    // Vehicle body directional modification (trucks have natural forward bias)
     gain += dir * Math.cos(rad - 3 * Math.PI / 2) * 0.3;
-    // Antenna position — signal is DRAWN TOWARD the metal surface
-    // Rear mount: ~20ft forward, ~6ft back = ~3.5:1 ratio
     if (pos.biasStrength > 0) {
       const angleDiff = rad - biasRad;
       gain *= (1.0 + pos.biasStrength * Math.cos(angleDiff) * 0.8);
     }
-    // Ground plane quality affects uniformity
     gain *= (0.5 + gp * 0.5);
-    // Add noise if bonding is poor
     if (!bonding) {
       gain += (Math.sin(angle * 7) * 0.15 + Math.cos(angle * 11) * 0.1);
     }
-    // Antenna gain
     gain *= antennaGain;
-    // Normalize and scale by power — log scale so pattern grows visibly across the full range
     const scaledGain = Math.max(0.1, gain) * Math.log10(Math.max(1, power) + 1) / 4;
-    points.push({ angle, gain: scaledGain });
-  }
-  return points;
-}
-
-// ─── Yagi Array Radiation Pattern ───
-// Creates a highly directional forward beam pattern
-export function getYagiRadiationPattern(vehicleKey, bonding, power, yagiConfig) {
-  const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
-  const points = [];
-  const gp = vehicle.groundPlane * (bonding ? 1.0 : 0.5);
-  
-  // Yagi parameters
-  const yagiGainDB = YAGI_ARRAY_CONFIG.baseGainDB + (yagiConfig?.stickType === 'fight-10' ? 1.5 : 0);
-  const yagiGain = Math.pow(10, yagiGainDB / 10);
-  const beamWidth = YAGI_ARRAY_CONFIG.beamWidth; // degrees
-  const beamWidthRad = (beamWidth * Math.PI) / 180;
-  
-  // Vehicle ground height affects vertical angle efficiency
-  const groundHeightFactor = Math.min(1.2, (vehicle.groundHeight || 5) / 5);
-  
-  // Element height tuning affects SWR/efficiency
-  // If elements are well-tuned, better efficiency
-  const tuningEfficiency = yagiConfig?.swrTuned ? 1.0 : 0.85;
-  
-  // Forward direction is 270 degrees (up/north on canvas = front of vehicle)
-  const forwardAngle = 270;
-  const forwardRad = (forwardAngle * Math.PI) / 180;
-
-  for (let angle = 0; angle < 360; angle += 2) {
-    const rad = (angle * Math.PI) / 180;
-    const angleDiff = rad - forwardRad;
-    
-    // Yagi pattern: strong forward lobe, smaller side lobes, rear null
-    // Main lobe - Gaussian-like forward beam
-    const mainLobe = Math.exp(-Math.pow(angleDiff, 2) / (2 * Math.pow(beamWidthRad / 2.35, 2)));
-    
-    // Side lobes (smaller peaks ~60-90 degrees off-axis)
-    const sideLobeAngle1 = Math.abs(angleDiff - Math.PI / 2);
-    const sideLobeAngle2 = Math.abs(angleDiff + Math.PI / 2);
-    const sideLobe = 0.15 * (Math.exp(-Math.pow(sideLobeAngle1, 2) / 0.3) + Math.exp(-Math.pow(sideLobeAngle2, 2) / 0.3));
-    
-    // Back lobe (very small, ~180 degrees)
-    const backLobeAngle = Math.abs(Math.abs(angleDiff) - Math.PI);
-    const backLobe = 0.08 * Math.exp(-Math.pow(backLobeAngle, 2) / 0.2);
-    
-    // Combine lobes
-    let gain = mainLobe + sideLobe + backLobe;
-    
-    // Apply yagi gain
-    gain *= yagiGain;
-    
-    // Ground plane and bonding effects
-    gain *= (0.6 + gp * 0.4);
-    
-    // Vehicle height factor
-    gain *= groundHeightFactor;
-    
-    // Tuning efficiency
-    gain *= tuningEfficiency;
-    
-    // Add slight noise if bonding is poor
-    if (!bonding) {
-      gain += (Math.sin(angle * 5) * 0.1);
-    }
-    
-    // Scale by power
-    const scaledGain = Math.max(0.05, gain) * Math.log10(Math.max(1, power) + 1) / 4;
     points.push({ angle, gain: scaledGain });
   }
   return points;
