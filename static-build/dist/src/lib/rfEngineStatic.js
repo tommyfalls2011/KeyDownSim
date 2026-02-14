@@ -363,11 +363,19 @@ export function getYagiRadiationPattern(vehicleKey, bonding, power, yagiConfig) 
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const points = [];
   const gp = vehicle.groundPlane * (bonding ? 1.0 : 0.5);
+  const posOffsets = yagiConfig?.elementPositions || {};
   
   const yagiGainDB = YAGI_ARRAY_CONFIG.baseGainDB + (yagiConfig?.stickType === 'fight-10' ? 1.5 : 0);
   const yagiGain = Math.pow(10, yagiGainDB / 10);
   const beamWidth = YAGI_ARRAY_CONFIG.beamWidth;
-  const beamWidthRad = (beamWidth * Math.PI) / 180;
+  
+  const totalPosDeviation = Math.abs(posOffsets.ant1 || 0) + Math.abs(posOffsets.ant2 || 0) + 
+    Math.abs(posOffsets.dir1 || 0) + Math.abs(posOffsets.dir2 || 0) + Math.abs(posOffsets.dir3 || 0);
+  
+  const adjustedBeamWidth = beamWidth + totalPosDeviation * 0.8;
+  const beamWidthRad = (adjustedBeamWidth * Math.PI) / 180;
+  const spacingGainPenalty = Math.pow(10, -(totalPosDeviation * 0.15) / 10);
+  const sideLobeBoost = 1 + totalPosDeviation * 0.02;
   
   const groundHeightFactor = Math.min(1.2, (vehicle.groundHeight || 5) / 5);
   const tuningEfficiency = yagiConfig?.swrTuned ? 1.0 : 0.85;
@@ -383,13 +391,13 @@ export function getYagiRadiationPattern(vehicleKey, bonding, power, yagiConfig) 
     
     const sideLobeAngle1 = Math.abs(angleDiff - Math.PI / 2);
     const sideLobeAngle2 = Math.abs(angleDiff + Math.PI / 2);
-    const sideLobe = 0.15 * (Math.exp(-Math.pow(sideLobeAngle1, 2) / 0.3) + Math.exp(-Math.pow(sideLobeAngle2, 2) / 0.3));
+    const sideLobe = 0.15 * sideLobeBoost * (Math.exp(-Math.pow(sideLobeAngle1, 2) / 0.3) + Math.exp(-Math.pow(sideLobeAngle2, 2) / 0.3));
     
     const backLobeAngle = Math.abs(Math.abs(angleDiff) - Math.PI);
-    const backLobe = 0.08 * Math.exp(-Math.pow(backLobeAngle, 2) / 0.2);
+    const backLobe = (0.08 + totalPosDeviation * 0.005) * Math.exp(-Math.pow(backLobeAngle, 2) / 0.2);
     
     let gain = mainLobe + sideLobe + backLobe;
-    gain *= yagiGain;
+    gain *= yagiGain * spacingGainPenalty;
     gain *= (0.6 + gp * 0.4);
     gain *= groundHeightFactor;
     gain *= tuningEfficiency;
