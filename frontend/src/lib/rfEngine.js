@@ -316,11 +316,12 @@ export function calculateSignalChain(radioKey, driverSpecs, midDriverSpecs, fina
   };
 }
 
-export function calculateVoltageDrop(driverSpecs, finalSpecs, alternatorCount, alternatorAmps, batteryType, batteryCount, regulatorVoltages, actualDemandCurrent) {
+export function calculateVoltageDrop(driverSpecs, midDriverSpecs, finalSpecs, alternatorCount, alternatorAmps, batteryType, batteryCount, regulatorVoltages, actualDemandCurrent) {
   const driver = driverSpecs || { currentDraw: 0 };
+  const midDriver = midDriverSpecs || { currentDraw: 0 };
   const final_ = finalSpecs || { currentDraw: 0 };
 
-  const ratedMax = (driver.currentDraw || 0) + (final_.currentDraw || 0);
+  const ratedMax = (driver.currentDraw || 0) + (midDriver.currentDraw || 0) + (final_.currentDraw || 0);
   const demandCurrent = actualDemandCurrent !== undefined ? actualDemandCurrent : ratedMax;
 
   // External regulators: each controls up to 3 alts
