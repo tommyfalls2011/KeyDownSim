@@ -85,6 +85,13 @@ export function RFProvider({ children }) {
         }
         next.regulatorVoltages = newRegs;
       }
+      // Auto-select recommended heatsink when box size changes
+      if (key === 'driverBoxSize' && value > 0) {
+        next.driverHeatsink = getRecommendedHeatsink(value);
+      }
+      if (key === 'finalBoxSize' && value > 0) {
+        next.finalHeatsink = getRecommendedHeatsink(value);
+      }
       return next;
     });
     // Reset thermal state when swapping amp components
