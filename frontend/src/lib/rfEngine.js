@@ -50,12 +50,35 @@ export const ANTENNAS = {
   'fight-stix-12': { name: "Fight Stix 12' (10ft shaft + whip)", gainDBI: 8, type: 'vertical', tunable: true, tipMin: 34, tipMax: 58, tipDefault: 48 },
 };
 
+// Vehicle ground heights in feet (bed/roof height from ground)
 export const VEHICLES = {
-  'suburban': { name: 'Suburban/SUV', groundPlane: 0.88, surfaceSqFt: 42, directional: 0.12, takeoff: 22, shape: 'suv' },
-  'f150': { name: 'Ford F-150', groundPlane: 0.62, surfaceSqFt: 28, directional: 0.48, takeoff: 35, shape: 'truck' },
-  'ram': { name: 'Dodge Ram', groundPlane: 0.68, surfaceSqFt: 31, directional: 0.42, takeoff: 32, shape: 'truck' },
-  'van': { name: 'Cargo Van', groundPlane: 0.92, surfaceSqFt: 52, directional: 0.08, takeoff: 18, shape: 'van' },
-  'wagon': { name: 'Station Wagon', groundPlane: 0.80, surfaceSqFt: 36, directional: 0.20, takeoff: 26, shape: 'wagon' },
+  'suburban': { name: 'Suburban/SUV', groundPlane: 0.88, surfaceSqFt: 42, directional: 0.12, takeoff: 22, shape: 'suv', groundHeight: 5.5 },
+  'f150': { name: 'Ford F-150', groundPlane: 0.62, surfaceSqFt: 28, directional: 0.48, takeoff: 35, shape: 'truck', groundHeight: 5.0 },
+  'ram': { name: 'Dodge Ram', groundPlane: 0.68, surfaceSqFt: 31, directional: 0.42, takeoff: 32, shape: 'truck', groundHeight: 5.2 },
+  'van': { name: 'Cargo Van', groundPlane: 0.92, surfaceSqFt: 52, directional: 0.08, takeoff: 18, shape: 'van', groundHeight: 7.0 },
+  'wagon': { name: 'Station Wagon', groundPlane: 0.80, surfaceSqFt: 36, directional: 0.20, takeoff: 26, shape: 'wagon', groundHeight: 4.5 },
+  'semi': { name: 'Semi Truck', groundPlane: 0.95, surfaceSqFt: 65, directional: 0.05, takeoff: 15, shape: 'semi', groundHeight: 8.5 },
+  'jeep': { name: 'Jeep Wrangler', groundPlane: 0.55, surfaceSqFt: 22, directional: 0.55, takeoff: 40, shape: 'jeep', groundHeight: 4.0 },
+};
+
+// Yagi Array Element Positions (distances in inches from rear antenna)
+// ANT1 = rear (reflector), ANT2 = driven element, DIR1-3 = directors
+export const YAGI_ARRAY_CONFIG = {
+  elements: [
+    { id: 'ant1', name: 'ANT1 (Reflector)', position: 0, heightOffset: 0, tunable: true, defaultHeight: 96 },      // rear, base height
+    { id: 'ant2', name: 'ANT2 (Driven)', position: 72, heightOffset: 0, tunable: true, defaultHeight: 96 },        // 72" forward
+    { id: 'dir1', name: 'DIR1', position: 72 + 42, heightOffset: -12, tunable: true, defaultHeight: 84 },          // 3.5' forward, 1' shorter
+    { id: 'dir2', name: 'DIR2', position: 72 + 42 + 96, heightOffset: 15, tunable: false, defaultHeight: 111 },    // 8' forward, 15" taller
+    { id: 'dir3', name: 'DIR3', position: 72 + 42 + 96 + 96, heightOffset: 15, tunable: false, defaultHeight: 111 }, // 8' forward, same as DIR2
+  ],
+  // Fighting sticks options for the array
+  stickOptions: [
+    { id: 'fight-8', name: "8' Fighting Sticks", baseHeight: 96, gainDBI: 5.5 },
+    { id: 'fight-10', name: "10' Fighting Sticks", baseHeight: 120, gainDBI: 7 },
+  ],
+  // Yagi gain based on element count and spacing
+  baseGainDB: 9.5, // ~9-11dB typical for 5-element yagi
+  beamWidth: 45,   // degrees - narrower than omni
 };
 
 // Antenna mount positions — the pattern is DRAWN TOWARD the metal surface
