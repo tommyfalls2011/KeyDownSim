@@ -471,6 +471,10 @@ export function RFProvider({ children }) {
     bankAh: voltage.bankAh || 0,
     swr: swr || 1.5,
     swrAtAntenna: swrAtAntenna || 1.5,
+    // Instantaneous modulated power for canvas visualization
+    modulatedWatts: Math.round(
+      Math.min(effectivePower.deadKey * Math.pow(1 + (micLevel || 0), 2), effectivePower.peakKey) * 10
+    ) / 10 || 0,
     takeoffAngle: takeoff || 22,
     underDriven: underDriven.isUnderDriven,
     driveRatio: underDriven.driveRatio,
