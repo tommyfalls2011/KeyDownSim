@@ -15,6 +15,10 @@ const DEFAULT_STATE = {
   driverTransistor: 'none',
   driverBoxSize: 0,
   driverHeatsink: 'small',
+  // Mid driver stage
+  midDriverTransistor: 'none',
+  midDriverBoxSize: 0,
+  midDriverHeatsink: 'small',
   // Final stage: transistor type + box size + heatsink
   finalTransistor: 'none',
   finalBoxSize: 0,
