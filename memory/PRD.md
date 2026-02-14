@@ -47,6 +47,7 @@ A standalone version of the RF Visualizer that runs WITHOUT any backend. No logi
 │   └── src/                  ← Source files for static version
 ├── rfEngine.js               ← Hardcoded equipment
 ├── RFContextStatic.js        ← Context without API calls
+├── ControlPanelStatic.js      ← Static ControlPanel (no auth/save)
 └── App.js                    ← Static app entry
 ```
 
@@ -110,6 +111,8 @@ Click "Save to GitHub" in Emergent chat
 - Fixed layout so center visualizer doesn't scroll when side panels scroll
 - Fixed pattern not being cut off when it grows larger
 - Added smoothed amp draw display (updates every 150ms with interpolation for readability)
+- [Dec 2025] Ported 5-Element Yagi Array feature to static build (rfEngine.js, RFContextStatic.js, ControlPanelStatic.js, CanvasVisualizer.js)
+- [Dec 2025] Automated build-static.sh now includes: install deps, yarn build, zip creation, and import fixups for all components
 
 ---
 
@@ -130,6 +133,7 @@ Click "Save to GitHub" in Emergent chat
 - Voltage-to-watts scaling (more volts = more watts, like real amps)
 - **Thermal Preview** - "Test Config" button simulates key-down to predict thermal behavior before going live
 - **Static Build** - Standalone version for sma-antenna.org (no backend required)
+- **5-Element Yagi Array** - Full Yagi-Uda antenna array simulation with directional beam, tunable elements, SWR calculation, and canvas visualization (both main app and static build)
 
 ## Bug Fixes
 - [Feb 2026] Fixed thermal simulation stale closure bug: temps now properly rise/cool across multiple key-down cycles. Root cause: setInterval callback captured stale `keyed`, `driverBlown`, `finalBlown` values. Fix: useRef pattern to always read latest state.
@@ -139,7 +143,8 @@ Click "Save to GitHub" in Emergent chat
 
 ## Prioritized Backlog
 ### P0
-- Yagi-Uda Antenna Array Simulation: "Antenna Array" selector for 2, 3, or 5-element arrays with 9-11 dB forward gain and narrow directional beam
+- ~~Yagi-Uda Antenna Array Simulation~~ — DONE (both main app and static build)
+- Yagi DIR1 Position Toggle: Toggle DIR1 between "on the truck" vs "on the front beam" (main app + static build)
 
 ### P1
 - Over-drive Thermal Penalty: Over-driving an amp accelerates heat generation, making blown pills more likely
