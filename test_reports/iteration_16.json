@@ -1,0 +1,92 @@
+{
+  "summary": "Mid Driver feature fully verified. Backend: All 9/9 tests pass - mid_driver_transistor, mid_driver_box_size, mid_driver_heatsink fields save/load correctly, Mitsubishi 2SC3240 shows 180W PEP (changed from 105), under-driven threshold at 5% (changed from 35%). Frontend: All features working - Mid Driver section appears between Driver and Final in Equipment Rack, all 3 dropdowns (transistor/box/heatsink) have correct data-testids, Signal Chain shows all 3 stages with correct watts, Thermal Preview includes Mid Driver, Cobra 29 + 1-pill final does NOT trigger under-driven warning.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "POST /api/configurations saves config with mid_driver_transistor, mid_driver_box_size, mid_driver_heatsink",
+    "POST /api/configurations saves config without mid_driver (none/0 values)",
+    "Full 3-stage config (driver + mid_driver + final) saves correctly",
+    "GET /api/configurations returns mid_driver fields in saved configs",
+    "Mitsubishi 2SC3240 wattsPEP = 180 (changed from 105)",
+    "Mitsubishi 2SC3240 efficiency = 0.575",
+    "Mitsubishi 2SC3240 current_max = 25A per pill (matches 180W @ 57.5% eff)",
+    "Cobra 29 (0.75W) + 1-pill final = 15% drive ratio > 5% threshold = NOT under-driven",
+    "Extreme under-driven case (32-pill with just radio) correctly triggers warning",
+    "POST /api/calculate accepts mid_driver fields in request",
+    "Frontend: Mid Driver section visible in Equipment Rack between Driver and Final",
+    "Frontend: data-testid='mid-driver-transistor-select' exists and works",
+    "Frontend: data-testid='mid-driver-box-select' exists and works",
+    "Frontend: data-testid='mid-driver-heatsink-select' exists and works",
+    "Frontend: Mitsubishi 2SC3240 shows '180W, 11.5dB' in dropdown",
+    "Frontend: Signal Chain shows '+ Mid Driver (+11.5dB)' with correct watts",
+    "Frontend: Thermal Preview includes Mid Driver with temp simulation",
+    "Frontend: Cobra 29 + 1-pill final shows NO under-driven warning",
+    "Frontend: Config save includes mid_driver settings"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_mid_driver_feature.py",
+    "/app/test_reports/pytest/pytest_mid_driver.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "rfEngine.js: calculateStageOutputs correctly handles midDriverSpecs param with load ratios",
+    "rfEngine.js: calculateSignalChain correctly cascades power through all 3 stages (Radio → Driver → Mid Driver → Final)",
+    "rfEngine.js: calculateVoltageDrop includes midDriverSpecs in current draw calculation",
+    "rfEngine.js: checkUnderDriven uses 0.05 threshold (5%) and considers midDriverSpecs in drive calculation",
+    "RFContext.js: midDriverTransistor/BoxSize/Heatsink state with correct defaults",
+    "RFContext.js: midDriverTemp/Blown thermal state with reset logic",
+    "RFContext.js: midDriverSpecs memo correctly builds amp specs",
+    "RFContext.js: loadConfig correctly loads mid_driver_* fields from saved config",
+    "EquipmentRack.js: Mid Driver AmpStageSelector positioned between Driver and Final with slot='2.5U'",
+    "EquipmentRack.js: Signal Chain summary includes midDriverSpecs with correct power calculation",
+    "ThermalPreview.js: preview.midDriver section renders correctly with SAFE/BLOWS status",
+    "ControlPanel.js: handleSave includes mid_driver_transistor, mid_driver_box_size, mid_driver_heatsink in payload",
+    "server.py: ConfigCreate/ConfigResponse models include mid_driver_* fields with defaults",
+    "server.py: RFCalcRequest includes mid_driver_* fields for API compatibility",
+    "server.py: TRANSISTORS dict has Mitsubishi 2SC3240 with watts_pep=180, efficiency=0.575, current_max=25"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_mid_driver_feature.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)",
+    "frontend": "100% (all mid driver features working)"
+  },
+  "test_credentials": {
+    "admin_email": "fallstommy@gmail.com",
+    "admin_password": "admin123"
+  },
+  "seed_data_creation": "None - using existing seeded data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Mid Driver feature verified. Signal chain is now Radio → Driver → Mid Driver → Final. Mid Driver uses same transistor/box/heatsink UI as Driver and Final. Auto-heatsink selection works: changing box size auto-selects recommended heatsink. Mitsubishi 2SC3240 now shows 180W PEP (not 105W). Under-driven threshold is 5% (was 35%), so Cobra 29 (0.75W) + 1-pill final does NOT trigger warning since 15% > 5%.",
+  "feature_verification": {
+    "mid_driver_fields": {
+      "transistor_testid": "mid-driver-transistor-select",
+      "box_testid": "mid-driver-box-select",
+      "heatsink_testid": "mid-driver-heatsink-select",
+      "resetKey": "midDriver",
+      "blown_testid": "midDriver-blown"
+    },
+    "signal_chain_order": "Radio → Driver → Mid Driver → Final",
+    "mitsubishi_2sc3240": {
+      "wattsPEP": 180,
+      "efficiency": 0.575,
+      "currentMax": 25,
+      "gainDB": 11.5
+    },
+    "under_driven_threshold": {
+      "old": 0.35,
+      "new": 0.05,
+      "cobra29_1pill_ratio": "~15% (NOT under-driven)"
+    },
+    "thermal_preview": "Includes Driver, Mid Driver, Final with independent temp/blown states"
+  }
+}
