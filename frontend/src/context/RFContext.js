@@ -446,9 +446,10 @@ export function RFProvider({ children }) {
   const metrics = {
     deadKeyWatts: Math.round(effectivePower.deadKey * 10) / 10 || 0,
     peakWatts: Math.round(effectivePower.peakKey * 10) / 10 || 0,
-    avgWatts: Math.round((effectivePower.deadKey + (effectivePower.peakKey - effectivePower.deadKey) * micLevel * 0.35) * 10) / 10 || 0,
-    peakSwingWatts: Math.round((effectivePower.deadKey + (effectivePower.peakKey - effectivePower.deadKey) * Math.min(1, micLevel * 1.8)) * 10) / 10 || 0,
-    modulatedWatts: Math.round((effectivePower.deadKey + (effectivePower.peakKey - effectivePower.deadKey) * micLevel) * 10) / 10 || 0,
+    // Bird Model 43 Average: carrier × (1 + m²/2) — barely moves with voice
+    avgWatts: Math.round(effectivePower.deadKey * (1 + (micLevel * micLevel) / 2) * 10) / 10 || 0,
+    // Bird Model 43P Peak (PEP): carrier × (1 + m)² — swings hard with voice, capped at system max
+    peakSwingWatts: Math.round(Math.min(effectivePower.deadKey * Math.pow(1 + micLevel, 2), effectivePower.peakKey) * 10) / 10 || 0,
     micLevel: micLevel || 0,
     voltage: voltage.effectiveVoltage || 14.2,
     radioVoltage: RADIO_VOLTAGE,
