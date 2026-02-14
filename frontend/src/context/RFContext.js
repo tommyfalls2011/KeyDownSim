@@ -34,6 +34,8 @@ const DEFAULT_STATE = {
   batteryCount: 1,
   regulatorVoltages: [14.2],
   tipLength: 48,
+  coaxType: 'rg213',
+  coaxLengthFt: 18,
   keyed: false,
   yagiMode: false,
   yagiStickType: 'fight-8',
