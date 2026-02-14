@@ -197,19 +197,18 @@ const CATEGORY_FIELDS = {
     { key: 'type', label: 'Modulation Type', type: 'select', options: ['AM', 'AM/SSB', 'SSB', 'FM'] },
     { key: 'impedance', label: 'Impedance (ohms)', type: 'number', placeholder: '50' },
   ],
-  driver_amps: [
-    { key: 'gain_db', label: 'Gain (dB)', type: 'number', placeholder: '17' },
-    { key: 'transistors', label: 'Transistor Count', type: 'number', placeholder: '2' },
-    { key: 'current_draw', label: 'Current Draw (amps)', type: 'number', placeholder: '50' },
-    { key: 'watts_per_pill', label: 'Watts per Pill', type: 'number', placeholder: '275' },
-    { key: 'combining_stages', label: 'Combining Stages', type: 'number', placeholder: '0' },
+  transistors: [
+    { key: 'watts_pep', label: 'Watts PEP', type: 'number', placeholder: '100' },
+    { key: 'gain_db', label: 'Gain (dB)', type: 'number', placeholder: '13', step: '0.1' },
+    { key: 'dissipation', label: 'Dissipation (W)', type: 'number', placeholder: '250' },
+    { key: 'tj_max', label: 'Tj Max (C)', type: 'number', placeholder: '175' },
+    { key: 'efficiency', label: 'Efficiency (0-1)', type: 'number', placeholder: '0.35', step: '0.01' },
+    { key: 'drive_watts', label: 'Drive Watts', type: 'number', placeholder: '5' },
+    { key: 'current_max', label: 'Current Max (A)', type: 'number', placeholder: '25' },
   ],
-  final_amps: [
-    { key: 'gain_db', label: 'Gain (dB)', type: 'number', placeholder: '10' },
-    { key: 'transistors', label: 'Transistor Count', type: 'number', placeholder: '4' },
-    { key: 'current_draw', label: 'Current Draw (amps)', type: 'number', placeholder: '100' },
-    { key: 'watts_per_pill', label: 'Watts per Pill', type: 'number', placeholder: '275' },
-    { key: 'combining_stages', label: 'Combining Stages', type: 'number', placeholder: '1' },
+  heatsinks: [
+    { key: 'thermal_resistance', label: 'Thermal Resistance (C/W)', type: 'number', placeholder: '0.8', step: '0.1' },
+    { key: 'cool_rate', label: 'Cool Rate', type: 'number', placeholder: '2.0', step: '0.1' },
   ],
   antennas: [
     { key: 'gain_dbi', label: 'Gain (dBi)', type: 'number', placeholder: '3', step: '0.1' },
