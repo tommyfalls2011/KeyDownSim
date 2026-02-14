@@ -1,0 +1,87 @@
+{
+  "summary": "Frontend testing PASSED - All NEW features verified: Combo driver amps (3-Pill, 2x4, 2x6), Receive Sensitivity Loss indicator, Yagi DIR1 Position Toggle, SWR changes in Yagi mode",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Driver Amplifier dropdown contains new combo amps: 3-Pill (1-2) (+13dB), 2x4 Combo (2→4) (+17dB), 2x6 Combo (2→6) (+18dB) - PASS",
+    "Selecting 2x4 combo amp shows correct power output: Radio 1W → Driver (+17dB) 52W - PASS",
+    "Selecting 3-Pill combo amp shows correct power output: Radio 1W → Driver (+13dB) 21W - PASS",
+    "Receive Sensitivity Loss indicator NOT visible with Center Roof (0dB loss) - PASS",
+    "Receive Sensitivity Loss indicator shows -2.1dB when Rear Mount selected - PASS",
+    "Receive Sensitivity Loss indicator disappears when Center Roof is re-selected - PASS",
+    "Yagi Array Mode toggle works - changes from unchecked to checked state - PASS",
+    "5-Element Yagi Array config section appears when Yagi mode enabled - PASS",
+    "DIR1 Position toggle appears in Yagi config section - shows 'On Truck' by default - PASS",
+    "DIR1 Position toggle changes label to 'Front Beam' when clicked - PASS",
+    "MetricsPanel shows valid values (no NaN) for all fields including with combo amps - PASS",
+    "SWR changes from 1.3 (regular mode) to 1.0 (Yagi mode) - PASS",
+    "All dropdowns (Vehicle, Antenna Position, Radio, Driver Amp, Final Amp, Antenna, Alt Count, Alt Amps, Battery Type, Battery Count) remain clickable on full trigger area - PASS"
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Combo driver amps properly defined in rfEngine.js DRIVER_AMPS with correct gainDB values: 3-pill=13dB, 2x4=17dB, 2x6=18dB",
+    "Receive Sensitivity Loss indicator correctly uses conditional rendering (only shows when dBLoss > 0)",
+    "DIR1 Position toggle correctly wired to yagiDir1OnTruck state in RFContext",
+    "SWR calculation properly uses calculateYagiSWR when yagiMode is enabled",
+    "All UI components use data-testid attributes for testability"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only testing)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "admin_email": "fallstommy@gmail.com",
+    "admin_password": "admin123"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All new features working correctly: 1) Combo amps (3-Pill, 2x4, 2x6) in Driver Amplifier dropdown with correct gain and power calculations, 2) Rx Sensitivity Loss indicator shows dB loss for non-center antenna positions (Rear Mount=-2.1dB, Back Right=-2.8dB), 3) Yagi Array Mode toggle enables 5-Element Yagi Array config section with DIR1 Position toggle (On Truck/Front Beam), 4) SWR properly changes from 1.3 to 1.0 when Yagi mode enabled, 5) Canvas visualization shows Yagi array with 5 antenna elements when Yagi mode ON",
+  "feature_verification": {
+    "combo_driver_amps": {
+      "3-pill_found": true,
+      "2x4_found": true,
+      "2x6_found": true,
+      "power_calculations_correct": true,
+      "gain_values": {
+        "3-pill": "+13dB",
+        "2x4": "+17dB",
+        "2x6": "+18dB"
+      }
+    },
+    "receive_sensitivity_loss": {
+      "center_roof_hidden": true,
+      "rear_mount_shows": "-2.1dB",
+      "indicator_disappears_on_center": true
+    },
+    "yagi_array_mode": {
+      "toggle_works": true,
+      "config_section_appears": true,
+      "stick_options_visible": true,
+      "element_sliders_visible": ["ANT1", "ANT2", "DIR1"]
+    },
+    "dir1_position_toggle": {
+      "toggle_exists": true,
+      "default_value": "On Truck",
+      "toggle_changes_to": "Front Beam"
+    },
+    "swr_changes": {
+      "swr_regular_mode": "1.3",
+      "swr_yagi_mode": "1.0",
+      "change_works": true
+    },
+    "metrics_valid": {
+      "no_nan_values": true,
+      "all_values_displayed": true
+    }
+  }
+}
