@@ -508,50 +508,35 @@ export function calculateTakeoffAngle(vehicleKey, bonding, options = {}) {
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const antennaPos = options.antennaPosition || 'center';
   const yagiMode = options.yagiMode || false;
-  const rideHeightOffset = options.rideHeightOffset || 0; // inches from stock
+  const rideHeightOffset = options.rideHeightOffset || 0;
   
-  // Effective ground height with ride height adjustment (inches → feet)
-  const effectiveHeight = vehicle.groundHeight + (rideHeightOffset / 12);
+  const effectiveHeight = (vehicle.groundHeight || 5) + (rideHeightOffset / 12);
   
-  // Base angle from ground plane quality
-  // Perfect GP = ~10°, none = ~45°
-  const gpEfficiency = vehicle.groundPlane * (bonding ? 1.0 : 0.6);
-  let angle = 45 - (gpEfficiency * 30);  // Range: ~15° (great) to ~45° (no ground)
+  const gpEfficiency = (vehicle.groundPlane || 0.5) * (bonding ? 1.0 : 0.6);
+  let angle = 45 - (gpEfficiency * 30);
   
-  // Surface area: bigger roof = better image, but diminishing returns
-  // Baseline at 30sqft. Below = penalty, above = bonus
-  const surfaceEffect = (vehicle.surfaceSqFt - 30) * 0.08;
+  const surfaceEffect = ((vehicle.surfaceSqFt || 30) - 30) * 0.08;
   angle -= surfaceEffect;
   
-  // Ride height effect on takeoff angle:
-  // LOWER = antenna closer to ground reflection = tighter vertical pattern = LOWER angle
-  // HIGHER = more ground clearance but antenna further from coherent image = HIGHER angle
-  // Each inch of lowering drops the angle ~0.5°, each inch of lift raises it ~0.3°
-  // (lowering is more impactful than lifting because you're compressing the image)
   if (rideHeightOffset < 0) {
-    angle += rideHeightOffset * 0.5; // negative offset → subtracts from angle
+    angle += rideHeightOffset * 0.5;
   } else {
-    angle += rideHeightOffset * 0.3; // positive offset → adds to angle
+    angle += rideHeightOffset * 0.3;
   }
   
-  // Base vehicle height: taller vehicles have a slight advantage
-  // (antenna sees more metal below it), but effect is moderate
   const heightBonus = Math.max(0, (effectiveHeight - 4)) * 0.4;
   angle -= heightBonus;
   
-  // Antenna position: Center = symmetric = best
   const positionPenalties = {
     'center': 0, 'front': 2, 'rear': 2, 'right': 3, 'left': 3,
     'bumper': 8, 'hood': 4, 'trunk': 5, 'mirror': 10,
   };
   angle += (positionPenalties[antennaPos] || 0);
   
-  // Yagi array: directors compress vertical lobe
   if (yagiMode) {
     angle -= 4;
   }
   
-  // Clamp: 5° (competition build) to 50° (terrible)
   return Math.round(Math.max(5, Math.min(50, angle)));
 }
 
