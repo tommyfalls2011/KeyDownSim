@@ -135,8 +135,13 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
   - Each tier has calibrated thermalResistance and coolRate values
 - Added auto-select: changing box size auto-picks the recommended heatsink
 - Added undersized heatsink warning with recommendation
-- Updated backend, frontend, and thermal model
-- All tests passing (iteration_15: 100% backend + frontend)
+- Added **Mid Driver** stage: Signal chain is now Radio → Driver → Mid Driver → Final
+  - Same transistor/box/heatsink selection as Driver and Final
+  - Full thermal simulation (temp, blown state, thermal preview)
+  - Config save/load and backend API support
+- Fixed Mitsubishi 2SC3240: wattsPEP 105→180 to match real-world 25A/pill current draw
+- Lowered under-driven warning threshold from 35% to 5% (Cobra 29 → 1-pill no longer warns)
+- All tests passing (iteration_15: heatsinks, iteration_16: mid driver — both 100%)
 - Added Yagi DIR1 Position Toggle (On Truck / Front Beam)
 - Enhanced over-drive thermal penalty with exponential scaling
 - Added Receive Sensitivity Loss indicator
