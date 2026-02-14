@@ -641,12 +641,12 @@ async def calculate_rf(data: RFCalcRequest):
 @api_router.get("/equipment")
 async def get_equipment():
     equipment = {}
-    for cat in ["radios", "driver_amps", "final_amps", "antennas", "vehicles"]:
-        items = await db.equipment.find({"category": cat}, {"_id": 0}).to_list(100)
+    for cat in ["radios", "transistors", "heatsinks", "antennas", "vehicles"]:
+        items = await db.equipment.find({"category": cat}, {"_id": 0}).to_list(200)
         equipment[cat] = {item["key"]: item["data"] for item in items}
-    # Fallback to defaults if DB is empty
+    equipment["box_sizes"] = BOX_SIZES
     if not equipment.get("radios"):
-        return {"radios": RADIOS, "driver_amps": DRIVER_AMPS, "final_amps": FINAL_AMPS, "antennas": ANTENNAS, "vehicles": VEHICLES}
+        return {"radios": RADIOS, "transistors": TRANSISTORS, "heatsinks": HEATSINKS, "antennas": ANTENNAS, "vehicles": VEHICLES, "box_sizes": BOX_SIZES}
     return equipment
 
 # ──── Admin Routes ────
