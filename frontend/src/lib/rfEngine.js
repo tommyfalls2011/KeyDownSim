@@ -467,14 +467,15 @@ export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength, antenna
   // on one side, weakening the image current → R rises (lossy return path)
   // and asymmetry adds reactance (unbalanced current distribution).
   // biasStrength: 0 = center (symmetric), 0.7 = rear edge (highly asymmetric)
-  // dBLoss: measured efficiency loss from Larsen data
+  // Corner mounts (xOffset+yOffset both nonzero) are worst — metal only in one quadrant
   if (pos.biasStrength > 0) {
+    const cornerFactor = (Math.abs(pos.xOffset) > 0 && Math.abs(pos.yOffset) > 0) ? 1.4 : 1.0;
     // Asymmetry raises R — the missing metal means the ground return
     // path has higher resistance. Scales with how far off-center.
-    R += pos.biasStrength * 8;
+    R += pos.biasStrength * 12 * cornerFactor;
     // Asymmetric counterpoise adds reactance — the image current
     // is incomplete on one side, creating a reactive component.
-    X += pos.biasStrength * 12;
+    X += pos.biasStrength * 16 * cornerFactor;
   }
 
   // ── Bonding ──
