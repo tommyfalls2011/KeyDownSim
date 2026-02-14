@@ -174,8 +174,8 @@ function ConfigsTab({ token }) {
               <div className="font-mono text-[9px] text-slate-600 mt-1 flex flex-wrap gap-x-4">
                 <span>User: {cfg.user_id?.substring(0, 8)}...</span>
                 <span>Radio: {cfg.radio}</span>
-                <span>Driver: {cfg.driver_amp}</span>
-                <span>Final: {cfg.final_amp}</span>
+                <span>Driver: {cfg.driver_transistor !== 'none' ? `${cfg.driver_box_size}x ${cfg.driver_transistor}` : 'None'}</span>
+                <span>Final: {cfg.final_transistor !== 'none' ? `${cfg.final_box_size}x ${cfg.final_transistor}` : 'None'}</span>
                 <span>Vehicle: {cfg.vehicle}</span>
               </div>
             </div>
