@@ -92,12 +92,16 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 ## Session Log
 ### Feb 17, 2026
 - Added Yagi element position adjustment (±12" per element, all 5 elements)
-- Position offsets affect SWR calculation (spacing between adjacent elements)
-- Position offsets affect radiation pattern (beam width, side lobes, gain)
+- Improved SWR physics model with realistic mutual coupling:
+  - Asymmetric penalty: closer spacing = exponential coupling spike (capacitive), further = gentler (phasing loss)
+  - Ground plane edge effect: uniform array shift raises SWR from vehicle roof asymmetry
+  - Vehicle-dependent: smaller ground planes (Jeep) amplify coupling problems vs larger (Suburban)
+  - Non-linear curve: 1/distance² coupling relationship with fractional spacing loss
+- Radiation pattern responds to spacing: beam broadens, side lobes grow, front-to-back ratio degrades
 - Canvas visualizer shows position offset labels on moved elements
 - Color-coded offset display (green=forward, red=backward, neutral=center)
 - Updated static build with all position adjustment features
-- All tests passing (iteration_12: 100% frontend pass rate)
+- All tests passing (iteration_12: 100% frontend pass rate, plus programmatic math verification)
 
 ### Feb 14, 2026
 - Fixed DashboardStatic layout (center view regression)
