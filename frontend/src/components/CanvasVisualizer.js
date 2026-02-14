@@ -319,6 +319,7 @@ export default function CanvasVisualizer() {
           stickType: config.yagiStickType,
           elementHeights: config.yagiElementHeights,
           dir1OnTruck: config.yagiDir1OnTruck,
+          elementPositions: config.yagiElementPositions,
         }, keyed);
       }
 
