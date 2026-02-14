@@ -432,17 +432,19 @@ export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
     
     if (deviation < 0) {
       // CLOSER than optimal — capacitive coupling increases exponentially
-      // Under ¼λ (~108"), coupling is already significant
+      // Coupling is proportional to ~1/distance², so halving the spacing = 4x coupling
       // Going closer makes it much worse — impedance drops away from 50Ω fast
+      // At 27MHz, elements under 36" apart are in deep coupling territory
       const closerInches = Math.abs(deviation);
-      // Exponential curve: 1" closer = mild, 6" closer = noticeable, 12" closer = severe
-      spacingPenalty += weight * (0.04 * closerInches + 0.008 * Math.pow(closerInches, 1.5));
+      const closerRatio = closerInches / optimal; // fraction of optimal spacing lost
+      // Steep exponential: small moves = mild, but as you lose significant fraction = severe
+      spacingPenalty += weight * (0.03 * closerInches + 0.015 * Math.pow(closerInches, 1.6) + closerRatio * 0.5);
     } else {
-      // FURTHER than optimal — Yagi phasing weakens, but coupling reduces
+      // FURTHER than optimal — Yagi phasing weakens, but coupling reduces (isolation)
       // This is gentler — the antenna just becomes less efficient as a Yagi
-      // Past ~0.4λ spacing the Yagi effect breaks down
+      // Past ~0.4λ spacing (~170") the Yagi effect breaks down entirely
       const furtherInches = deviation;
-      spacingPenalty += weight * (0.02 * furtherInches);
+      spacingPenalty += weight * (0.015 * furtherInches);
     }
   }
   
