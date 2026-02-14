@@ -22,12 +22,35 @@ export const TRANSISTORS = {
 export const BOX_SIZES = [1, 2, 3, 4, 6, 8, 16, 24, 32];
 const BOX_COMBINING = { 1: 0, 2: 0, 3: 0, 4: 1, 6: 1, 8: 2, 16: 4, 24: 6, 32: 8 };
 
-// ─── Heatsink Options ───
+// ─── Heatsink Options (5 tiers matched to pill count) ───
+// 1-2 pills: Small passive fins, minimal cooling
+// 3-4 pills: Medium finned + single fan, active cooling required
+// 6-8 pills: Large thick extruded aluminum, high-CFM fans
+// 12-16 pills: XL bonded fin assembly, dual 80-120mm fans, heavy-duty forced air
+// 24-32 pills: Extreme custom-machined radiator, high-pressure forced air mandatory
 export const HEATSINKS = {
-  'small': { name: 'Small (passive/small fins)', thermalResistance: 2.0, coolRate: 0.8 },
-  'medium': { name: 'Medium (finned + fan)', thermalResistance: 0.8, coolRate: 2.0 },
-  'large': { name: 'Large (big fins + high-CFM)', thermalResistance: 0.3, coolRate: 4.0 },
+  'small':   { name: 'Small (passive fins)',               thermalResistance: 2.5,  coolRate: 0.6,  maxPills: 2  },
+  'medium':  { name: 'Medium (finned + fan)',              thermalResistance: 1.2,  coolRate: 1.5,  maxPills: 4  },
+  'large':   { name: 'Large (extruded + high-CFM)',        thermalResistance: 0.5,  coolRate: 3.0,  maxPills: 8  },
+  'xlarge':  { name: 'XL (bonded fin + dual fans)',        thermalResistance: 0.25, coolRate: 5.0,  maxPills: 16 },
+  'extreme': { name: 'Extreme (machined radiator)',        thermalResistance: 0.12, coolRate: 8.0,  maxPills: 32 },
 };
+
+// Get the recommended heatsink for a given pill count
+export function getRecommendedHeatsink(pillCount) {
+  if (pillCount <= 2) return 'small';
+  if (pillCount <= 4) return 'medium';
+  if (pillCount <= 8) return 'large';
+  if (pillCount <= 16) return 'xlarge';
+  return 'extreme';
+}
+
+// Check if heatsink is undersized for the pill count
+export function isHeatsinkUndersized(heatsinkKey, pillCount) {
+  const hs = HEATSINKS[heatsinkKey];
+  if (!hs) return false;
+  return pillCount > hs.maxPills;
+}
 
 // ─── Build amp specs from transistor + box + heatsink ───
 export function getAmpSpecs(transistorKey, boxSize, heatsinkKey) {

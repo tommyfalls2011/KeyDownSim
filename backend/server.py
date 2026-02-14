@@ -157,9 +157,11 @@ TRANSISTORS = {
 }
 
 HEATSINKS = {
-    "small": {"name": "Small (passive/small fins)", "thermal_resistance": 2.0, "cool_rate": 0.8},
-    "medium": {"name": "Medium (finned + fan)", "thermal_resistance": 0.8, "cool_rate": 2.0},
-    "large": {"name": "Large (big fins + high-CFM)", "thermal_resistance": 0.3, "cool_rate": 4.0},
+    "small":   {"name": "Small (passive fins)",          "thermal_resistance": 2.5,  "cool_rate": 0.6,  "max_pills": 2},
+    "medium":  {"name": "Medium (finned + fan)",         "thermal_resistance": 1.2,  "cool_rate": 1.5,  "max_pills": 4},
+    "large":   {"name": "Large (extruded + high-CFM)",   "thermal_resistance": 0.5,  "cool_rate": 3.0,  "max_pills": 8},
+    "xlarge":  {"name": "XL (bonded fin + dual fans)",   "thermal_resistance": 0.25, "cool_rate": 5.0,  "max_pills": 16},
+    "extreme": {"name": "Extreme (machined radiator)",   "thermal_resistance": 0.12, "cool_rate": 8.0,  "max_pills": 32},
 }
 
 BOX_SIZES = [1, 2, 3, 4, 6, 8, 16, 24, 32]
