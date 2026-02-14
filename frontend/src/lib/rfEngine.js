@@ -497,6 +497,11 @@ export function calculateTakeoffAngle(vehicleKey, bonding, options = {}) {
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const antennaPos = options.antennaPosition || 'center';
   const yagiMode = options.yagiMode || false;
+  const rideHeightOffset = options.rideHeightOffset || 0; // inches from stock
+  
+  // Effective ground height with ride height adjustment
+  // rideHeightOffset in inches, convert to feet for the height calc
+  const effectiveHeight = vehicle.groundHeight + (rideHeightOffset / 12);
   
   // Start with a physics-based angle from the ground plane quality
   // Ideal infinite ground plane = ~5° take-off. No ground plane = ~45°+
@@ -505,19 +510,20 @@ export function calculateTakeoffAngle(vehicleKey, bonding, options = {}) {
   let angle = 45 - (gpEfficiency * 37);  // Range: ~8° (perfect) to ~45° (no ground)
   
   // Surface area factor: More sqft = more complete image
-  // Suburban at 42sqft is very good. Under 25sqft is poor.
-  // Each additional sqft above 25 lowers angle slightly
   const surfaceBonus = Math.max(0, (vehicle.surfaceSqFt - 25) * 0.12);
   angle -= surfaceBonus;
   
-  // Vehicle height: Taller vehicles get the antenna further from
-  // ground reflections, improving the image.
-  // Heights range ~4ft (Jeep) to ~8.5ft (Semi)
-  const heightBonus = Math.max(0, (vehicle.groundHeight || 5) - 4) * 0.8;
-  angle -= heightBonus;
+  // Vehicle height: Lower = antenna closer to ground plane reflection point
+  // This is counterintuitive: LOWER ride height actually LOWERS the take-off angle
+  // because the ground plane (roof) gets closer to being a flat reflector
+  // relative to far-field ground reflections.
+  // At CB frequencies (~27MHz, λ≈36ft), the antenna is always in the near-field
+  // of the ground plane. Lower CG = more stable image = tighter vertical pattern.
+  // Stock height is the baseline. Lowering drops the angle, lifting raises it.
+  const heightEffect = Math.max(0, (effectiveHeight - 3.5)) * 0.6;
+  angle -= (6 - heightEffect); // Lower height = bigger bonus
   
   // Antenna position: Center roof = symmetric ground plane = best angle
-  // Edge, bumper, etc = asymmetric = raises the angle
   const positionPenalties = {
     'center': 0, 'front': 2, 'rear': 2, 'right': 3, 'left': 3,
     'bumper': 8, 'hood': 4, 'trunk': 5, 'mirror': 10,
@@ -525,7 +531,6 @@ export function calculateTakeoffAngle(vehicleKey, bonding, options = {}) {
   angle += (positionPenalties[antennaPos] || 0);
   
   // Yagi array effect: Directors compress the vertical lobe
-  // A 5-element Yagi can drop the take-off angle by 3-6°
   if (yagiMode) {
     angle -= 4;
   }
