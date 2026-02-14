@@ -12,7 +12,7 @@ export const RADIOS = {
 export const TRANSISTORS = {
   'toshiba-2sc2879': { name: 'Toshiba 2SC2879', wattsPEP: 100, gainDB: 13, dissipation: 250, tjMax: 175, efficiency: 0.35, driveWatts: 4, currentMax: 25 },
   'hg-2sc2879': { name: 'HG 2SC2879', wattsPEP: 125, gainDB: 11.5, dissipation: 250, tjMax: 175, efficiency: 0.35, driveWatts: 5, currentMax: 25 },
-  'mitsubishi-2sc3240': { name: 'Mitsubishi 2SC3240', wattsPEP: 105, gainDB: 11.5, dissipation: 270, tjMax: 175, efficiency: 0.575, driveWatts: 7, currentMax: 25 },
+  'mitsubishi-2sc3240': { name: 'Mitsubishi 2SC3240', wattsPEP: 180, gainDB: 11.5, dissipation: 270, tjMax: 175, efficiency: 0.575, driveWatts: 7, currentMax: 25 },
   'mrf454': { name: 'MRF454', wattsPEP: 80, gainDB: 10, dissipation: 150, tjMax: 175, efficiency: 0.65, driveWatts: 8, currentMax: 15 },
   'sd1446': { name: 'SD1446', wattsPEP: 70, gainDB: 10, dissipation: 183, tjMax: 175, efficiency: 0.55, driveWatts: 7, currentMax: 12 },
   'hg-sd1446': { name: 'HG SD1446', wattsPEP: 75, gainDB: 10, dissipation: 183, tjMax: 175, efficiency: 0.55, driveWatts: 7.5, currentMax: 12 },

@@ -150,7 +150,7 @@ RADIOS = {
 TRANSISTORS = {
     "toshiba-2sc2879": {"name": "Toshiba 2SC2879", "watts_pep": 100, "gain_db": 13, "dissipation": 250, "tj_max": 175, "efficiency": 0.35, "drive_watts": 4, "current_max": 25},
     "hg-2sc2879": {"name": "HG 2SC2879", "watts_pep": 125, "gain_db": 11.5, "dissipation": 250, "tj_max": 175, "efficiency": 0.35, "drive_watts": 5, "current_max": 25},
-    "mitsubishi-2sc3240": {"name": "Mitsubishi 2SC3240", "watts_pep": 105, "gain_db": 11.5, "dissipation": 270, "tj_max": 175, "efficiency": 0.575, "drive_watts": 7, "current_max": 25},
+    "mitsubishi-2sc3240": {"name": "Mitsubishi 2SC3240", "watts_pep": 180, "gain_db": 11.5, "dissipation": 270, "tj_max": 175, "efficiency": 0.575, "drive_watts": 7, "current_max": 25},
     "mrf454": {"name": "MRF454", "watts_pep": 80, "gain_db": 10, "dissipation": 150, "tj_max": 175, "efficiency": 0.65, "drive_watts": 8, "current_max": 15},
     "sd1446": {"name": "SD1446", "watts_pep": 70, "gain_db": 10, "dissipation": 183, "tj_max": 175, "efficiency": 0.55, "drive_watts": 7, "current_max": 12},
     "hg-sd1446": {"name": "HG SD1446", "watts_pep": 75, "gain_db": 10, "dissipation": 183, "tj_max": 175, "efficiency": 0.55, "drive_watts": 7.5, "current_max": 12},
