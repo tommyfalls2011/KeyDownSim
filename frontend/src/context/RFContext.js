@@ -275,6 +275,7 @@ export function RFProvider({ children }) {
           // Driver over-drive: if driver load ratio > 0.85, it's running hot
           const driverStress = dkRatio > 0.85 ? 1 + (dkRatio - 0.85) * 4.0 : 1.0;
           const loadFactor = loadRatio * voltageStress * driverStress;
+          const heatRate = (HEAT_BASE_RATE / thermalMass) * loadFactor;
           const newTemp = prev + heatRate * dt;
           if (newTemp >= BLOW_TEMP) {
             setDriverBlown(true);
