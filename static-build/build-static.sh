@@ -563,10 +563,29 @@ ENV_EOF
 
 echo "=== Static build files prepared in $BUILD_DIR ==="
 echo ""
-echo "To build the static version:"
-echo "  cd $BUILD_DIR"
-echo "  yarn install"
-echo "  yarn build"
+
+# Install dependencies and build
+echo "=== Installing dependencies ==="
+cd "$BUILD_DIR"
+yarn install --frozen-lockfile 2>/dev/null || yarn install
 echo ""
-echo "The built files will be in $BUILD_DIR/build/"
-echo "Upload those files to sma-antenna.org"
+echo "=== Building static version ==="
+REACT_APP_BACKEND_URL="" GENERATE_SOURCEMAP=false yarn build
+echo ""
+
+# Create zip file
+echo "=== Creating zip archive ==="
+cd /app/static-build
+rm -f keydown-rf-static.zip
+cd "$BUILD_DIR"
+zip -r /app/static-build/keydown-rf-static.zip build/
+echo ""
+echo "=== Build complete! ==="
+echo "Zip file: /app/static-build/keydown-rf-static.zip"
+echo ""
+echo "DEPLOYMENT INSTRUCTIONS:"
+echo "1. Download keydown-rf-static.zip from GitHub"
+echo "2. Unzip it - you'll get a build/ folder"
+echo "3. Upload the CONTENTS of build/ (not the folder itself)"
+echo "   directly into /public_html/simulator/ on your cPanel"
+echo "4. Overwrite all existing files"
