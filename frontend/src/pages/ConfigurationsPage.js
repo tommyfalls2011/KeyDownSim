@@ -72,8 +72,8 @@ export default function ConfigurationsPage() {
                   <div className="font-chakra font-bold text-sm text-white uppercase tracking-wider">{cfg.name}</div>
                   <div className="font-mono text-[10px] text-slate-600 mt-1 flex gap-4">
                     <span>Radio: {cfg.radio}</span>
-                    <span>Driver: {cfg.driver_amp}</span>
-                    <span>Final: {cfg.final_amp}</span>
+                    <span>Driver: {cfg.driver_transistor !== 'none' ? `${cfg.driver_box_size}x ${cfg.driver_transistor}` : 'None'}</span>
+                    <span>Final: {cfg.final_transistor !== 'none' ? `${cfg.final_box_size}x ${cfg.final_transistor}` : 'None'}</span>
                     <span>Vehicle: {cfg.vehicle}</span>
                   </div>
                   <div className="font-mono text-[9px] text-slate-700 mt-1">
