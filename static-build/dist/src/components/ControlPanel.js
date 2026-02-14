@@ -1,12 +1,53 @@
 import { useRF } from '@/context/RFContextStatic';
-import { VEHICLES, ANTENNA_POSITIONS } from '@/lib/rfEngineStatic';
+import { VEHICLES, ANTENNA_POSITIONS, YAGI_ARRAY_CONFIG } from '@/lib/rfEngineStatic';
 import KeyButton from '@/components/KeyButton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useState } from 'react';
+import { useAuth } // from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Save, Antenna } from 'lucide-react';
+import { toast } from 'sonner';
+import axios from 'axios';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function ControlPanel() {
   const { config, updateConfig } = useRF();
+  // const { token } = useAuth();
+  const [saveName, setSaveName] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!saveName.trim()) { toast.error('Enter a config name'); return; }
+    setSaving(true);
+    try {
+      await axios.post(`${API}/configurations`, {
+        name: saveName,
+        radio: config.radio,
+        driver_amp: config.driverAmp,
+        final_amp: config.finalAmp,
+        antenna: config.antenna,
+        antenna_position: config.antennaPosition,
+        vehicle: config.vehicle,
+        bonding: config.bonding,
+        alternator_count: config.alternatorCount,
+        alternator_amps: config.alternatorAmps,
+        battery_type: config.batteryType,
+        battery_count: config.batteryCount,
+        regulator_voltages: config.regulatorVoltages,
+        tip_length: config.tipLength,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success('Config saved');
+      setSaveName('');
+    } catch (err) {
+      toast.error('Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="p-4 flex flex-col h-full">
@@ -57,7 +98,111 @@ export default function ControlPanel() {
             className="data-[state=checked]:bg-cyan-400"
           />
         </div>
+        
+        {/* Yagi Array Mode Toggle */}
+        <div className="flex items-center justify-between">
+          <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-amber-400 flex items-center gap-1.5">
+            <Antenna className="w-3 h-3" />
+            Yagi Array Mode
+          </Label>
+          <Switch
+            data-testid="yagi-mode-toggle"
+            checked={config.yagiMode}
+            onCheckedChange={v => updateConfig('yagiMode', v)}
+            className="data-[state=checked]:bg-amber-400"
+          />
+        </div>
       </div>
+
+      {/* Yagi Array Configuration */}
+      {config.yagiMode && (
+        <div className="space-y-3 mb-6 bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+          <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-amber-400 block">
+            5-Element Yagi Array
+          </Label>
+          
+          {/* Stick Type */}
+          <div>
+            <Label className="font-mono text-[8px] text-slate-600 mb-1 block">FIGHTING STICKS</Label>
+            <Select value={config.yagiStickType} onValueChange={v => updateConfig('yagiStickType', v)}>
+              <SelectTrigger className="bg-void border-white/10 text-white font-mono text-xs h-8" data-testid="yagi-stick-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-panel border-white/10">
+                {YAGI_ARRAY_CONFIG.stickOptions.map(opt => (
+                  <SelectItem key={opt.id} value={opt.id} className="font-mono text-xs text-slate-300">
+                    {opt.name} (+{opt.gainDBI}dBi)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Element Heights (tunable ones) */}
+          <div className="space-y-2">
+            <Label className="font-mono text-[8px] text-slate-600 block">TUNABLE ELEMENTS (inches)</Label>
+            
+            {/* ANT1 - Reflector */}
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] text-slate-500 w-12">ANT1</span>
+              <input
+                type="range"
+                min="72"
+                max="144"
+                value={config.yagiElementHeights?.ant1 || 96}
+                onChange={e => updateConfig('yagiElementHeights', { ...config.yagiElementHeights, ant1: parseInt(e.target.value) })}
+                className="flex-1 h-1 accent-amber-400 bg-slate-800 rounded cursor-pointer"
+                data-testid="yagi-ant1-slider"
+              />
+              <span className="font-mono text-[9px] text-amber-400 w-10">{config.yagiElementHeights?.ant1 || 96}"</span>
+            </div>
+            
+            {/* ANT2 - Driven */}
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] text-slate-500 w-12">ANT2</span>
+              <input
+                type="range"
+                min="72"
+                max="144"
+                value={config.yagiElementHeights?.ant2 || 96}
+                onChange={e => updateConfig('yagiElementHeights', { ...config.yagiElementHeights, ant2: parseInt(e.target.value) })}
+                className="flex-1 h-1 accent-amber-400 bg-slate-800 rounded cursor-pointer"
+                data-testid="yagi-ant2-slider"
+              />
+              <span className="font-mono text-[9px] text-amber-400 w-10">{config.yagiElementHeights?.ant2 || 96}"</span>
+            </div>
+            
+            {/* DIR1 - First Director (shorter, tunable for SWR) */}
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] text-cyan-400 w-12">DIR1</span>
+              <input
+                type="range"
+                min="60"
+                max="108"
+                value={config.yagiElementHeights?.dir1 || 84}
+                onChange={e => updateConfig('yagiElementHeights', { ...config.yagiElementHeights, dir1: parseInt(e.target.value) })}
+                className="flex-1 h-1 accent-cyan-400 bg-slate-800 rounded cursor-pointer"
+                data-testid="yagi-dir1-slider"
+              />
+              <span className="font-mono text-[9px] text-cyan-400 w-10">{config.yagiElementHeights?.dir1 || 84}"</span>
+            </div>
+            
+            {/* DIR2 & DIR3 - Fixed (taller) */}
+            <div className="flex items-center gap-2 opacity-60">
+              <span className="font-mono text-[9px] text-slate-600 w-12">DIR2/3</span>
+              <div className="flex-1 h-1 bg-slate-800 rounded" />
+              <span className="font-mono text-[9px] text-slate-500 w-10">{config.yagiElementHeights?.dir2 || 111}" (fixed)</span>
+            </div>
+          </div>
+
+          {/* Yagi Info */}
+          <div className="font-mono text-[8px] text-slate-600 pt-2 border-t border-white/5 space-y-0.5">
+            <div>Forward Gain: <span className="text-amber-400">+{YAGI_ARRAY_CONFIG.baseGainDB + (config.yagiStickType === 'fight-10' ? 1.5 : 0)}dB</span></div>
+            <div>Beam Width: <span className="text-amber-400">{YAGI_ARRAY_CONFIG.beamWidth}°</span></div>
+            <div className="text-slate-700">Pattern: Highly directional forward beam</div>
+          </div>
+        </div>
+      )}
 
       {/* Alternators */}
       <div className="space-y-3 mb-6">
@@ -207,6 +352,29 @@ export default function ControlPanel() {
       {/* Key Button */}
       <div className="flex-1 flex items-center justify-center">
         <KeyButton />
+      </div>
+
+      {/* Save Config */}
+      <div className="border-t border-white/5 pt-4 mt-4 pb-16 sm:pb-12">
+        <Label className="font-chakra text-[10px] uppercase tracking-[0.2em] text-slate-600 mb-2 block">Save Configuration</Label>
+        <div className="flex gap-2">
+          <Input
+            data-testid="save-config-name"
+            value={saveName}
+            onChange={e => setSaveName(e.target.value)}
+            placeholder="Config name..."
+            className="bg-void border-white/10 text-white font-mono text-xs h-8 flex-1 placeholder:text-slate-700"
+          />
+          <Button
+            data-testid="save-config-btn"
+            onClick={handleSave}
+            disabled={saving}
+            size="sm"
+            className="bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20 h-8 relative z-50"
+          >
+            <Save className="w-3.5 h-3.5" />
+          </Button>
+        </div>
       </div>
     </div>
   );
