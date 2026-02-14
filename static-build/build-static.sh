@@ -47,7 +47,7 @@ sed -i "s|from '@/lib/rfEngine'|from '@/lib/rfEngineStatic'|g" "$BUILD_DIR/src/c
 # Create simplified Dashboard without auth
 cat > "$BUILD_DIR/src/pages/DashboardStatic.js" << 'DASHBOARD_EOF'
 import { useRF } from '@/context/RFContextStatic';
-import { getRadiationPattern, VEHICLES, ANTENNA_POSITIONS } from '@/lib/rfEngineStatic';
+import { getRadiationPattern, getYagiRadiationPattern, VEHICLES, ANTENNA_POSITIONS } from '@/lib/rfEngineStatic';
 import Header from '@/components/HeaderStatic';
 import EquipmentRackStatic from '@/components/EquipmentRackStatic';
 import ControlPanel from '@/components/ControlPanel';
