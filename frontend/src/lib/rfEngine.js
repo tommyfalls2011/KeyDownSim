@@ -364,6 +364,63 @@ export function calculateSWR(antennaKey, vehicleKey, bonding, tipLength) {
   return Math.round(Math.max(1.0, swr) * 10) / 10;
 }
 
+// ─── Yagi Array SWR Calculation ───
+// SWR depends on element height tuning - optimal heights for the stick type give best SWR
+export function calculateYagiSWR(vehicleKey, bonding, yagiConfig) {
+  const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
+  const heights = yagiConfig?.elementHeights || {};
+  const stickType = yagiConfig?.stickType || 'fight-8';
+  
+  // Base SWR depends on ground plane and bonding
+  let baseSWR = 1.0;
+  const surfacePenalty = (1 - vehicle.groundPlane) * 1.5;
+  baseSWR += surfacePenalty;
+  
+  if (!bonding) {
+    baseSWR += 0.8;
+  }
+  
+  // Optimal element heights for each stick type (in inches)
+  const optimalHeights = stickType === 'fight-10' ? {
+    ant1: 120,  // 10' = 120"
+    ant2: 120,
+    dir1: 108,  // ~1' shorter
+    dir2: 135,  // ~15" taller
+    dir3: 135,
+  } : {
+    ant1: 96,   // 8' = 96"
+    ant2: 96,
+    dir1: 84,   // ~1' shorter
+    dir2: 111,  // ~15" taller
+    dir3: 111,
+  };
+  
+  // Calculate deviation from optimal for each tunable element
+  // ANT1, ANT2, DIR1 are tunable and affect SWR
+  const ant1Dev = Math.abs((heights.ant1 || optimalHeights.ant1) - optimalHeights.ant1);
+  const ant2Dev = Math.abs((heights.ant2 || optimalHeights.ant2) - optimalHeights.ant2);
+  const dir1Dev = Math.abs((heights.dir1 || optimalHeights.dir1) - optimalHeights.dir1);
+  
+  // Each inch off optimal adds SWR penalty
+  // ANT1 (reflector) has moderate impact
+  // ANT2 (driven element) has HIGH impact - this is the main radiator
+  // DIR1 (first director) has moderate impact on SWR tuning
+  const ant1Penalty = ant1Dev * 0.03;
+  const ant2Penalty = ant2Dev * 0.06;  // Driven element is most critical
+  const dir1Penalty = dir1Dev * 0.04;
+  
+  // Total SWR
+  let swr = baseSWR + ant1Penalty + ant2Penalty + dir1Penalty;
+  
+  // When all elements are tuned optimally (within 2"), give a bonus
+  const totalDev = ant1Dev + ant2Dev + dir1Dev;
+  if (totalDev <= 6) {
+    swr -= 0.3 * (1 - totalDev / 6);
+  }
+  
+  return Math.round(Math.max(1.0, Math.min(5.0, swr)) * 10) / 10;
+}
+
 export function calculateTakeoffAngle(vehicleKey, bonding) {
   const vehicle = VEHICLES[vehicleKey] || VEHICLES['suburban'];
   const bondingPenalty = bonding ? 0 : 15;
