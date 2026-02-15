@@ -309,7 +309,12 @@ export function RFProvider({ children }) {
     const driverSpecs = getAmpSpecs(config.driverTransistor, config.driverBoxSize, config.driverHeatsink);
     const midDriverSpecs = getAmpSpecs(config.midDriverTransistor, config.midDriverBoxSize, config.midDriverHeatsink);
     const finalSpecs = getAmpSpecs(config.finalTransistor, config.finalBoxSize, config.finalHeatsink);
-    const stages = calculateStageOutputs(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel);
+    const tickJumperConfig = {
+      radioToDriver: { cableType: config.jumperRadioToDriverType, lengthFt: config.jumperRadioToDriverLength },
+      driverToMid: { cableType: config.jumperDriverToMidType, lengthFt: config.jumperDriverToMidLength },
+      midToFinal: { cableType: config.jumperMidToFinalType, lengthFt: config.jumperMidToFinalLength },
+    };
+    const stages = calculateStageOutputs(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel, tickJumperConfig);
 
     const drvEffFactor = driverSpecs ? (1 - driverSpecs.efficiency) / (1 - 0.35) : 1;
     const midEffFactor = midDriverSpecs ? (1 - midDriverSpecs.efficiency) / (1 - 0.35) : 1;
