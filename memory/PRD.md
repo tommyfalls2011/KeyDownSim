@@ -93,6 +93,8 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - VPS deployment to IONOS (simulator.sma-antenna.org)
 - Yagi element position adjustments (±12" per element, SWR-reactive)
 - Equipment DB sync fix: All items now upserted on startup
+- **Drive-Based Compression Model**: Replaced linear gain with drive/saturation model for realistic amplifier power output
+- **Inter-Stage Jumper Cables**: Coax loss between amp stages with selectable cable type and length
 
 ### Future Tasks
 - P1: Refactor RFContext.js into smaller hooks
