@@ -297,6 +297,8 @@ class TestConfigurationSaveLoad:
         config_data = {
             "name": f"TEST_JumperConfig_{os.urandom(4).hex()}",
             "radio": "cobra-29",
+            "antenna": "whip-102",
+            "vehicle": "suburban",
             "driver_transistor": "toshiba-2sc2879",
             "driver_box_size": 3,
             "driver_heatsink": "medium",
