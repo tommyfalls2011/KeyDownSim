@@ -157,3 +157,18 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
   - 7-column metrics grid: Power, Peak, SWR Radio, SWR Ant, Amp Volts, Take-Off, Amp Temp
   - Physics-based impedance model: Z_load → Γ → SWR with feedline loss ("liar factor")
 - All tests passing (iteration_17: 100% backend, 100% frontend)
+
+### Feb 20, 2026 (Session 2)
+- **P0 Fix: Drive-Based Compression Model** — Replaced linear gain formula with realistic drive/saturation model
+  - Old model: `output = min(input × gain × voltageBoost, maxOutput)` → 15.6W from 3-pill Toshiba
+  - New model: `output = maxOutput × sqrt(input / driveRequired)` when under-driven
+  - Each transistor now has `driveWattsPerPill` in specs (e.g., Toshiba needs 4W/pill)
+  - Cobra 29 → 3-pill Toshiba: 78W dead key (was 15.6W), 313W peak
+  - Galaxy 959 → 3-pill: 128W dead key, Stryker 955 → 3-pill: 157W dead key
+- **P0 Fix: Inter-Stage Jumper Cables** — Added coax loss between amplifier stages
+  - 3 jumper cable types: RG-8X (1.4dB/100ft), RG-213 (0.5dB/100ft), LMR-400 (0.3dB/100ft)
+  - 5 length options: 3ft, 6ft, 10ft, 15ft, 20ft
+  - 0.3dB connector loss per jumper (2× PL-259)
+  - UI shows jumper rows between active amp stages (R→DRV, DRV→MID, MID→FIN)
+  - Jumpers affect signal chain calculations, thermal model, and under-driven detection
+- All tests passing (iteration_18: 100% backend 12/12, 95% frontend)
