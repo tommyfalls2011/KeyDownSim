@@ -281,6 +281,19 @@ export default function EquipmentRack() {
         resetKey="midDriver"
       />
 
+      {/* Jumper: Mid Driver (or Driver) → Final */}
+      {config.finalTransistor !== 'none' && config.finalBoxSize > 0 && (config.driverTransistor !== 'none' || config.midDriverTransistor !== 'none') && (
+        <JumperCable
+          label={config.midDriverTransistor !== 'none' && config.midDriverBoxSize > 0 ? 'MID→FIN' : 'DRV→FIN'}
+          cableTypeKey="jumper-mid-final-type"
+          cableLengthKey="jumper-mid-final-length"
+          cableType={config.jumperMidToFinalType}
+          cableLength={config.jumperMidToFinalLength}
+          onTypeChange={v => updateConfig('jumperMidToFinalType', v)}
+          onLengthChange={v => updateConfig('jumperMidToFinalLength', v)}
+        />
+      )}
+
       <AmpStageSelector
         label="Final Amplifier"
         slot="3U"
