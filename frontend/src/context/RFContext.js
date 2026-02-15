@@ -157,6 +157,12 @@ export function RFProvider({ children }) {
       tipLength: cfg.tip_length || 48,
       coaxType: cfg.coax_type || cfg.coaxType || 'rg213',
       coaxLengthFt: cfg.coax_length_ft ?? cfg.coaxLengthFt ?? 18,
+      jumperRadioToDriverType: cfg.jumper_radio_to_driver_type ?? cfg.jumperRadioToDriverType ?? 'rg213',
+      jumperRadioToDriverLength: cfg.jumper_radio_to_driver_length ?? cfg.jumperRadioToDriverLength ?? 3,
+      jumperDriverToMidType: cfg.jumper_driver_to_mid_type ?? cfg.jumperDriverToMidType ?? 'rg213',
+      jumperDriverToMidLength: cfg.jumper_driver_to_mid_length ?? cfg.jumperDriverToMidLength ?? 3,
+      jumperMidToFinalType: cfg.jumper_mid_to_final_type ?? cfg.jumperMidToFinalType ?? 'rg213',
+      jumperMidToFinalLength: cfg.jumper_mid_to_final_length ?? cfg.jumperMidToFinalLength ?? 3,
       keyed: false,
     });
     // Reset thermal on load
