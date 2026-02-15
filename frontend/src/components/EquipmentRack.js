@@ -368,7 +368,7 @@ export default function EquipmentRack() {
           </div>
           {driverSpecs && (() => {
             const avgV = (config.regulatorVoltages || [14.2]).reduce((a, b) => a + b, 0) / (config.regulatorVoltages || [14.2]).length;
-            const afterDriver = calculateSignalChain(config.radio, driverSpecs, null, null, config.bonding, config.antennaPosition, config.driveLevel, avgV);
+            const afterDriver = calculateSignalChain(config.radio, driverSpecs, null, null, config.bonding, config.antennaPosition, config.driveLevel, avgV, jumperConfig);
             return (
               <div className="flex justify-between">
                 <span>+ Driver (+{driverSpecs.gainDB}dB)</span>
@@ -378,7 +378,7 @@ export default function EquipmentRack() {
           })()}
           {midDriverSpecs && (() => {
             const avgV = (config.regulatorVoltages || [14.2]).reduce((a, b) => a + b, 0) / (config.regulatorVoltages || [14.2]).length;
-            const afterMid = calculateSignalChain(config.radio, driverSpecs, midDriverSpecs, null, config.bonding, config.antennaPosition, config.driveLevel, avgV);
+            const afterMid = calculateSignalChain(config.radio, driverSpecs, midDriverSpecs, null, config.bonding, config.antennaPosition, config.driveLevel, avgV, jumperConfig);
             return (
               <div className="flex justify-between">
                 <span>+ Mid Driver (+{midDriverSpecs.gainDB}dB)</span>
@@ -388,7 +388,7 @@ export default function EquipmentRack() {
           })()}
           {finalSpecs && (() => {
             const avgV = (config.regulatorVoltages || [14.2]).reduce((a, b) => a + b, 0) / (config.regulatorVoltages || [14.2]).length;
-            const full = calculateSignalChain(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.antennaPosition, config.driveLevel, avgV);
+            const full = calculateSignalChain(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.antennaPosition, config.driveLevel, avgV, jumperConfig);
             return (
               <div className="flex justify-between">
                 <span>+ Final (+{finalSpecs.gainDB}dB)</span>
