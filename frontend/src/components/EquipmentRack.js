@@ -213,6 +213,19 @@ export default function EquipmentRack() {
         </div>
       </RackUnit>
 
+      {/* Jumper: Radio → Driver */}
+      {config.driverTransistor !== 'none' && config.driverBoxSize > 0 && (
+        <JumperCable
+          label="R→DRV"
+          cableTypeKey="jumper-radio-driver-type"
+          cableLengthKey="jumper-radio-driver-length"
+          cableType={config.jumperRadioToDriverType}
+          cableLength={config.jumperRadioToDriverLength}
+          onTypeChange={v => updateConfig('jumperRadioToDriverType', v)}
+          onLengthChange={v => updateConfig('jumperRadioToDriverLength', v)}
+        />
+      )}
+
       <AmpStageSelector
         label="Driver Amplifier"
         slot="2U"
