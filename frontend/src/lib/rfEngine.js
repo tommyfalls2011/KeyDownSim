@@ -344,12 +344,13 @@ export function calculateStageOutputs(radioKey, driverSpecs, midDriverSpecs, fin
   };
 }
 
-export function calculateSignalChain(radioKey, driverSpecs, midDriverSpecs, finalSpecs, bonding, antennaPosKey, driveLevel, ampVoltage) {
+export function calculateSignalChain(radioKey, driverSpecs, midDriverSpecs, finalSpecs, bonding, antennaPosKey, driveLevel, ampVoltage, jumperConfig) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = driverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0 };
   const midDriver = midDriverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0 };
   const final_ = finalSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0 };
   const dl = driveLevel ?? 1.0;
+  const jumpers = jumperConfig || {};
 
   const nominalVoltage = 13.8;
   const voltage = ampVoltage ?? 14.2;
@@ -360,30 +361,27 @@ export function calculateSignalChain(radioKey, driverSpecs, midDriverSpecs, fina
   let peakKey = radio.peakKey * dl;
 
   if (driver.gainDB > 0) {
-    const driverGain = Math.pow(10, driver.gainDB / 10);
-    const stages = driver.combiningStages || 0;
-    const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    const driverMax = driver.transistors * (driver.wattsPerPill || 100) * combining * voltageBoost;
-    deadKey = Math.min(deadKey * driverGain * voltageBoost, driverMax);
-    peakKey = Math.min(peakKey * driverGain * voltageBoost, driverMax);
+    // Apply jumper loss from radio to driver
+    const j1 = jumpers.radioToDriver;
+    const j1Loss = j1 ? calculateJumperLoss(j1.cableType, j1.lengthFt) : 1.0;
+    deadKey = ampStageOutput(deadKey * j1Loss, driver, voltageBoost);
+    peakKey = ampStageOutput(peakKey * j1Loss, driver, voltageBoost);
   }
 
   if (midDriver.gainDB > 0) {
-    const midGain = Math.pow(10, midDriver.gainDB / 10);
-    const stages = midDriver.combiningStages || 0;
-    const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    const midMax = midDriver.transistors * (midDriver.wattsPerPill || 100) * combining * voltageBoost;
-    deadKey = Math.min(deadKey * midGain * voltageBoost, midMax);
-    peakKey = Math.min(peakKey * midGain * voltageBoost, midMax);
+    // Apply jumper loss from driver to mid-driver
+    const j2 = jumpers.driverToMid;
+    const j2Loss = j2 ? calculateJumperLoss(j2.cableType, j2.lengthFt) : 1.0;
+    deadKey = ampStageOutput(deadKey * j2Loss, midDriver, voltageBoost);
+    peakKey = ampStageOutput(peakKey * j2Loss, midDriver, voltageBoost);
   }
 
   if (final_.gainDB > 0) {
-    const finalGain = Math.pow(10, final_.gainDB / 10);
-    const stages = final_.combiningStages || 0;
-    const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
-    const finalMax = final_.transistors * (final_.wattsPerPill || 100) * combining * voltageBoost;
-    deadKey = Math.min(deadKey * finalGain * voltageBoost, finalMax);
-    peakKey = Math.min(peakKey * finalGain * voltageBoost, finalMax);
+    // Apply jumper loss from mid/driver to final
+    const j3 = jumpers.midToFinal;
+    const j3Loss = j3 ? calculateJumperLoss(j3.cableType, j3.lengthFt) : 1.0;
+    deadKey = ampStageOutput(deadKey * j3Loss, final_, voltageBoost);
+    peakKey = ampStageOutput(peakKey * j3Loss, final_, voltageBoost);
   }
 
   const bondingFactor = bonding ? 1.0 : 0.6;
