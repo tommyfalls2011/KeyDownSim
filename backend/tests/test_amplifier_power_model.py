@@ -277,10 +277,10 @@ class TestMultiStageChain:
 
 
 class TestConfigurationSaveLoad:
-    """Test that jumper cable settings are properly saved and loaded"""
+    """Test that amp stage settings are properly saved and loaded"""
 
-    def test_save_configuration_with_jumper_settings(self):
-        """Verify configuration save includes jumper cable fields"""
+    def test_save_configuration_with_amplifier_settings(self):
+        """Verify configuration save includes amplifier box size and transistor type"""
         # Login first
         login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
             "email": "fallstommy@gmail.com",
@@ -293,9 +293,9 @@ class TestConfigurationSaveLoad:
         token = login_response.json().get("token")
         headers = {"Authorization": f"Bearer {token}"}
         
-        # Create config with jumper settings
+        # Create config with amp settings (jumper settings are frontend-only local state)
         config_data = {
-            "name": f"TEST_JumperConfig_{os.urandom(4).hex()}",
+            "name": f"TEST_AmpConfig_{os.urandom(4).hex()}",
             "radio": "cobra-29",
             "antenna": "whip-102",
             "vehicle": "suburban",
@@ -305,24 +305,20 @@ class TestConfigurationSaveLoad:
             "final_transistor": "toshiba-2sc2879",
             "final_box_size": 8,
             "final_heatsink": "large",
-            "jumper_radio_to_driver_type": "rg8x",
-            "jumper_radio_to_driver_length": 6,
-            "jumper_driver_to_mid_type": "rg213",
-            "jumper_driver_to_mid_length": 3,
-            "jumper_mid_to_final_type": "lmr400",
-            "jumper_mid_to_final_length": 10
         }
         
         response = requests.post(f"{BASE_URL}/api/configurations", json=config_data, headers=headers)
         assert response.status_code in [200, 201], f"Failed to save config: {response.text}"
         
         saved = response.json()
-        assert saved.get("jumper_radio_to_driver_type") == "rg8x"
-        assert saved.get("jumper_radio_to_driver_length") == 6
-        assert saved.get("jumper_mid_to_final_type") == "lmr400"
-        assert saved.get("jumper_mid_to_final_length") == 10
+        assert saved.get("driver_transistor") == "toshiba-2sc2879", "Driver transistor should be saved"
+        assert saved.get("driver_box_size") == 3, "Driver box size (3-pill) should be saved"
+        assert saved.get("final_transistor") == "toshiba-2sc2879", "Final transistor should be saved"
+        assert saved.get("final_box_size") == 8, "Final box size (8-pill) should be saved"
         
-        print(f"Configuration saved with jumper settings: {saved.get('name')}")
+        print(f"Configuration saved with amp settings: {saved.get('name')}")
+        print(f"  Driver: {saved.get('driver_box_size')}-pill {saved.get('driver_transistor')}")
+        print(f"  Final: {saved.get('final_box_size')}-pill {saved.get('final_transistor')}")
 
 
 if __name__ == "__main__":
