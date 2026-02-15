@@ -403,9 +403,16 @@ export function RFProvider({ children }) {
   const regs = config.regulatorVoltages || [14.2];
   const avgRegV = regs.reduce((a, b) => a + b, 0) / regs.length;
 
+  // Build jumper config object from state
+  const jumperConfig = {
+    radioToDriver: { cableType: config.jumperRadioToDriverType, lengthFt: config.jumperRadioToDriverLength },
+    driverToMid: { cableType: config.jumperDriverToMidType, lengthFt: config.jumperDriverToMidLength },
+    midToFinal: { cableType: config.jumperMidToFinalType, lengthFt: config.jumperMidToFinalLength },
+  };
+
   // Calculate derived values - pass voltage to signal chain so watts scale with volts
-  const chain = calculateSignalChain(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.antennaPosition, config.driveLevel, avgRegV);
-  const stages = calculateStageOutputs(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel);
+  const chain = calculateSignalChain(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.antennaPosition, config.driveLevel, avgRegV, jumperConfig);
+  const stages = calculateStageOutputs(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel, jumperConfig);
   
   // SWR calculation - use Yagi SWR when in Yagi mode
   // Returns { atRadio, atAntenna } — feedline loss makes radio read lower
