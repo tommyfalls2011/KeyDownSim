@@ -359,7 +359,7 @@ export default function CanvasVisualizer() {
         const maxGain = Math.max(...pattern.map(p => p.gain));
         const targetScale = maxGain > 0 ? (maxR * 0.9) / maxGain : 1;
         // Smooth scale factor to prevent jittery resizing at high power
-        if (smoothScaleRef.current === 0) smoothScaleRef.current = targetScale;
+        if (isNaN(smoothScaleRef.current) || smoothScaleRef.current === 0) smoothScaleRef.current = targetScale;
         smoothScaleRef.current += (targetScale - smoothScaleRef.current) * 0.12;
         const scaleFactor = smoothScaleRef.current;
 
