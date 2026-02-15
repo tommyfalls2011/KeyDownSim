@@ -434,7 +434,7 @@ export function RFProvider({ children }) {
     yagiMode: config.yagiMode,
     rideHeightOffset: config.rideHeightOffset,
   });
-  const underDriven = checkUnderDriven(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel);
+  const underDriven = checkUnderDriven(config.radio, driverSpecs, midDriverSpecs, finalSpecs, config.bonding, config.driveLevel, jumperConfig);
 
   // Actual current draw — proportional to load, swings with modulation
   const driverLoadRatio = stages.driverLoadRatioDK + (stages.driverLoadRatioPK - stages.driverLoadRatioDK) * micLevel;
