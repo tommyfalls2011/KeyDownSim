@@ -267,13 +267,14 @@ export function mergeEquipmentFromAPI(apiData) {
 // ─── Calculation Functions ───
 
 // Per-stage output and load ratios — for thermal model and actual current draw
-export function calculateStageOutputs(radioKey, driverSpecs, midDriverSpecs, finalSpecs, bonding, driveLevel) {
+export function calculateStageOutputs(radioKey, driverSpecs, midDriverSpecs, finalSpecs, bonding, driveLevel, jumperConfig) {
   const radio = RADIOS[radioKey] || RADIOS['cobra-29'];
   const driver = driverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0, efficiency: 0.35 };
   const midDriver = midDriverSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0, efficiency: 0.35 };
   const final_ = finalSpecs || { gainDB: 0, transistors: 0, wattsPerPill: 0, combiningStages: 0, efficiency: 0.35 };
   const bondingFactor = bonding ? 1.0 : 0.6;
   const dl = driveLevel ?? 1.0;
+  const jumpers = jumperConfig || {};
 
   const radioDK = radio.deadKey * dl;
   const radioPK = radio.peakKey * dl;
@@ -283,36 +284,51 @@ export function calculateStageOutputs(radioKey, driverSpecs, midDriverSpecs, fin
   let inputToNextPK = radioPK;
 
   if (driver.gainDB > 0) {
-    const driverGain = Math.pow(10, driver.gainDB / 10);
+    // Apply jumper loss from radio to driver
+    const j1 = jumpers.radioToDriver;
+    const j1Loss = j1 ? calculateJumperLoss(j1.cableType, j1.lengthFt) : 1.0;
+    const driverInputDK = inputToNextDK * j1Loss;
+    const driverInputPK = inputToNextPK * j1Loss;
+
     const stages = driver.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
     driverMax = driver.transistors * (driver.wattsPerPill || 100) * combining;
-    driverOutDK = Math.min(radioDK * driverGain, driverMax);
-    driverOutPK = Math.min(radioPK * driverGain, driverMax);
+    driverOutDK = ampStageOutput(driverInputDK, driver, 1.0);
+    driverOutPK = ampStageOutput(driverInputPK, driver, 1.0);
     inputToNextDK = driverOutDK;
     inputToNextPK = driverOutPK;
   }
 
   let midDriverOutDK = 0, midDriverOutPK = 0, midDriverMax = 0;
   if (midDriver.gainDB > 0) {
-    const midGain = Math.pow(10, midDriver.gainDB / 10);
+    // Apply jumper loss from driver to mid-driver
+    const j2 = jumpers.driverToMid;
+    const j2Loss = j2 ? calculateJumperLoss(j2.cableType, j2.lengthFt) : 1.0;
+    const midInputDK = inputToNextDK * j2Loss;
+    const midInputPK = inputToNextPK * j2Loss;
+
     const stages = midDriver.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
     midDriverMax = midDriver.transistors * (midDriver.wattsPerPill || 100) * combining;
-    midDriverOutDK = Math.min(inputToNextDK * midGain, midDriverMax);
-    midDriverOutPK = Math.min(inputToNextPK * midGain, midDriverMax);
+    midDriverOutDK = ampStageOutput(midInputDK, midDriver, 1.0);
+    midDriverOutPK = ampStageOutput(midInputPK, midDriver, 1.0);
     inputToNextDK = midDriverOutDK;
     inputToNextPK = midDriverOutPK;
   }
 
   let finalOutDK = 0, finalOutPK = 0, finalMax = 0;
   if (final_.gainDB > 0) {
-    const finalGain = Math.pow(10, final_.gainDB / 10);
+    // Apply jumper loss from mid-driver (or driver) to final
+    const j3 = jumpers.midToFinal;
+    const j3Loss = j3 ? calculateJumperLoss(j3.cableType, j3.lengthFt) : 1.0;
+    const finalInputDK = inputToNextDK * j3Loss;
+    const finalInputPK = inputToNextPK * j3Loss;
+
     const stages = final_.combiningStages || 0;
     const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
     finalMax = final_.transistors * (final_.wattsPerPill || 100) * combining;
-    finalOutDK = Math.min(inputToNextDK * finalGain, finalMax);
-    finalOutPK = Math.min(inputToNextPK * finalGain, finalMax);
+    finalOutDK = ampStageOutput(finalInputDK, final_, 1.0);
+    finalOutPK = ampStageOutput(finalInputPK, final_, 1.0);
   }
 
   return {
