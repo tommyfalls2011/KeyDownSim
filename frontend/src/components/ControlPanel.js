@@ -48,6 +48,12 @@ export default function ControlPanel() {
         tip_length: config.tipLength,
         coax_type: config.coaxType,
         coax_length_ft: config.coaxLengthFt,
+        jumper_radio_to_driver_type: config.jumperRadioToDriverType,
+        jumper_radio_to_driver_length: config.jumperRadioToDriverLength,
+        jumper_driver_to_mid_type: config.jumperDriverToMidType,
+        jumper_driver_to_mid_length: config.jumperDriverToMidLength,
+        jumper_mid_to_final_type: config.jumperMidToFinalType,
+        jumper_mid_to_final_length: config.jumperMidToFinalLength,
       }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Config saved');
       setSaveName('');
