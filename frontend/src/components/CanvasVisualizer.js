@@ -361,6 +361,7 @@ export default function CanvasVisualizer() {
         // Smooth scale factor to prevent jittery resizing at high power
         if (isNaN(smoothScaleRef.current) || smoothScaleRef.current === 0) smoothScaleRef.current = targetScale;
         smoothScaleRef.current += (targetScale - smoothScaleRef.current) * 0.12;
+        if (isNaN(smoothScaleRef.current)) smoothScaleRef.current = 1;
         const scaleFactor = smoothScaleRef.current;
 
         // Distance model: base range in feet, scaled by antenna gain
