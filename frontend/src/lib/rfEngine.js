@@ -66,6 +66,7 @@ export function getAmpSpecs(transistorKey, boxSize, heatsinkKey) {
     transistors: boxSize,
     currentDraw: currentPerPill * boxSize,
     wattsPerPill: pill.wattsPEP,
+    driveWattsPerPill: pill.driveWatts,
     combiningStages,
     dissipation: pill.dissipation,
     tjMax: pill.tjMax,
@@ -73,6 +74,66 @@ export function getAmpSpecs(transistorKey, boxSize, heatsinkKey) {
     coolRate: heatsink.coolRate,
     heatsinkName: heatsink.name,
   };
+}
+
+// ─── Inter-Stage Jumper Cables ───
+// Short coax jumpers between amp stages in the rack
+// Loss = cable attenuation + connector loss (2× PL-259 per jumper ≈ 0.3dB)
+export const JUMPER_CABLES = {
+  'rg8x':   { name: 'RG-8X Mini',  lossPerHundredFt: 1.4,  desc: 'Thin, flexible' },
+  'rg213':  { name: 'RG-213',      lossPerHundredFt: 0.5,  desc: 'Standard 50Ω' },
+  'lmr400': { name: 'LMR-400',     lossPerHundredFt: 0.3,  desc: 'Low-loss jumper' },
+};
+export const JUMPER_LENGTHS = [3, 6, 10, 15, 20];
+const CONNECTOR_LOSS_DB = 0.3; // 2× PL-259 connectors per jumper
+
+// Calculate power loss through a jumper cable (returns multiplier 0-1)
+export function calculateJumperLoss(cableType, lengthFt) {
+  if (!cableType || cableType === 'none' || !lengthFt) return 1.0;
+  const cable = JUMPER_CABLES[cableType] || JUMPER_CABLES['rg213'];
+  const cableLossDB = (cable.lossPerHundredFt * lengthFt) / 100;
+  const totalLossDB = cableLossDB + CONNECTOR_LOSS_DB;
+  return Math.pow(10, -totalLossDB / 10); // convert dB loss to power ratio
+}
+
+// Get jumper loss in dB for display
+export function getJumperLossDB(cableType, lengthFt) {
+  if (!cableType || cableType === 'none' || !lengthFt) return 0;
+  const cable = JUMPER_CABLES[cableType] || JUMPER_CABLES['rg213'];
+  const cableLossDB = (cable.lossPerHundredFt * lengthFt) / 100;
+  return Math.round((cableLossDB + CONNECTOR_LOSS_DB) * 100) / 100;
+}
+
+// ─── Drive-Based Amp Stage Output ───
+// Real CB amps use a compression/saturation model, not pure linear gain.
+// Each transistor needs a specific drive power (driveWatts) to reach rated output.
+// Below that threshold, output follows a compression curve (sqrt).
+// Above it, output is at max (saturated).
+function ampStageOutput(inputPower, specs, voltageBoost) {
+  if (!specs || specs.gainDB <= 0) return inputPower;
+
+  const stages = specs.combiningStages || 0;
+  const combining = Math.pow(COMBINING_BONUS_PER_STAGE, stages);
+  const maxOutput = specs.transistors * (specs.wattsPerPill || 100) * combining * voltageBoost;
+
+  // Total drive watts needed to saturate all pills
+  const driveRequired = specs.transistors * (specs.driveWattsPerPill || 5);
+
+  if (driveRequired <= 0) {
+    // Fallback to linear gain if no drive spec
+    return Math.min(inputPower * Math.pow(10, specs.gainDB / 10) * voltageBoost, maxOutput);
+  }
+
+  const driveRatio = inputPower / driveRequired;
+
+  if (driveRatio >= 1.0) {
+    // Fully driven — output at rated max
+    return maxOutput;
+  } else {
+    // Under-driven — compression curve (sqrt gives realistic CB amp behavior)
+    // At 25% drive → 50% output, at 6.25% drive → 25% output
+    return maxOutput * Math.pow(driveRatio, 0.5);
+  }
 }
 
 const COMBINING_BONUS_PER_STAGE = 1.2;
