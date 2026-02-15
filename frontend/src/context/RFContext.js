@@ -36,6 +36,13 @@ const DEFAULT_STATE = {
   tipLength: 48,
   coaxType: 'rg213',
   coaxLengthFt: 18,
+  // Inter-stage jumper cables
+  jumperRadioToDriverType: 'rg213',
+  jumperRadioToDriverLength: 3,
+  jumperDriverToMidType: 'rg213',
+  jumperDriverToMidLength: 3,
+  jumperMidToFinalType: 'rg213',
+  jumperMidToFinalLength: 3,
   keyed: false,
   yagiMode: false,
   yagiStickType: 'fight-8',
