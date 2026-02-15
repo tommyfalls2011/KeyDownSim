@@ -575,7 +575,7 @@ export default function CanvasVisualizer() {
 
       // Power readout overlay
       if (keyed) {
-        const showWatts = Math.round(metrics.modulatedWatts);
+        const showWatts = Math.round(metrics.modulatedWatts || 0);
         const isModulating = metrics.micLevel > 0.05;
         const hueW = showWatts > metrics.deadKeyWatts * 1.2 ? 48 : 186;
         ctx.fillStyle = `hsla(${hueW},100%,60%,${0.7 * intensity})`;
