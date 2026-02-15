@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useRF } from '@/context/RFContext';
-import { RADIOS, ANTENNAS, TRANSISTORS, BOX_SIZES, HEATSINKS, calculateSignalChain, getRecommendedHeatsink, isHeatsinkUndersized } from '@/lib/rfEngine';
+import { RADIOS, ANTENNAS, TRANSISTORS, BOX_SIZES, HEATSINKS, JUMPER_CABLES, JUMPER_LENGTHS, calculateSignalChain, getRecommendedHeatsink, isHeatsinkUndersized, getJumperLossDB } from '@/lib/rfEngine';
 import RackUnit from '@/components/RackUnit';
 import ThermalPreview from '@/components/ThermalPreview';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
