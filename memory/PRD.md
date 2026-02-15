@@ -98,7 +98,8 @@ Build a "Key Down" RF Visualizer application — a real-time, canvas-based 2D/ps
 - P1: Refactor RFContext.js into smaller hooks
 - P2: Refactor AdminPage.js into smaller child components
 - P3: Move build-static.sh inline components to dedicated files
-- P4: Update static build to support new transistor system + 5-tier heatsinks
+- P4: Update static build to support new drive-based amp model + jumper cables
+- P4: Guide user on VPS deployment update: `cd /var/www/keydown && git pull && cd frontend && npx craco build && systemctl restart keydown-backend`
 
 ## 3rd Party Integrations
 - **Stripe** — Payment/subscription (test mode)
