@@ -4,7 +4,38 @@ import { RADIOS, ANTENNAS, TRANSISTORS, BOX_SIZES, HEATSINKS, JUMPER_CABLES, JUM
 import RackUnit from '@/components/RackUnit';
 import ThermalPreview from '@/components/ThermalPreview';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, Flame, RotateCcw, Thermometer } from 'lucide-react';
+import { AlertTriangle, Flame, RotateCcw, Thermometer, Cable } from 'lucide-react';
+
+function JumperCable({ label, cableTypeKey, cableLengthKey, cableType, cableLength, onTypeChange, onLengthChange }) {
+  const lossDB = getJumperLossDB(cableType, cableLength);
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/50 border-l-2 border-amber-500/30" data-testid={`jumper-${cableTypeKey}`}>
+      <Cable className="w-3 h-3 text-amber-500/60 shrink-0" />
+      <span className="font-mono text-[8px] text-slate-600 w-14 shrink-0">{label}</span>
+      <Select value={cableType} onValueChange={onTypeChange}>
+        <SelectTrigger className="bg-void border-white/10 text-white font-mono text-[10px] h-6 flex-1 min-w-0" data-testid={`${cableTypeKey}-select`}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-panel border-white/10">
+          {Object.entries(JUMPER_CABLES).map(([key, c]) => (
+            <SelectItem key={key} value={key} className="font-mono text-xs text-slate-300">{c.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={String(cableLength)} onValueChange={v => onLengthChange(parseInt(v))}>
+        <SelectTrigger className="bg-void border-white/10 text-white font-mono text-[10px] h-6 w-16 shrink-0" data-testid={`${cableLengthKey}-select`}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-panel border-white/10">
+          {JUMPER_LENGTHS.map(ft => (
+            <SelectItem key={ft} value={String(ft)} className="font-mono text-xs text-slate-300">{ft}ft</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <span className="font-mono text-[8px] text-red-400/70 w-12 text-right shrink-0">-{lossDB}dB</span>
+    </div>
+  );
+}
 
 function TempBar({ temp, blown, tjMax }) {
   const blowTemp = tjMax || 175;
